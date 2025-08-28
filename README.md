@@ -37,9 +37,18 @@ By configuring a system prompt, you can streamline vulnerability assessments.
 This project is just Vibe Coding.
 I will improve it someday.
 
+- Docker Image: gradle:9.0.0-jdk21-noble
+  - Java
+  - Gradle
+
 ---
 
 ## PREPARING
+
+```shell
+cd airis
+./build.sh
+```
 
 ---
 
