@@ -5,39 +5,35 @@ import com.airis.burp.ai.core.AnalysisResponse;
 import java.util.HashMap;
 import java.util.Map;
 
+package com.airis.burp.ai.llm;
+
+import com.airis.burp.ai.core.AnalysisRequest;
+import com.airis.burp.ai.core.AnalysisResponse;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import java.util.Map;
+import java.util.HashMap;
+
 public class OpenAIClientTest {
     private OpenAIClient openAIClient;
 
-    public static void main(String[] args) {
-        OpenAIClientTest test = new OpenAIClientTest();
-        test.runAllTests();
-    }
-
-    public void runAllTests() {
-        testInitialization();
-        testFormatRequest();
-        testParseResponse();
-        testAnalyzeWithMockResponse();
-        testErrorHandling();
-        System.out.println("All tests passed!");
-    }
-
-    private void setUp() {
+    @BeforeEach
+    public void setUp() {
         openAIClient = new OpenAIClient();
         openAIClient.setEndpoint("https://api.openai.com/v1/chat/completions");
         openAIClient.setApiKey("test-key");
     }
 
-    private void testInitialization() {
-        setUp();
+    @Test
+    public void testInitialization() {
         assertEquals("https://api.openai.com/v1/chat/completions", openAIClient.getEndpoint());
         assertEquals("test-key", openAIClient.getApiKey());
         assertEquals(30000, openAIClient.getTimeout()); // Default timeout
-        System.out.println("✓ testInitialization");
     }
 
-    private void testFormatRequest() {
-        setUp();
+    @Test
+    public void testFormatRequest() {
         AnalysisRequest request = createTestRequest();
         String systemPrompt = "Analyze for security issues";
         
@@ -49,11 +45,10 @@ public class OpenAIClientTest {
         assertTrue(jsonRequest.contains(systemPrompt));
         assertTrue(jsonRequest.contains(request.getMethod()));
         assertTrue(jsonRequest.contains(request.getUrl()));
-        System.out.println("✓ testFormatRequest");
     }
 
-    private void testParseResponse() {
-        setUp();
+    @Test
+    public void testParseResponse() {
         String mockResponse = "{\n" +
             "  \"choices\": [{\n" +
             "    \"message\": {\n" +
@@ -66,11 +61,10 @@ public class OpenAIClientTest {
         
         assertNotNull(response);
         assertEquals("Analysis: This request exposes user ID in URL path", response.getAnalysis());
-        System.out.println("✓ testParseResponse");
     }
 
-    private void testAnalyzeWithMockResponse() {
-        setUp();
+    @Test
+    public void testAnalyzeWithMockResponse() {
         // Since we can't make real API calls in tests, we test the mock functionality
         OpenAIClient mockClient = new TestableOpenAIClient();
         mockClient.setEndpoint("https://api.openai.com/v1/chat/completions");
@@ -84,12 +78,10 @@ public class OpenAIClientTest {
         assertNotNull(response);
         assertNotEquals("", response.getAnalysis());
         assertTrue(response.getResponseTime() >= 0);
-        System.out.println("✓ testAnalyzeWithMockResponse");
     }
 
-    private void testErrorHandling() {
-        setUp();
-        
+    @Test
+    public void testErrorHandling() {
         // Test with null request
         AnalysisResponse response = openAIClient.analyze(null, "prompt");
         assertNotNull(response);
@@ -105,8 +97,6 @@ public class OpenAIClientTest {
         AnalysisResponse parsedResponse = openAIClient.parseResponse("invalid json");
         assertNotNull(parsedResponse);
         assertEquals("", parsedResponse.getAnalysis());
-        
-        System.out.println("✓ testErrorHandling");
     }
 
     private AnalysisRequest createTestRequest() {
@@ -137,37 +127,6 @@ public class OpenAIClientTest {
                 "    }\n" +
                 "  }]\n" +
                 "}";
-        }
-    }
-
-    // Simple assertions
-    private void assertEquals(String expected, String actual) {
-        if (!expected.equals(actual)) {
-            throw new AssertionError("Expected: " + expected + ", but was: " + actual);
-        }
-    }
-
-    private void assertEquals(int expected, int actual) {
-        if (expected != actual) {
-            throw new AssertionError("Expected: " + expected + ", but was: " + actual);
-        }
-    }
-
-    private void assertNotNull(Object obj) {
-        if (obj == null) {
-            throw new AssertionError("Expected non-null value");
-        }
-    }
-
-    private void assertNotEquals(String expected, String actual) {
-        if (expected.equals(actual)) {
-            throw new AssertionError("Expected different values, but both were: " + expected);
-        }
-    }
-
-    private void assertTrue(boolean condition) {
-        if (!condition) {
-            throw new AssertionError("Expected true, but was false");
         }
     }
 }

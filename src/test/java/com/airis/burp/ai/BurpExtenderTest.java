@@ -1,50 +1,39 @@
 package com.airis.burp.ai;
 
 import com.airis.burp.ai.config.ConfigManager;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BurpExtenderTest {
     private BurpExtender burpExtender;
     private MockBurpExtenderCallbacks mockCallbacks;
 
-    public static void main(String[] args) {
-        BurpExtenderTest test = new BurpExtenderTest();
-        test.runAllTests();
-    }
-
-    public void runAllTests() {
-        testRegisterExtension();
-        testInitialization();
-        testGetConfigManager();
-        testGetExtensionName();
-        System.out.println("All tests passed!");
-    }
-
-    private void setUp() {
+    @BeforeEach
+    public void setUp() {
         burpExtender = new BurpExtender();
         mockCallbacks = new MockBurpExtenderCallbacks();
     }
 
-    private void testRegisterExtension() {
-        setUp();
+    @Test
+    public void testRegisterExtension() {
         burpExtender.registerExtenderCallbacks(mockCallbacks);
         
         // Verify that the extension was properly registered
         assertTrue(mockCallbacks.isExtensionRegistered());
         assertEquals("AI Security Analyzer", mockCallbacks.getRegisteredExtensionName());
-        System.out.println("✓ testRegisterExtension");
     }
 
-    private void testInitialization() {
-        setUp();
+    @Test
+    public void testInitialization() {
         burpExtender.registerExtenderCallbacks(mockCallbacks);
         
         // Verify that components were initialized
         assertNotNull(burpExtender.getConfigManager());
-        System.out.println("✓ testInitialization");
     }
 
-    private void testGetConfigManager() {
-        setUp();
+    @Test
+    public void testGetConfigManager() {
         burpExtender.registerExtenderCallbacks(mockCallbacks);
         
         ConfigManager configManager = burpExtender.getConfigManager();
@@ -53,14 +42,12 @@ public class BurpExtenderTest {
         // Should return the same instance on subsequent calls
         ConfigManager configManager2 = burpExtender.getConfigManager();
         assertTrue(configManager == configManager2);
-        System.out.println("✓ testGetConfigManager");
     }
 
-    private void testGetExtensionName() {
-        setUp();
+    @Test
+    public void testGetExtensionName() {
         String extensionName = burpExtender.getExtensionName();
         assertEquals("AI Security Analyzer", extensionName);
-        System.out.println("✓ testGetExtensionName");
     }
 
     // Mock implementation of IBurpExtenderCallbacks
@@ -87,25 +74,6 @@ public class BurpExtenderTest {
 
         public String getRegisteredExtensionName() {
             return registeredExtensionName;
-        }
-    }
-
-    // Simple assertions
-    private void assertEquals(String expected, String actual) {
-        if (!expected.equals(actual)) {
-            throw new AssertionError("Expected: " + expected + ", but was: " + actual);
-        }
-    }
-
-    private void assertNotNull(Object obj) {
-        if (obj == null) {
-            throw new AssertionError("Expected non-null value");
-        }
-    }
-
-    private void assertTrue(boolean condition) {
-        if (!condition) {
-            throw new AssertionError("Expected true, but was false");
         }
     }
 }

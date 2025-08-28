@@ -6,8 +6,11 @@ plugins {
 group = 'com.airis.burp'
 version = '1.0.0'
 
-sourceCompatibility = '11'
-targetCompatibility = '11'
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
 
 repositories {
     mavenCentral()
@@ -29,6 +32,7 @@ dependencies {
     
     // Testing
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.mockito:mockito-core:5.7.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.7.0'
 }
@@ -41,9 +45,13 @@ test {
 }
 
 jar {
+    archiveFileName = 'airis-burp.jar'
     manifest {
         attributes(
-            'Main-Class': 'com.airis.burp.ai.BurpExtender'
+            'Main-Class': 'com.airis.burp.ai.BurpExtender',
+            'Implementation-Title': 'airis',
+            'Implementation-Version': version,
+            'Implementation-Vendor': 'AIRIS'
         )
     }
     from {

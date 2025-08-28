@@ -13,7 +13,7 @@ import com.airis.burp.ai.ui.RepeaterContextMenuFactory;
  */
 public class BurpExtender implements IBurpExtender {
     
-    private static final String EXTENSION_NAME = "AI Security Analyzer";
+    private static final String EXTENSION_NAME = "airis";
     
     private IBurpExtenderCallbacks callbacks;
     private ConfigManager configManager;
@@ -39,12 +39,12 @@ public class BurpExtender implements IBurpExtender {
             callbacks.registerContextMenuFactory(menuFactory);
             
             // Print startup message
-            callbacks.printOutput("AI Security Analyzer extension loaded successfully");
+            callbacks.printOutput("airis extension loaded successfully");
             callbacks.printOutput("Version: 1.0.0");
-            callbacks.printOutput("Configure your LLM settings in the AI Security Analyzer tab");
+            callbacks.printOutput("Configure your LLM settings in the airis tab");
             
         } catch (Exception e) {
-            callbacks.printError("Failed to load AI Security Analyzer extension: " + e.getMessage());
+            callbacks.printError("Failed to load airis extension: " + e.getMessage());
             e.printStackTrace(callbacks.getStderr());
         }
     }

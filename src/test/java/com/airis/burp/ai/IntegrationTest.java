@@ -10,22 +10,34 @@ import com.airis.burp.ai.llm.OpenAIClient;
 import java.util.HashMap;
 import java.util.Map;
 
+package com.airis.burp.ai;
+
+import com.airis.burp.ai.config.ConfigManager;
+import com.airis.burp.ai.config.ConfigModel;
+import com.airis.burp.ai.core.AnalysisEngine;
+import com.airis.burp.ai.core.AnalysisRequest;
+import com.airis.burp.ai.core.AnalysisResponse;
+import com.airis.burp.ai.core.RequestProcessor;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.*;
+import java.util.Map;
+import java.io.File;
+
 public class IntegrationTest {
+
+    @AfterEach
+    public void cleanupTestFiles() {
+        File file1 = new File("integration_test_config.json");
+        File file2 = new File("persistence_test_config.json");
+        
+        if (file1.exists()) file1.delete();
+        if (file2.exists()) file2.delete();
+    }
     
-    public static void main(String[] args) {
-        IntegrationTest test = new IntegrationTest();
-        test.runAllTests();
-    }
-
-    public void runAllTests() {
-        testEndToEndWorkflow();
-        testConfigurationPersistence();
-        testHttpRequestProcessing();
-        cleanupTestFiles();
-        System.out.println("All integration tests passed!");
-    }
-
-    private void testEndToEndWorkflow() {
+    @Test
+    public void testEndToEndWorkflow() {
         // Test complete workflow: Config -> Request Processing -> Analysis
         ConfigManager configManager = new ConfigManager("integration_test_config.json");
         
@@ -60,11 +72,10 @@ public class IntegrationTest {
         } catch (Exception e) {
             // Expected since we don't have real HTTP implementation
         }
-        
-        System.out.println("✓ testEndToEndWorkflow");
     }
 
-    private void testConfigurationPersistence() {
+    @Test
+    public void testConfigurationPersistence() {
         String configPath = "persistence_test_config.json";
         ConfigManager configManager1 = new ConfigManager(configPath);
         
@@ -89,11 +100,10 @@ public class IntegrationTest {
         // Test encryption/decryption
         String decryptedKey = configManager2.decryptApiKey(loadedConfig.getEncryptedApiKey());
         assertEquals("anthropic-key-123", decryptedKey);
-        
-        System.out.println("✓ testConfigurationPersistence");
     }
 
-    private void testHttpRequestProcessing() {
+    @Test
+    public void testHttpRequestProcessing() {
         RequestProcessor processor = new RequestProcessor();
         
         // Test complex HTTP request parsing
@@ -132,46 +142,5 @@ public class IntegrationTest {
         System.out.println("Sanitized body: " + sanitizedBody);
         assertTrue(sanitizedBody.contains("[REDACTED]")); // Password should be redacted
         assertFalse(sanitizedBody.contains("newpass123"));
-        
-        System.out.println("✓ testHttpRequestProcessing");
-    }
-
-    private void cleanupTestFiles() {
-        java.io.File file1 = new java.io.File("integration_test_config.json");
-        java.io.File file2 = new java.io.File("persistence_test_config.json");
-        
-        if (file1.exists()) file1.delete();
-        if (file2.exists()) file2.delete();
-    }
-
-    // Simple assertions
-    private void assertEquals(String expected, String actual) {
-        if (!expected.equals(actual)) {
-            throw new AssertionError("Expected: " + expected + ", but was: " + actual);
-        }
-    }
-
-    private void assertEquals(int expected, int actual) {
-        if (expected != actual) {
-            throw new AssertionError("Expected: " + expected + ", but was: " + actual);
-        }
-    }
-
-    private void assertNotNull(Object obj) {
-        if (obj == null) {
-            throw new AssertionError("Expected non-null value");
-        }
-    }
-
-    private void assertTrue(boolean condition) {
-        if (!condition) {
-            throw new AssertionError("Expected true, but was false");
-        }
-    }
-
-    private void assertFalse(boolean condition) {
-        if (condition) {
-            throw new AssertionError("Expected false, but was true");
-        }
     }
 }

@@ -3,42 +3,41 @@ package com.airis.burp.ai.core;
 import com.airis.burp.ai.config.ConfigManager;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.LLMClient;
-import java.util.HashMap;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.*;
 import java.util.Map;
+import java.util.HashMap;
+import java.io.File;
 
 public class AnalysisEngineTest {
     private AnalysisEngine analysisEngine;
     private ConfigManager configManager;
 
-    public static void main(String[] args) {
-        AnalysisEngineTest test = new AnalysisEngineTest();
-        test.runAllTests();
-    }
-
-    public void runAllTests() {
-        testInitialization();
-        testAnalyzeRequest();
-        testAnalyzeWithInvalidConfig();
-        testAnalyzeWithEmptyRequest();
-        testSetConfiguration();
-        System.out.println("All tests passed!");
-    }
-
-    private void setUp() {
+    @BeforeEach
+    public void setUp() {
         configManager = new ConfigManager("test_analysis_config.json");
         analysisEngine = new AnalysisEngine(configManager);
     }
 
-    private void testInitialization() {
-        setUp();
-        assertNotNull(analysisEngine);
-        assertNotNull(analysisEngine.getConfigManager());
-        System.out.println("✓ testInitialization");
+    @AfterEach
+    public void tearDown() {
+        // Clean up test config file
+        File testFile = new File("test_analysis_config.json");
+        if (testFile.exists()) {
+            testFile.delete();
+        }
     }
 
-    private void testAnalyzeRequest() {
-        setUp();
-        
+    @Test
+    public void testInitialization() {
+        assertNotNull(analysisEngine);
+        assertNotNull(analysisEngine.getConfigManager());
+    }
+
+    @Test
+    public void testAnalyzeRequest() {
         // Setup valid configuration
         ConfigModel config = new ConfigModel();
         config.setProvider("openai");
@@ -58,12 +57,10 @@ public class AnalysisEngineTest {
         assertNotNull(response);
         assertNotEquals("", response.getAnalysis());
         assertTrue(response.getResponseTime() >= 0);
-        System.out.println("✓ testAnalyzeRequest");
     }
 
-    private void testAnalyzeWithInvalidConfig() {
-        setUp();
-        
+    @Test
+    public void testAnalyzeWithInvalidConfig() {
         // Don't save any config (invalid state)
         AnalysisRequest request = createTestRequest();
         
@@ -71,12 +68,10 @@ public class AnalysisEngineTest {
         
         assertNotNull(response);
         assertEquals("", response.getAnalysis());
-        System.out.println("✓ testAnalyzeWithInvalidConfig");
     }
 
-    private void testAnalyzeWithEmptyRequest() {
-        setUp();
-        
+    @Test
+    public void testAnalyzeWithEmptyRequest() {
         // Setup valid configuration
         ConfigModel config = new ConfigModel();
         config.setProvider("openai");
@@ -89,12 +84,10 @@ public class AnalysisEngineTest {
         
         assertNotNull(response);
         assertEquals("", response.getAnalysis());
-        System.out.println("✓ testAnalyzeWithEmptyRequest");
     }
 
-    private void testSetConfiguration() {
-        setUp();
-        
+    @Test
+    public void testSetConfiguration() {
         ConfigModel config = new ConfigModel();
         config.setProvider("anthropic");
         config.setEndpoint("https://api.anthropic.com/v1/messages");
@@ -109,7 +102,6 @@ public class AnalysisEngineTest {
         assertEquals("https://api.anthropic.com/v1/messages", savedConfig.getEndpoint());
         assertEquals("encrypted-anthropic-key", savedConfig.getEncryptedApiKey());
         assertEquals("Custom analysis prompt", savedConfig.getSystemPrompt());
-        System.out.println("✓ testSetConfiguration");
     }
 
     private AnalysisRequest createTestRequest() {
@@ -162,31 +154,6 @@ public class AnalysisEngineTest {
 
         public int getTimeout() {
             return timeout;
-        }
-    }
-
-    // Simple assertions
-    private void assertEquals(String expected, String actual) {
-        if (!expected.equals(actual)) {
-            throw new AssertionError("Expected: " + expected + ", but was: " + actual);
-        }
-    }
-
-    private void assertNotNull(Object obj) {
-        if (obj == null) {
-            throw new AssertionError("Expected non-null value");
-        }
-    }
-
-    private void assertNotEquals(String expected, String actual) {
-        if (expected.equals(actual)) {
-            throw new AssertionError("Expected different values, but both were: " + expected);
-        }
-    }
-
-    private void assertTrue(boolean condition) {
-        if (!condition) {
-            throw new AssertionError("Expected true, but was false");
         }
     }
 }

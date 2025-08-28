@@ -1,31 +1,20 @@
 package com.airis.burp.ai.core;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 import java.util.Map;
-import java.util.HashMap;
 
 public class RequestProcessorTest {
     private RequestProcessor requestProcessor;
 
-    public static void main(String[] args) {
-        RequestProcessorTest test = new RequestProcessorTest();
-        test.runAllTests();
-    }
-
-    public void runAllTests() {
-        testParseHttpRequest();
-        testParseHttpResponse();
-        testCreateAnalysisRequest();
-        testSanitizeData();
-        testExtractHeaders();
-        System.out.println("All tests passed!");
-    }
-
-    private void setUp() {
+    @BeforeEach
+    public void setUp() {
         requestProcessor = new RequestProcessor();
     }
 
-    private void testParseHttpRequest() {
-        setUp();
+    @Test
+    public void testParseHttpRequest() {
         String httpRequest = "GET /api/users/123?active=true HTTP/1.1\r\n" +
                 "Host: example.com\r\n" +
                 "Authorization: Bearer token123\r\n" +
@@ -44,11 +33,10 @@ public class RequestProcessorTest {
         assertTrue(request.getHeaders().containsKey("Authorization"));
         assertEquals("Bearer token123", request.getHeaders().get("Authorization"));
         assertEquals("{\"query\": \"test\"}", request.getBody());
-        System.out.println("✓ testParseHttpRequest");
     }
 
-    private void testParseHttpResponse() {
-        setUp();
+    @Test
+    public void testParseHttpResponse() {
         String httpResponse = "HTTP/1.1 200 OK\r\n" +
                 "Content-Type: application/json\r\n" +
                 "Set-Cookie: session=abc123\r\n" +
@@ -60,11 +48,10 @@ public class RequestProcessorTest {
         
         assertEquals(200, request.getStatusCode());
         assertEquals("{\"id\": 123, \"name\": \"John\"}", request.getResponseBody());
-        System.out.println("✓ testParseHttpResponse");
     }
 
-    private void testCreateAnalysisRequest() {
-        setUp();
+    @Test
+    public void testCreateAnalysisRequest() {
         String httpRequest = "POST /login HTTP/1.1\r\n" +
                 "Host: example.com\r\n" +
                 "Content-Type: application/x-www-form-urlencoded\r\n" +
@@ -83,12 +70,10 @@ public class RequestProcessorTest {
         assertEquals("/login", analysisRequest.getUrl());
         assertEquals(302, analysisRequest.getStatusCode());
         assertEquals("username=admin&password=secret", analysisRequest.getBody());
-        System.out.println("✓ testCreateAnalysisRequest");
     }
 
-    private void testSanitizeData() {
-        setUp();
-        
+    @Test
+    public void testSanitizeData() {
         // Test password sanitization
         String sensitiveData = "password=secret123&username=admin&api_key=sk-1234567890";
         String sanitized = requestProcessor.sanitizeData(sensitiveData);
@@ -97,11 +82,10 @@ public class RequestProcessorTest {
         assertFalse(sanitized.contains("secret123"));
         assertFalse(sanitized.contains("sk-1234567890"));
         assertTrue(sanitized.contains("[REDACTED]"));
-        System.out.println("✓ testSanitizeData");
     }
 
-    private void testExtractHeaders() {
-        setUp();
+    @Test
+    public void testExtractHeaders() {
         String headerLines = "Host: example.com\r\n" +
                 "Authorization: Bearer token123\r\n" +
                 "Content-Type: application/json\r\n" +
@@ -115,43 +99,5 @@ public class RequestProcessorTest {
         assertEquals("Bearer token123", headers.get("Authorization"));
         assertEquals("application/json", headers.get("Content-Type"));
         assertEquals("test-value", headers.get("X-Custom-Header"));
-        System.out.println("✓ testExtractHeaders");
-    }
-
-    // Simple assertions
-    private void assertEquals(String expected, String actual) {
-        if (!expected.equals(actual)) {
-            throw new AssertionError("Expected: " + expected + ", but was: " + actual);
-        }
-    }
-
-    private void assertEquals(int expected, int actual) {
-        if (expected != actual) {
-            throw new AssertionError("Expected: " + expected + ", but was: " + actual);
-        }
-    }
-
-    private void assertNotNull(Object obj) {
-        if (obj == null) {
-            throw new AssertionError("Expected non-null value");
-        }
-    }
-
-    private void assertNotEquals(String expected, String actual) {
-        if (expected.equals(actual)) {
-            throw new AssertionError("Expected different values, but both were: " + expected);
-        }
-    }
-
-    private void assertTrue(boolean condition) {
-        if (!condition) {
-            throw new AssertionError("Expected true, but was false");
-        }
-    }
-
-    private void assertFalse(boolean condition) {
-        if (condition) {
-            throw new AssertionError("Expected false, but was true");
-        }
     }
 }

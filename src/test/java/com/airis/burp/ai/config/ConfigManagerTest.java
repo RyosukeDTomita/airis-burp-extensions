@@ -2,44 +2,41 @@ package com.airis.burp.ai.config;
 
 import java.io.File;
 
+package com.airis.burp.ai.config;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.*;
+import java.io.File;
+
 public class ConfigManagerTest {
     private ConfigManager configManager;
     private String testConfigPath = "test_manager_config.json";
 
-    public static void main(String[] args) {
-        ConfigManagerTest test = new ConfigManagerTest();
-        test.runAllTests();
-    }
-
-    public void runAllTests() {
-        testLoadDefaultConfig();
-        testSaveAndLoadConfig();
-        testEncryptApiKey();
-        testDecryptApiKey();
-        testValidateConfig();
-        testGetDefaultSystemPrompt();
-        cleanupTestFiles();
-        System.out.println("All tests passed!");
-    }
-
-    private void setUp() {
+    @BeforeEach
+    public void setUp() {
         configManager = new ConfigManager(testConfigPath);
         cleanupTestFiles();
     }
 
-    private void testLoadDefaultConfig() {
-        setUp();
+    @AfterEach
+    public void tearDown() {
+        cleanupTestFiles();
+    }
+
+    @Test
+    public void testLoadDefaultConfig() {
         ConfigModel config = configManager.loadConfig();
         assertNotNull(config);
         assertEquals("", config.getProvider());
         assertEquals("", config.getEndpoint());
         assertEquals("", config.getEncryptedApiKey());
         assertNotEquals("", config.getSystemPrompt()); // Should have default prompt
-        System.out.println("✓ testLoadDefaultConfig");
     }
 
-    private void testSaveAndLoadConfig() {
-        setUp();
+    @Test
+    public void testSaveAndLoadConfig() {
         ConfigModel config = new ConfigModel();
         config.setProvider("openai");
         config.setEndpoint("https://api.openai.com/v1/chat/completions");
@@ -53,32 +50,29 @@ public class ConfigManagerTest {
         assertEquals(config.getEndpoint(), loaded.getEndpoint());
         assertEquals(config.getEncryptedApiKey(), loaded.getEncryptedApiKey());
         assertEquals(config.getSystemPrompt(), loaded.getSystemPrompt());
-        System.out.println("✓ testSaveAndLoadConfig");
     }
 
-    private void testEncryptApiKey() {
-        setUp();
+    @Test
+    public void testEncryptApiKey() {
         String plainKey = "sk-1234567890abcdef";
         String encrypted = configManager.encryptApiKey(plainKey);
         
         assertNotNull(encrypted);
         assertNotEquals("", encrypted);
         assertNotEquals(plainKey, encrypted);
-        System.out.println("✓ testEncryptApiKey");
     }
 
-    private void testDecryptApiKey() {
-        setUp();
+    @Test
+    public void testDecryptApiKey() {
         String plainKey = "sk-1234567890abcdef";
         String encrypted = configManager.encryptApiKey(plainKey);
         String decrypted = configManager.decryptApiKey(encrypted);
         
         assertEquals(plainKey, decrypted);
-        System.out.println("✓ testDecryptApiKey");
     }
 
-    private void testValidateConfig() {
-        setUp();
+    @Test
+    public void testValidateConfig() {
         ConfigModel config = new ConfigModel();
         
         assertFalse(configManager.validateConfig(config));
@@ -103,53 +97,20 @@ public class ConfigManagerTest {
         config.setProvider("openai");
         config.setEndpoint("http://insecure.com");
         assertFalse(configManager.validateConfig(config));
-        System.out.println("✓ testValidateConfig");
     }
 
-    private void testGetDefaultSystemPrompt() {
-        setUp();
+    @Test
+    public void testGetDefaultSystemPrompt() {
         String defaultPrompt = configManager.getDefaultSystemPrompt();
         assertNotNull(defaultPrompt);
         assertNotEquals("", defaultPrompt);
         assertTrue(defaultPrompt.contains("HTTP"));
-        System.out.println("✓ testGetDefaultSystemPrompt");
     }
 
     private void cleanupTestFiles() {
         File testFile = new File(testConfigPath);
         if (testFile.exists()) {
             testFile.delete();
-        }
-    }
-
-    // Simple assertions
-    private void assertEquals(String expected, String actual) {
-        if (!expected.equals(actual)) {
-            throw new AssertionError("Expected: " + expected + ", but was: " + actual);
-        }
-    }
-
-    private void assertNotNull(Object obj) {
-        if (obj == null) {
-            throw new AssertionError("Expected non-null value");
-        }
-    }
-
-    private void assertNotEquals(String expected, String actual) {
-        if (expected.equals(actual)) {
-            throw new AssertionError("Expected different values, but both were: " + expected);
-        }
-    }
-
-    private void assertTrue(boolean condition) {
-        if (!condition) {
-            throw new AssertionError("Expected true, but was false");
-        }
-    }
-
-    private void assertFalse(boolean condition) {
-        if (condition) {
-            throw new AssertionError("Expected false, but was true");
         }
     }
 }

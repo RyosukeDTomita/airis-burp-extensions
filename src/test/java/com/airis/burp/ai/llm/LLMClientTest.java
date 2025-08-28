@@ -5,29 +5,26 @@ import com.airis.burp.ai.core.AnalysisResponse;
 import java.util.HashMap;
 import java.util.Map;
 
+package com.airis.burp.ai.llm;
+
+import com.airis.burp.ai.core.AnalysisRequest;
+import com.airis.burp.ai.core.AnalysisResponse;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import java.util.Map;
+import java.util.HashMap;
+
 public class LLMClientTest {
     private MockLLMClient llmClient;
 
-    public static void main(String[] args) {
-        LLMClientTest test = new LLMClientTest();
-        test.runAllTests();
-    }
-
-    public void runAllTests() {
-        testAnalyzeRequest();
-        testInvalidInput();
-        testTimeout();
-        testConnectionSettings();
-        System.out.println("All tests passed!");
-    }
-
-    private void setUp() {
+    @BeforeEach
+    public void setUp() {
         llmClient = new MockLLMClient();
     }
 
-    private void testAnalyzeRequest() {
-        setUp();
-        
+    @Test
+    public void testAnalyzeRequest() {
         AnalysisRequest request = new AnalysisRequest();
         request.setMethod("GET");
         request.setUrl("https://example.com/api/users/123");
@@ -43,12 +40,10 @@ public class LLMClientTest {
         assertNotNull(response);
         assertNotEquals("", response.getAnalysis());
         assertTrue(response.getResponseTime() > 0);
-        System.out.println("✓ testAnalyzeRequest");
     }
 
-    private void testInvalidInput() {
-        setUp();
-        
+    @Test
+    public void testInvalidInput() {
         // Test null request
         AnalysisResponse response = llmClient.analyze(null, "prompt");
         assertNotNull(response);
@@ -59,24 +54,19 @@ public class LLMClientTest {
         response = llmClient.analyze(request, "");
         assertNotNull(response);
         assertEquals("", response.getAnalysis());
-        
-        System.out.println("✓ testInvalidInput");
     }
 
-    private void testTimeout() {
-        setUp();
-        
+    @Test
+    public void testTimeout() {
         llmClient.setTimeout(1000); // 1 second
         assertEquals(1000, llmClient.getTimeout());
         
         llmClient.setTimeout(30000); // 30 seconds  
         assertEquals(30000, llmClient.getTimeout());
-        System.out.println("✓ testTimeout");
     }
 
-    private void testConnectionSettings() {
-        setUp();
-        
+    @Test
+    public void testConnectionSettings() {
         String endpoint = "https://api.openai.com/v1/chat/completions";
         String apiKey = "test-api-key";
         
@@ -85,7 +75,6 @@ public class LLMClientTest {
         
         assertEquals(endpoint, llmClient.getEndpoint());
         assertEquals(apiKey, llmClient.getApiKey());
-        System.out.println("✓ testConnectionSettings");
     }
 
     private Map<String, String> createHeaders() {
@@ -137,37 +126,6 @@ public class LLMClientTest {
 
         public int getTimeout() {
             return timeout;
-        }
-    }
-
-    // Simple assertions
-    private void assertEquals(String expected, String actual) {
-        if (!expected.equals(actual)) {
-            throw new AssertionError("Expected: " + expected + ", but was: " + actual);
-        }
-    }
-
-    private void assertEquals(int expected, int actual) {
-        if (expected != actual) {
-            throw new AssertionError("Expected: " + expected + ", but was: " + actual);
-        }
-    }
-
-    private void assertNotNull(Object obj) {
-        if (obj == null) {
-            throw new AssertionError("Expected non-null value");
-        }
-    }
-
-    private void assertNotEquals(String expected, String actual) {
-        if (expected.equals(actual)) {
-            throw new AssertionError("Expected different values, but both were: " + expected);
-        }
-    }
-
-    private void assertTrue(boolean condition) {
-        if (!condition) {
-            throw new AssertionError("Expected true, but was false");
         }
     }
 }

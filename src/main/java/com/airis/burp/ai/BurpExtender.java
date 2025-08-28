@@ -7,7 +7,7 @@ import com.airis.burp.ai.config.ConfigManager;
  * This class implements IBurpExtender to integrate with Burp Suite.
  */
 public class BurpExtender {
-    private static final String EXTENSION_NAME = "AI Security Analyzer";
+    private static final String EXTENSION_NAME = "airis";
     
     private ConfigManager configManager;
     private Object callbacks; // Using Object to avoid Burp API dependency for testing
@@ -32,7 +32,7 @@ public class BurpExtender {
         initializeComponents();
         
         // Print startup message
-        printOutput("AI Security Analyzer extension loaded successfully");
+        printOutput("airis extension loaded successfully");
     }
 
     private void initializeComponents() {
