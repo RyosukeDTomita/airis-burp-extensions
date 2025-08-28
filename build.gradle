@@ -1,0 +1,67 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.airis.burp'
+version = '1.0.0'
+
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Burp Suite Extension API (假定需要手動添加JAR檔)
+    compileOnly files('lib/burp-extender-api.jar')
+    
+    // HTTP Client
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    
+    // JSON Processing
+    implementation 'com.google.code.gson:gson:2.10.1'
+    
+    // Logging
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'ch.qos.logback:logback-classic:1.4.11'
+    
+    // Testing
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    testImplementation 'org.mockito:mockito-core:5.7.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'com.airis.burp.ai.BurpExtender'
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Task to create directory structure
+task createDirectories {
+    doLast {
+        file("src/main/java/com/airis/burp/ai/config").mkdirs()
+        file("src/main/java/com/airis/burp/ai/ui").mkdirs()
+        file("src/main/java/com/airis/burp/ai/core").mkdirs()
+        file("src/main/java/com/airis/burp/ai/llm").mkdirs()
+        file("src/main/java/com/airis/burp/ai/utils").mkdirs()
+        file("src/test/java/com/airis/burp/ai").mkdirs()
+        file("src/main/resources").mkdirs()
+        file("lib").mkdirs()
+    }
+}
