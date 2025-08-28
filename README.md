@@ -5,9 +5,9 @@
 ## INDEX
 
 - [ABOUT](#about)
+- [HOW TO USE](#how-to-use)
 - [ENVIRONMENT](#environment)
 - [PREPARING](#preparing)
-- [HOW TO USE](#how-to-use)
 
 ---
 
@@ -16,17 +16,6 @@
 This is an [Burp Suite](https://portswigger.net/burp) extension that allows you to **custom API key and API endpoint**, and send the selected request and response from within Burp Suite as context for analysis by an LLM.
 
 By configuring a system prompt, you can streamline vulnerability assessments.
-
----
-
-## ENVIRONMENT
-
-This project is just Vibe Coding.
-I will improve it someday.
-
----
-
-## PREPARING
 
 ---
 
@@ -42,3 +31,15 @@ I will improve it someday.
     ![response](./assets/example2.png)
 
 ---
+
+## ENVIRONMENT
+
+This project is just Vibe Coding.
+I will improve it someday.
+
+---
+
+## PREPARING
+
+---
+

@@ -1,6 +1,6 @@
 {
-  "provider": "anthropic",
-  "endpoint": "https://api.anthropic.com/v1/messages",
-  "encryptedApiKey": "encrypted-anthropic-key",
-  "systemPrompt": "Custom analysis prompt"
+  "provider": "openai",
+  "endpoint": "https://api.openai.com/v1/chat/completions",
+  "encryptedApiKey": "encrypted-key",
+  "systemPrompt": "Analyze for security issues"
 }
