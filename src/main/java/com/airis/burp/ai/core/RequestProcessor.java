@@ -3,6 +3,7 @@ package com.airis.burp.ai.core;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import com.airis.burp.ai.llm.LLMClient;
 
 /**
  * Processes HTTP requests and responses for analysis.
@@ -11,6 +12,12 @@ public class RequestProcessor {
     private static final Pattern PASSWORD_PATTERN = Pattern.compile("(password|pwd|pass)[\"\\s]*[=:][\"\\s]*([^&\\s,}]+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern API_KEY_PATTERN = Pattern.compile("(api[_-]?key|token|secret)[\"\\s]*[=:][\"\\s]*([^&\\s,}]+)", Pattern.CASE_INSENSITIVE);
     private static final String REDACTED = "[REDACTED]";
+    
+    private final LLMClient llmClient;
+    
+    public RequestProcessor(LLMClient llmClient) {
+        this.llmClient = llmClient;
+    }
 
     public AnalysisRequest parseHttpRequest(String httpRequest) {
         AnalysisRequest request = new AnalysisRequest();

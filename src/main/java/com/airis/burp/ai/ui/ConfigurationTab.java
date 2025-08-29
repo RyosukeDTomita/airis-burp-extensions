@@ -4,6 +4,7 @@ import burp.ITab;
 import com.airis.burp.ai.config.ConfigManager;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.core.AnalysisEngine;
+import burp.api.montoya.logging.Logging;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +18,7 @@ public class ConfigurationTab implements ITab {
     
     private final ConfigManager configManager;
     private final AnalysisEngine analysisEngine;
+    private final Logging logging; // For Montoya API logging (optional)
     private JPanel mainPanel;
     private JComboBox<String> providerCombo;
     private JTextField endpointField;
@@ -26,9 +28,21 @@ public class ConfigurationTab implements ITab {
     private JButton testButton;
     private JLabel statusLabel;
 
+    // Constructor for legacy API
     public ConfigurationTab(ConfigManager configManager, AnalysisEngine analysisEngine) {
+        this(configManager, analysisEngine, null);
+    }
+    
+    // Constructor for Montoya API
+    public ConfigurationTab(ConfigManager configManager, Logging logging) {
+        this(configManager, null, logging);
+    }
+    
+    // Common constructor
+    public ConfigurationTab(ConfigManager configManager, AnalysisEngine analysisEngine, Logging logging) {
         this.configManager = configManager;
         this.analysisEngine = analysisEngine;
+        this.logging = logging;
         initializeUI();
         loadConfiguration();
     }
@@ -40,6 +54,13 @@ public class ConfigurationTab implements ITab {
 
     @Override
     public Component getUiComponent() {
+        return mainPanel;
+    }
+    
+    /**
+     * Get the component for Montoya API registration
+     */
+    public Component getComponent() {
         return mainPanel;
     }
 
@@ -195,12 +216,24 @@ public class ConfigurationTab implements ITab {
                 // Validate configuration
                 if (configManager.validateConfig(config)) {
                     configManager.saveConfig(config);
-                    analysisEngine.setConfiguration(config);
+                    if (analysisEngine != null) {
+                        analysisEngine.setConfiguration(config);
+                    }
                     statusLabel.setText("Configuration saved successfully");
                     statusLabel.setForeground(Color.GREEN);
+                    
+                    // Log using appropriate API
+                    if (logging != null) {
+                        logging.logToOutput("Configuration saved successfully");
+                    }
                 } else {
                     statusLabel.setText("Invalid configuration - please check all fields");
                     statusLabel.setForeground(Color.RED);
+                    
+                    // Log using appropriate API  
+                    if (logging != null) {
+                        logging.logToError("Invalid configuration - please check all fields");
+                    }
                 }
                 
             } catch (Exception ex) {

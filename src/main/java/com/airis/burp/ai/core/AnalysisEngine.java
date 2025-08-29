@@ -13,9 +13,9 @@ public class AnalysisEngine {
     private LLMClient llmClient;
     private RequestProcessor requestProcessor;
 
-    public AnalysisEngine(ConfigManager configManager) {
+    public AnalysisEngine(RequestProcessor requestProcessor, ConfigManager configManager) {
         this.configManager = configManager;
-        this.requestProcessor = new RequestProcessor();
+        this.requestProcessor = requestProcessor;
         initializeLLMClient();
     }
 

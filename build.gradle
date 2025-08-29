@@ -8,7 +8,7 @@ version = '1.0.0'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(21) // Montoya API supports Java 21 or lower
     }
 }
 
@@ -17,8 +17,8 @@ repositories {
 }
 
 dependencies {
-    // Burp Suite Extension API (假定需要手動添加JAR檔)
-    compileOnly files('lib/burp-extender-api.jar')
+    // Montoya API for Burp Suite extensions
+    compileOnly 'net.portswigger.burp.extensions:montoya-api:+'
     
     // HTTP Client
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
@@ -35,6 +35,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.mockito:mockito-core:5.7.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.7.0'
+    testImplementation 'net.portswigger.burp.extensions:montoya-api:+'
 }
 
 test {

@@ -1,38 +1,38 @@
 package com.airis.burp.ai;
 
 import com.airis.burp.ai.config.ConfigManager;
+import burp.IBurpExtender;
+import burp.IBurpExtenderCallbacks;
 
 /**
- * Main entry point for the Burp Suite AI Extension.
- * This class implements IBurpExtender to integrate with Burp Suite.
+ * Main entry point for the Burp Suite AI Extension using old Extender API.
+ * This class implements IBurpExtender for backward compatibility.
+ * For new Montoya API support, use MontoyaExtension instead.
+ * 
+ * @deprecated Use MontoyaExtension for new implementations
  */
-public class BurpExtender {
+@Deprecated
+public class BurpExtender implements IBurpExtender {
     private static final String EXTENSION_NAME = "airis";
     
     private ConfigManager configManager;
-    private Object callbacks; // Using Object to avoid Burp API dependency for testing
+    private IBurpExtenderCallbacks callbacks;
 
     /**
      * Called by Burp Suite when the extension is loaded.
      */
-    public void registerExtenderCallbacks(Object callbacks) {
+    @Override
+    public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
         this.callbacks = callbacks;
         
         // Set extension name
-        try {
-            // Use reflection to call setExtensionName method
-            callbacks.getClass().getMethod("setExtensionName", String.class)
-                    .invoke(callbacks, EXTENSION_NAME);
-        } catch (Exception e) {
-            // Handle reflection errors gracefully
-            System.err.println("Failed to set extension name: " + e.getMessage());
-        }
+        callbacks.setExtensionName(EXTENSION_NAME);
 
         // Initialize components
         initializeComponents();
         
         // Print startup message
-        printOutput("airis extension loaded successfully");
+        callbacks.printOutput(EXTENSION_NAME + " extension loaded successfully (using legacy API)");
     }
 
     private void initializeComponents() {
@@ -54,27 +54,4 @@ public class BurpExtender {
         return EXTENSION_NAME;
     }
 
-    private void printOutput(String message) {
-        try {
-            if (callbacks != null) {
-                callbacks.getClass().getMethod("printOutput", String.class)
-                        .invoke(callbacks, message);
-            }
-        } catch (Exception e) {
-            // Fallback to console if Burp callbacks are not available
-            System.out.println(message);
-        }
-    }
-
-    private void printError(String message) {
-        try {
-            if (callbacks != null) {
-                callbacks.getClass().getMethod("printError", String.class)
-                        .invoke(callbacks, message);
-            }
-        } catch (Exception e) {
-            // Fallback to console if Burp callbacks are not available
-            System.err.println(message);
-        }
-    }
 }

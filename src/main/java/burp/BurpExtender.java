@@ -2,6 +2,9 @@ package burp;
 
 import com.airis.burp.ai.config.ConfigManager;
 import com.airis.burp.ai.core.AnalysisEngine;
+import com.airis.burp.ai.core.RequestProcessor;
+import com.airis.burp.ai.llm.LLMClient;
+import com.airis.burp.ai.llm.OpenAIClient;
 import com.airis.burp.ai.ui.ConfigurationTab;
 import com.airis.burp.ai.ui.RepeaterContextMenuFactory;
 
@@ -53,8 +56,12 @@ public class BurpExtender implements IBurpExtender {
         // Initialize configuration manager
         this.configManager = new ConfigManager();
         
+        // Initialize LLM client and request processor
+        LLMClient llmClient = new OpenAIClient();
+        RequestProcessor requestProcessor = new RequestProcessor(llmClient);
+        
         // Initialize analysis engine
-        this.analysisEngine = new AnalysisEngine(configManager);
+        this.analysisEngine = new AnalysisEngine(requestProcessor, configManager);
         
         callbacks.printOutput("Core components initialized successfully");
     }
