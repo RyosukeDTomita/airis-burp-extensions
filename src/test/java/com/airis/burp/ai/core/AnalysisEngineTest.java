@@ -67,7 +67,7 @@ public class AnalysisEngineTest {
         AnalysisResponse response = analysisEngine.analyzeRequest(request);
         
         assertNotNull(response);
-        assertEquals("", response.getAnalysis());
+        assertEquals("Configuration validation failed. Please check your API endpoint and key in the AI Security Analyzer tab.", response.getAnalysis());
     }
 
     @Test

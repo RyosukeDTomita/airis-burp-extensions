@@ -1,7 +1,5 @@
 package com.airis.burp.ai.config;
 
-package com.airis.burp.ai.config;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

@@ -7,22 +7,12 @@ import com.airis.burp.ai.core.AnalysisRequest;
 import com.airis.burp.ai.core.AnalysisResponse;
 import com.airis.burp.ai.core.RequestProcessor;
 import com.airis.burp.ai.llm.OpenAIClient;
-import java.util.HashMap;
-import java.util.Map;
-
-package com.airis.burp.ai;
-
-import com.airis.burp.ai.config.ConfigManager;
-import com.airis.burp.ai.config.ConfigModel;
-import com.airis.burp.ai.core.AnalysisEngine;
-import com.airis.burp.ai.core.AnalysisRequest;
-import com.airis.burp.ai.core.AnalysisResponse;
-import com.airis.burp.ai.core.RequestProcessor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.Map;
+import java.util.HashMap;
 import java.io.File;
 
 public class IntegrationTest {

@@ -2,13 +2,6 @@ package com.airis.burp.ai.llm;
 
 import com.airis.burp.ai.core.AnalysisRequest;
 import com.airis.burp.ai.core.AnalysisResponse;
-import java.util.HashMap;
-import java.util.Map;
-
-package com.airis.burp.ai.llm;
-
-import com.airis.burp.ai.core.AnalysisRequest;
-import com.airis.burp.ai.core.AnalysisResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -96,7 +89,7 @@ public class OpenAIClientTest {
         // Test parsing invalid JSON
         AnalysisResponse parsedResponse = openAIClient.parseResponse("invalid json");
         assertNotNull(parsedResponse);
-        assertEquals("", parsedResponse.getAnalysis());
+        assertEquals("No content found in response", parsedResponse.getAnalysis());
     }
 
     private AnalysisRequest createTestRequest() {

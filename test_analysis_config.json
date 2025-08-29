@@ -1,6 +1,0 @@
-{
-  "provider": "openai",
-  "endpoint": "https://api.openai.com/v1/chat/completions",
-  "encryptedApiKey": "encrypted-key",
-  "systemPrompt": "Analyze for security issues"
-}

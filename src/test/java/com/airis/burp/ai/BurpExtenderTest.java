@@ -21,7 +21,7 @@ public class BurpExtenderTest {
         
         // Verify that the extension was properly registered
         assertTrue(mockCallbacks.isExtensionRegistered());
-        assertEquals("AI Security Analyzer", mockCallbacks.getRegisteredExtensionName());
+        assertEquals("airis", mockCallbacks.getRegisteredExtensionName());
     }
 
     @Test
@@ -47,7 +47,7 @@ public class BurpExtenderTest {
     @Test
     public void testGetExtensionName() {
         String extensionName = burpExtender.getExtensionName();
-        assertEquals("AI Security Analyzer", extensionName);
+        assertEquals("airis", extensionName);
     }
 
     // Mock implementation of IBurpExtenderCallbacks
