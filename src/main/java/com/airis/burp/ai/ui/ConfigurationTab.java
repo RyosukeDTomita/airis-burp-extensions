@@ -1,9 +1,6 @@
 package com.airis.burp.ai.ui;
-
-import burp.ITab;
 import com.airis.burp.ai.config.ConfigManager;
 import com.airis.burp.ai.config.ConfigModel;
-import com.airis.burp.ai.core.AnalysisEngine;
 import burp.api.montoya.logging.Logging;
 
 import javax.swing.*;
@@ -13,11 +10,10 @@ import java.awt.event.ActionListener;
 
 /**
  * Configuration tab for the AI Security Analyzer extension.
+ * User can edit LLM provider, api endpoint URL, API key, and system prompt.
  */
-public class ConfigurationTab implements ITab {
-    
+public class ConfigurationTab {
     private final ConfigManager configManager;
-    private final AnalysisEngine analysisEngine;
     private final Logging logging; // For Montoya API logging (optional)
     private JPanel mainPanel;
     private JComboBox<String> providerCombo;
@@ -28,42 +24,27 @@ public class ConfigurationTab implements ITab {
     private JButton testButton;
     private JLabel statusLabel;
 
-    // Constructor for legacy API
-    public ConfigurationTab(ConfigManager configManager, AnalysisEngine analysisEngine) {
-        this(configManager, analysisEngine, null);
-    }
-    
-    // Constructor for Montoya API
+
     public ConfigurationTab(ConfigManager configManager, Logging logging) {
-        this(configManager, null, logging);
-    }
-    
-    // Common constructor
-    public ConfigurationTab(ConfigManager configManager, AnalysisEngine analysisEngine, Logging logging) {
         this.configManager = configManager;
-        this.analysisEngine = analysisEngine;
         this.logging = logging;
+
         initializeUI();
         loadConfiguration();
     }
 
-    @Override
-    public String getTabCaption() {
-        return "AI Security Analyzer";
-    }
 
-    @Override
-    public Component getUiComponent() {
-        return mainPanel;
-    }
-    
     /**
      * Get the component for Montoya API registration
+     * @return JPanel The main panel component
      */
     public Component getComponent() {
         return mainPanel;
     }
 
+    /**
+     * A configuration tab for LLM-related settings.
+     */
     private void initializeUI() {
         mainPanel = new JPanel(new BorderLayout());
         
@@ -88,7 +69,8 @@ public class ConfigurationTab implements ITab {
         configPanel.add(new JLabel("LLM Provider:"), gbc);
         
         gbc.gridx = 1;
-        providerCombo = new JComboBox<>(new String[]{"openai", "anthropic"});
+        // TODO: OpenAI以外は未実装
+        providerCombo = new JComboBox<>(new String[]{"OpenAI", "Anthropic", "Gemini"});
         configPanel.add(providerCombo, gbc);
         
         // Endpoint URL
@@ -172,6 +154,10 @@ public class ConfigurationTab implements ITab {
         });
     }
 
+    /**
+     * Load configuration from ConfigManager and populate UI fields.
+     * TODO: あとでみる
+     */
     private void loadConfiguration() {
         ConfigModel config = configManager.loadConfig();
         if (config != null) {
@@ -184,8 +170,15 @@ public class ConfigurationTab implements ITab {
             if (!config.getSystemPrompt().isEmpty()) {
                 systemPromptArea.setText(config.getSystemPrompt());
             }
+            // Load API key (decrypt from stored encrypted value)
+            if (!config.getApiKey().isEmpty()) {
+                String decryptedApiKey = configManager.decryptApiKey(config.getApiKey());
+                apiKeyField.setText(decryptedApiKey);
+            }
         }
     }
+
+
 
     private void updateEndpointForProvider() {
         String provider = (String) providerCombo.getSelectedItem();
@@ -204,11 +197,10 @@ public class ConfigurationTab implements ITab {
                 config.setProvider((String) providerCombo.getSelectedItem());
                 config.setEndpoint(endpointField.getText().trim());
                 
-                // Encrypt API key
+                // Store API key (plain text for validation, will be encrypted on save)
                 String apiKey = new String(apiKeyField.getPassword());
                 if (!apiKey.isEmpty()) {
-                    String encryptedKey = configManager.encryptApiKey(apiKey);
-                    config.setEncryptedApiKey(encryptedKey);
+                    config.setApiKey(apiKey);
                 }
                 
                 config.setSystemPrompt(systemPromptArea.getText().trim());
@@ -216,9 +208,6 @@ public class ConfigurationTab implements ITab {
                 // Validate configuration
                 if (configManager.validateConfig(config)) {
                     configManager.saveConfig(config);
-                    if (analysisEngine != null) {
-                        analysisEngine.setConfiguration(config);
-                    }
                     statusLabel.setText("Configuration saved successfully");
                     statusLabel.setForeground(Color.GREEN);
                     
@@ -243,6 +232,9 @@ public class ConfigurationTab implements ITab {
         }
     }
 
+    /**
+     * LLMと接続する
+     */
     private class TestAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {

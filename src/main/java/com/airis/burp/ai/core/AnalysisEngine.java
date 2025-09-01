@@ -26,10 +26,10 @@ public class AnalysisEngine {
         
         try {
             ConfigModel config = configManager.loadConfig();
-            if (config != null && !config.getEncryptedApiKey().isEmpty()) {
+            if (config != null && !config.getApiKey().isEmpty()) {
                 llmClient.setEndpoint(config.getEndpoint());
-                String decryptedKey = configManager.decryptApiKey(config.getEncryptedApiKey());
-                llmClient.setApiKey(decryptedKey);
+                String apiKey = configManager.retrieveApiKey(config.getApiKey());
+                llmClient.setApiKey(apiKey);
             }
         } catch (Exception e) {
             // Failed to load config, continue with default empty client
@@ -48,15 +48,42 @@ public class AnalysisEngine {
         try {
             ConfigModel config = configManager.loadConfig();
             
-            // Validate configuration
+            // Validate configuration with detailed error messages
             if (!configManager.validateConfig(config)) {
-                response.setAnalysis("Configuration validation failed. Please check your API endpoint and key in the AI Security Analyzer tab.");
+                StringBuilder errorMsg = new StringBuilder("Configuration validation failed. ");
+                
+                if (config == null) {
+                    errorMsg.append("Configuration is not initialized.");
+                } else {
+                    if (config.getProvider() == null || config.getProvider().isEmpty()) {
+                        errorMsg.append("Provider is not set. ");
+                    }
+                    if (config.getEndpoint() == null || config.getEndpoint().isEmpty()) {
+                        errorMsg.append("API endpoint is not set. ");
+                    }
+                    if (config.getApiKey() == null || config.getApiKey().isEmpty()) {
+                        errorMsg.append("API key is not set. ");
+                    }
+                    if (config.getSystemPrompt() == null || config.getSystemPrompt().isEmpty()) {
+                        errorMsg.append("System prompt is not set. ");
+                    }
+                }
+                
+                errorMsg.append("Please check your settings in the AI Security Analyzer tab.");
+                response.setAnalysis(errorMsg.toString());
                 response.setResponseTime(0);
                 return response;
             }
 
             // Sanitize sensitive data
             AnalysisRequest sanitizedRequest = sanitizeRequest(request);
+            
+            // Ensure LLM client has the latest configuration
+            if (llmClient != null) {
+                llmClient.setEndpoint(config.getEndpoint());
+                String decryptedApiKey = configManager.decryptApiKey(config.getApiKey());
+                llmClient.setApiKey(decryptedApiKey);
+            }
             
             // Perform AI analysis
             response = llmClient.analyze(sanitizedRequest, config.getSystemPrompt());

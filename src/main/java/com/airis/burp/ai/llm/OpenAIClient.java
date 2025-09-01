@@ -13,7 +13,7 @@ import java.util.Map;
  * OpenAI API client implementation.
  */
 public class OpenAIClient implements LLMClient {
-    private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
+    private static final String DEFAULT_MODEL = "gpt-4o-mini";
     private static final int DEFAULT_TIMEOUT = 30000;
     
     private String endpoint = "";

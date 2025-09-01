@@ -12,7 +12,7 @@ public class ConfigModel {
     
     private String provider = "";
     private String endpoint = "";
-    private String encryptedApiKey = "";
+    private String apiKey = "";  // Plain text API key (stored in memory only)
     private String systemPrompt = "";
 
     // Getters
@@ -24,8 +24,14 @@ public class ConfigModel {
         return endpoint;
     }
 
+    public String getApiKey() {
+        return apiKey;
+    }
+    
+    // Deprecated - kept for backward compatibility
+    @Deprecated
     public String getEncryptedApiKey() {
-        return encryptedApiKey;
+        return apiKey;
     }
 
     public String getSystemPrompt() {
@@ -41,8 +47,14 @@ public class ConfigModel {
         this.endpoint = endpoint != null ? endpoint : "";
     }
 
-    public void setEncryptedApiKey(String encryptedApiKey) {
-        this.encryptedApiKey = encryptedApiKey != null ? encryptedApiKey : "";
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey != null ? apiKey : "";
+    }
+    
+    // Deprecated - kept for backward compatibility
+    @Deprecated
+    public void setEncryptedApiKey(String apiKey) {
+        this.apiKey = apiKey != null ? apiKey : "";
     }
 
     public void setSystemPrompt(String systemPrompt) {
@@ -68,7 +80,7 @@ public class ConfigModel {
     public boolean isComplete() {
         return !provider.isEmpty() && 
                !endpoint.isEmpty() && 
-               !encryptedApiKey.isEmpty() && 
+               !apiKey.isEmpty() && 
                !systemPrompt.isEmpty();
     }
 }

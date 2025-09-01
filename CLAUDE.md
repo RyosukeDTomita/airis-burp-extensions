@@ -1,3 +1,5 @@
+buildやテスト時にはbuild.shを使って
+
 <!--https://qiita.com/nokonoko_1203/items/8bafb6033409aadccd9f-->
 # Guidelines
 

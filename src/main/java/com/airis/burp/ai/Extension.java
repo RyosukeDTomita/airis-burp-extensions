@@ -6,7 +6,7 @@ import burp.api.montoya.logging.Logging;
 import burp.api.montoya.extension.Extension;
 import com.airis.burp.ai.config.ConfigManager;
 import com.airis.burp.ai.ui.ConfigurationTab;
-import com.airis.burp.ai.ui.RepeaterContextMenuFactory;
+import com.airis.burp.ai.ui.AIAnalysisMenuProvider;
 import com.airis.burp.ai.core.RequestProcessor;
 import com.airis.burp.ai.core.AnalysisEngine;
 import com.airis.burp.ai.llm.LLMClient;
@@ -16,7 +16,7 @@ import com.airis.burp.ai.llm.OpenAIClient;
  * Main entry point for the Burp Suite AI Extension using Montoya API.
  * This class implements BurpExtension to integrate with Burp Suite.
  */
-public class MontoyaExtension implements BurpExtension {
+public class Extension implements BurpExtension {
     private static final String EXTENSION_NAME = "airis";
     
     private MontoyaApi api;
@@ -26,45 +26,38 @@ public class MontoyaExtension implements BurpExtension {
     private AnalysisEngine analysisEngine;
     private Logging logging;
     
+    /**
+     * `initialize()` runs when Burp loads your extension.
+     */
     @Override
     public void initialize(MontoyaApi api) {
         this.api = api;
         this.logging = api.logging();
-        
-        // Set extension name
+
         api.extension().setName(EXTENSION_NAME);
-        
-        // Initialize components
         initializeComponents();
-        
-        // Register UI components
         registerUIComponents();
-        
-        // Print startup message
         logging.logToOutput(EXTENSION_NAME + " extension loaded successfully using Montoya API");
     }
     
+    /**
+     * Initializes the core components of the extension.
+     */
     private void initializeComponents() {
         try {
-            // Initialize configuration manager
             this.configManager = new ConfigManager();
-            
-            // Initialize LLM client
             this.llmClient = new OpenAIClient();
-            
-            // Initialize request processor
             this.requestProcessor = new RequestProcessor(llmClient);
-            
-            // Initialize analysis engine
             this.analysisEngine = new AnalysisEngine(requestProcessor, configManager);
-            
             logging.logToOutput("All components initialized successfully");
         } catch (Exception e) {
             logging.logToError("Failed to initialize components: " + e.getMessage());
             e.printStackTrace();
         }
     }
-    
+    /**
+     * Registers the UI components for the extension.
+     */
     private void registerUIComponents() {
         try {
             // Register configuration tab
@@ -72,12 +65,12 @@ public class MontoyaExtension implements BurpExtension {
             api.userInterface().registerSuiteTab(EXTENSION_NAME + " Config", configTab.getComponent());
             
             // Register context menu
-            RepeaterContextMenuFactory contextMenuFactory = new RepeaterContextMenuFactory(
+            AIAnalysisMenuProvider contextMenuProvider = new AIAnalysisMenuProvider(
                 analysisEngine, 
                 configManager, 
                 api
             );
-            api.userInterface().registerContextMenuItemsProvider(contextMenuFactory);
+            api.userInterface().registerContextMenuItemsProvider(contextMenuProvider);
             
             logging.logToOutput("UI components registered successfully");
         } catch (Exception e) {
@@ -86,14 +79,17 @@ public class MontoyaExtension implements BurpExtension {
         }
     }
     
+    // TODO: テストのためだけのpublicなので消す
     public ConfigManager getConfigManager() {
         return configManager;
     }
     
+    // TODO: テストのためだけのpublicなので消す
     public String getExtensionName() {
         return EXTENSION_NAME;
     }
     
+    // TODO: テストのためだけのpublicなので消す
     public MontoyaApi getApi() {
         return api;
     }
