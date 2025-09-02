@@ -4,17 +4,20 @@ import com.airis.burp.ai.config.ConfigManager;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.LLMClient;
 import com.airis.burp.ai.llm.OpenAIClient;
+import burp.api.montoya.logging.Logging;
 
 /**
  * Core analysis engine that orchestrates request processing and AI analysis.
  */
 public class AnalysisEngine {
     private final ConfigManager configManager;
+    private final Logging logging;
     private LLMClient llmClient;
     private RequestProcessor requestProcessor;
 
-    public AnalysisEngine(RequestProcessor requestProcessor, ConfigManager configManager) {
+    public AnalysisEngine(RequestProcessor requestProcessor, ConfigManager configManager, Logging logging) {
         this.configManager = configManager;
+        this.logging = logging;
         this.requestProcessor = requestProcessor;
         initializeLLMClient();
     }
@@ -27,15 +30,21 @@ public class AnalysisEngine {
         try {
             ConfigModel config = configManager.loadConfig();
             if (config == null) {
-                throw new RuntimeException("Unexpected Error: ConfigModel is null");
+                // Log warning but don't throw exception
+                logging.logToOutput("Warning: ConfigModel is null, using default configuration");
+                return;
             }
             if (config.getApiKey().isEmpty()) {
-                throw new RuntimeException("API key is not set in configuration");
+                // Log warning but don't throw exception
+                logging.logToOutput("Warning: API key is not set in configuration. Please configure API key in the extension settings.");
+                return;
             }
             llmClient.setEndpoint(config.getEndpoint());
             llmClient.setApiKey(config.getApiKey());
+            logging.logToOutput("LLM client initialized successfully");
         } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize LLM client: " + e.getMessage());
+            // Log error but don't throw exception
+            logging.logToError("Warning: Failed to initialize LLM client: " + e.getMessage());
         }
     }
 

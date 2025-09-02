@@ -233,7 +233,7 @@ public class ConfigurationTab {
     }
 
     /**
-     * LLMと接続する
+     * test LLM API Connections(Mock)
      */
     private class TestAction implements ActionListener {
         @Override

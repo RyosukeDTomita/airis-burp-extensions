@@ -17,14 +17,14 @@ import com.airis.burp.ai.llm.OpenAIClient;
  */
 public class Extension implements BurpExtension {
     private static final String EXTENSION_NAME = "airis";
-
+    
     private MontoyaApi api;
     private ConfigManager configManager;
     private LLMClient llmClient;
     private RequestProcessor requestProcessor;
     private AnalysisEngine analysisEngine;
     private Logging logging;
-
+    
     /**
      * `initialize()` runs when Burp loads your extension.
      */
@@ -38,41 +38,20 @@ public class Extension implements BurpExtension {
         registerUIComponents();
         logging.logToOutput(EXTENSION_NAME + " extension loaded successfully using Montoya API");
     }
-
+    
     /**
      * Initializes the core components of the extension.
      */
     private void initializeComponents() {
         try {
-            logging.logToOutput("Initializing components...");
-            
-            // Initialize ConfigManager first
             this.configManager = new ConfigManager();
-            logging.logToOutput("ConfigManager initialized");
-            
-            // Initialize LLMClient
             this.llmClient = new OpenAIClient();
-            logging.logToOutput("LLMClient initialized");
-            
-            // Initialize RequestProcessor with LLMClient
             this.requestProcessor = new RequestProcessor(llmClient);
-            logging.logToOutput("RequestProcessor initialized");
-            
-            // Initialize AnalysisEngine with RequestProcessor and ConfigManager
-            this.analysisEngine = new AnalysisEngine(requestProcessor, configManager);
-            logging.logToOutput("AnalysisEngine initialized");
-            
-            // Verify all components are initialized
-            if (configManager == null || llmClient == null || 
-                requestProcessor == null || analysisEngine == null) {
-                throw new IllegalStateException("One or more components failed to initialize");
-            }
-            
+            this.analysisEngine = new AnalysisEngine(requestProcessor, configManager, logging);
             logging.logToOutput("All components initialized successfully");
         } catch (Exception e) {
             logging.logToError("Failed to initialize components: " + e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException("Extension initialization failed", e);
         }
     }
     /**
@@ -80,36 +59,22 @@ public class Extension implements BurpExtension {
      */
     private void registerUIComponents() {
         try {
-            // Verify required components are initialized
-            if (analysisEngine == null) {
-                logging.logToError("Cannot register UI components: AnalysisEngine is null");
-                throw new IllegalStateException("AnalysisEngine must be initialized before registering UI components");
-            }
-            
-            if (configManager == null) {
-                logging.logToError("Cannot register UI components: ConfigManager is null");
-                throw new IllegalStateException("ConfigManager must be initialized before registering UI components");
-            }
-            
             // Register configuration tab
             ConfigurationTab configTab = new ConfigurationTab(configManager, logging);
             api.userInterface().registerSuiteTab(EXTENSION_NAME + " Config", configTab.getComponent());
-            logging.logToOutput("Configuration tab registered");
-
+            
             // Register context menu
             AIAnalysisMenuProvider contextMenuProvider = new AIAnalysisMenuProvider(
-                analysisEngine,
-                configManager,
+                analysisEngine, 
+                configManager, 
                 api
             );
             api.userInterface().registerContextMenuItemsProvider(contextMenuProvider);
-            logging.logToOutput("Context menu provider registered");
-
+            
             logging.logToOutput("UI components registered successfully");
         } catch (Exception e) {
             logging.logToError("Failed to register UI components: " + e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException("UI registration failed", e);
         }
     }
     
