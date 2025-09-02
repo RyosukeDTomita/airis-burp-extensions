@@ -17,21 +17,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Provides "AI Security Analyzer" option in Burp Suite's context menus.
- * Handles AI analysis execution and result display.
+ * This Class provides the result view for the LLM analysis.
+ * To add an item to Burp's right-click context menu, register a ContextMenuItemsProvider and implement the provideMenuItems() method.
  */
 public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
     
     private final AnalysisEngine analysisEngine;
-    private final ConfigManager configManager;
     private final MontoyaApi montoyaApi;
     
     public AIAnalysisMenuProvider(AnalysisEngine analysisEngine, ConfigManager configManager, MontoyaApi montoyaApi) {
         this.analysisEngine = analysisEngine;
-        this.configManager = configManager;
         this.montoyaApi = montoyaApi;
     }
     
+    /**
+     * Invoked by Burp Suite when the user requests a context menu with WebSocket information in the user interface.
+     * @param ContextMenuEvent
+     */
     @Override
     public List<Component> provideMenuItems(ContextMenuEvent event) {
         List<Component> menuItems = new ArrayList<>();
@@ -41,8 +43,10 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
             
             if (!selectedMessages.isEmpty()) {
                 JMenuItem analyzeMenuItem = new JMenuItem("AI Security Analyzer");
+                // TODO: 選択された通信履歴のうち、最初の1つのみ扱っている
                 HttpRequestResponse message = selectedMessages.get(0);
                 
+                // クリック時の動作を設定する
                 analyzeMenuItem.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {

@@ -3,7 +3,6 @@ package com.airis.burp.ai;
 import burp.api.montoya.BurpExtension;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
-import burp.api.montoya.extension.Extension;
 import com.airis.burp.ai.config.ConfigManager;
 import com.airis.burp.ai.ui.ConfigurationTab;
 import com.airis.burp.ai.ui.AIAnalysisMenuProvider;
