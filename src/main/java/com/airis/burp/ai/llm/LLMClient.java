@@ -1,7 +1,7 @@
 package com.airis.burp.ai.llm;
 
-import com.airis.burp.ai.core.AnalysisRequest;
-import com.airis.burp.ai.core.AnalysisResponse;
+import com.airis.burp.ai.core.AnalysisTarget;
+import com.airis.burp.ai.core.AnalysisResult;
 
 /**
  * Interface for LLM client implementations.
@@ -13,7 +13,7 @@ public interface LLMClient {
      * @param systemPrompt The system prompt for analysis
      * @return Analysis response from the AI model
      */
-    AnalysisResponse analyze(AnalysisRequest request, String systemPrompt);
+    AnalysisResult analyze(AnalysisTarget request, String systemPrompt);
 
     /**
      * Set the API endpoint URL.

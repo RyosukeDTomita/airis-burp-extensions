@@ -47,12 +47,12 @@ public class AnalysisEngineTest {
         configManager.saveConfig(config);
 
         // Create test request
-        AnalysisRequest request = createTestRequest();
+        AnalysisTarget request = createTestRequest();
         
         // Mock the LLM client to avoid actual API calls
         analysisEngine.setLLMClient(new MockLLMClient());
         
-        AnalysisResponse response = analysisEngine.analyzeRequest(request);
+        AnalysisResult response = analysisEngine.analyzeRequest(request);
         
         assertNotNull(response);
         assertNotEquals("", response.getAnalysis());
@@ -62,9 +62,9 @@ public class AnalysisEngineTest {
     @Test
     public void testAnalyzeWithInvalidConfig() {
         // Don't save any config (invalid state)
-        AnalysisRequest request = createTestRequest();
+        AnalysisTarget request = createTestRequest();
         
-        AnalysisResponse response = analysisEngine.analyzeRequest(request);
+        AnalysisResult response = analysisEngine.analyzeRequest(request);
         
         assertNotNull(response);
         assertEquals("Configuration validation failed. Please check your API endpoint and key in the AI Security Analyzer tab.", response.getAnalysis());
@@ -80,7 +80,7 @@ public class AnalysisEngineTest {
         config.setSystemPrompt("Analyze for security issues");
         configManager.saveConfig(config);
 
-        AnalysisResponse response = analysisEngine.analyzeRequest(null);
+        AnalysisResult response = analysisEngine.analyzeRequest(null);
         
         assertNotNull(response);
         assertEquals("", response.getAnalysis());
@@ -104,8 +104,8 @@ public class AnalysisEngineTest {
         assertEquals("Custom analysis prompt", savedConfig.getSystemPrompt());
     }
 
-    private AnalysisRequest createTestRequest() {
-        AnalysisRequest request = new AnalysisRequest();
+    private AnalysisTarget createTestRequest() {
+        AnalysisTarget request = new AnalysisTarget();
         request.setMethod("GET");
         request.setUrl("https://api.example.com/users/123");
         
@@ -125,8 +125,8 @@ public class AnalysisEngineTest {
         private String apiKey = "";
         private int timeout = 30000;
 
-        public AnalysisResponse analyze(AnalysisRequest request, String systemPrompt) {
-            AnalysisResponse response = new AnalysisResponse();
+        public AnalysisResult analyze(AnalysisTarget request, String systemPrompt) {
+            AnalysisResult response = new AnalysisResult();
             response.setAnalysis("Mock analysis: Request exposes user ID in URL path");
             response.setResponseTime(100);
             return response;

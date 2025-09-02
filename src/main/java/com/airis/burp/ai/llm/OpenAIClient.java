@@ -1,7 +1,7 @@
 package com.airis.burp.ai.llm;
 
-import com.airis.burp.ai.core.AnalysisRequest;
-import com.airis.burp.ai.core.AnalysisResponse;
+import com.airis.burp.ai.core.AnalysisTarget;
+import com.airis.burp.ai.core.AnalysisResult;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -15,15 +15,12 @@ import java.util.Map;
 public class OpenAIClient implements LLMClient {
     private static final String DEFAULT_MODEL = "gpt-4o-mini";
     private static final int DEFAULT_TIMEOUT = 30000;
-    
     private String endpoint = "";
     private String apiKey = "";
     private int timeout = DEFAULT_TIMEOUT;
-    private boolean debugMode = true; // Enable debug logging
 
-    public AnalysisResponse analyze(AnalysisRequest request, String systemPrompt) {
-        AnalysisResponse response = new AnalysisResponse();
-        
+    public AnalysisResult analyze(AnalysisTarget request, String systemPrompt) {
+        AnalysisResult response = new AnalysisResult();
         if (request == null || systemPrompt == null || systemPrompt.trim().isEmpty()) {
             response.setAnalysis("");
             response.setResponseTime(0);
@@ -31,42 +28,20 @@ public class OpenAIClient implements LLMClient {
         }
 
         long startTime = System.currentTimeMillis();
-        
         try {
             String jsonRequest = formatRequest(request, systemPrompt);
-            
-            if (debugMode) {
-                System.out.println("API Endpoint: " + endpoint);
-                System.out.println("API Key configured: " + (!apiKey.isEmpty()));
-                System.out.println("Request JSON length: " + jsonRequest.length());
-                System.out.println("Full JSON request:");
-                System.out.println(jsonRequest);
-                System.out.println("--- End of JSON request ---");
-            }
-            
             String jsonResponse = makeHttpRequest(jsonRequest);
-            
-            if (debugMode) {
-                System.out.println("Response JSON length: " + jsonResponse.length());
-                System.out.println("First 200 chars of response: " + 
-                    jsonResponse.substring(0, Math.min(200, jsonResponse.length())));
-            }
-            
             response = parseResponse(jsonResponse);
         } catch (Exception e) {
             response.setAnalysis("API request failed: " + e.getMessage());
-            if (debugMode) {
-                e.printStackTrace();
-            }
+            // TODO
         }
-        
         long endTime = System.currentTimeMillis();
         response.setResponseTime(endTime - startTime);
-        
         return response;
     }
 
-    public String formatRequest(AnalysisRequest request, String systemPrompt) {
+    public String formatRequest(AnalysisTarget request, String systemPrompt) {
         StringBuilder json = new StringBuilder();
         json.append("{\n");
         json.append("  \"model\": \"").append(DEFAULT_MODEL).append("\",\n");
@@ -83,13 +58,13 @@ public class OpenAIClient implements LLMClient {
         json.append("  \"max_tokens\": 1000,\n");
         json.append("  \"temperature\": 0.3\n");
         json.append("}");
-        
+
         return json.toString();
     }
 
-    public AnalysisResponse parseResponse(String jsonResponse) {
-        AnalysisResponse response = new AnalysisResponse();
-        
+    public AnalysisResult parseResponse(String jsonResponse) {
+        AnalysisResult response = new AnalysisResult();
+
         try {
             // Simple JSON parsing for the response
             String content = extractContent(jsonResponse);
@@ -97,7 +72,7 @@ public class OpenAIClient implements LLMClient {
         } catch (Exception e) {
             response.setAnalysis("");
         }
-        
+
         return response;
     }
 
@@ -105,11 +80,11 @@ public class OpenAIClient implements LLMClient {
         if (endpoint.isEmpty() || apiKey.isEmpty()) {
             throw new RuntimeException("Endpoint or API key not configured");
         }
-        
+
         try {
             URL url = new URL(endpoint);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            
+
             // Set request method and headers
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
@@ -117,17 +92,17 @@ public class OpenAIClient implements LLMClient {
             connection.setDoOutput(true);
             connection.setConnectTimeout(timeout);
             connection.setReadTimeout(timeout);
-            
+
             // Send request
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonRequest.getBytes("utf-8");
                 os.write(input, 0, input.length);
             }
-            
+
             // Check response code
             int responseCode = connection.getResponseCode();
             StringBuilder response = new StringBuilder();
-            
+
             // Read response (success or error)
             BufferedReader br = null;
             try {
@@ -138,7 +113,7 @@ public class OpenAIClient implements LLMClient {
                     // Error response
                     br = new BufferedReader(new InputStreamReader(connection.getErrorStream(), "utf-8"));
                 }
-                
+
                 String responseLine;
                 while ((responseLine = br.readLine()) != null) {
                     response.append(responseLine);
@@ -148,28 +123,28 @@ public class OpenAIClient implements LLMClient {
                     br.close();
                 }
             }
-            
+
             // If error response, throw with detailed error
             if (responseCode >= 400) {
                 String errorMsg = "HTTP " + responseCode + " Error: " + response.toString();
                 throw new RuntimeException(errorMsg);
             }
-            
+
             return response.toString();
-            
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to make HTTP request: " + e.getMessage(), e);
         }
     }
 
-    private String formatHttpData(AnalysisRequest request) {
+    private String formatHttpData(AnalysisTarget request) {
         StringBuilder data = new StringBuilder();
-        
+
         data.append("Please analyze this HTTP request and response for security vulnerabilities and potential issues:\\n\\n");
-        
+
         data.append("=== HTTP REQUEST ===\\n");
         data.append(request.getMethod()).append(" ").append(request.getUrl()).append("\\n");
-        
+
         // Add headers
         if (!request.getHeaders().isEmpty()) {
             data.append("\\nHeaders:\\n");
@@ -177,22 +152,22 @@ public class OpenAIClient implements LLMClient {
                 data.append(header.getKey()).append(": ").append(header.getValue()).append("\\n");
             }
         }
-        
+
         // Add request body if present
         if (!request.getBody().isEmpty()) {
             data.append("\\nRequest Body:\\n");
             data.append(request.getBody()).append("\\n");
         }
-        
+
         data.append("\\n=== HTTP RESPONSE ===\\n");
         data.append("Status Code: ").append(request.getStatusCode()).append("\\n");
-        
+
         // Add response body if present
         if (!request.getResponseBody().isEmpty()) {
             data.append("\\nResponse Body:\\n");
             data.append(request.getResponseBody()).append("\\n");
         }
-        
+
         data.append("\\n=== ANALYSIS REQUEST ===\\n");
         data.append("Please provide a detailed security analysis covering:\\n");
         data.append("1. Potential vulnerabilities (SQL injection, XSS, etc.)\\n");
@@ -200,7 +175,7 @@ public class OpenAIClient implements LLMClient {
         data.append("3. Input validation problems\\n");
         data.append("4. Information disclosure risks\\n");
         data.append("5. Any other security concerns\\n");
-        
+
         return data.toString();
     }
 
@@ -212,10 +187,10 @@ public class OpenAIClient implements LLMClient {
             if (startIndex == -1) {
                 return "No content found in response";
             }
-            
+
             // Skip to the start of the value
             startIndex += searchKey.length();
-            
+
             // Skip whitespace and opening quote
             while (startIndex < jsonResponse.length() && 
                    (jsonResponse.charAt(startIndex) == ' ' || 
@@ -223,19 +198,19 @@ public class OpenAIClient implements LLMClient {
                     jsonResponse.charAt(startIndex) == '\n')) {
                 startIndex++;
             }
-            
+
             if (startIndex >= jsonResponse.length() || jsonResponse.charAt(startIndex) != '"') {
                 return "Invalid JSON format";
             }
             startIndex++; // Skip opening quote
-            
+
             // Find the end of the string value
             StringBuilder content = new StringBuilder();
             boolean escaped = false;
-            
+
             for (int i = startIndex; i < jsonResponse.length(); i++) {
                 char c = jsonResponse.charAt(i);
-                
+
                 if (escaped) {
                     if (c == 'n') content.append('\n');
                     else if (c == 't') content.append('\t');
@@ -253,10 +228,10 @@ public class OpenAIClient implements LLMClient {
                     content.append(c);
                 }
             }
-            
+
             String result = content.toString();
             return result.isEmpty() ? "Empty response from AI" : result;
-            
+
         } catch (Exception e) {
             return "Error parsing response: " + e.getMessage();
         }

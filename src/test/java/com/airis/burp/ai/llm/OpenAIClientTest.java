@@ -1,7 +1,7 @@
 package com.airis.burp.ai.llm;
 
-import com.airis.burp.ai.core.AnalysisRequest;
-import com.airis.burp.ai.core.AnalysisResponse;
+import com.airis.burp.ai.core.AnalysisTarget;
+import com.airis.burp.ai.core.AnalysisResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,14 +27,14 @@ public class OpenAIClientTest {
 
     @Test
     public void testFormatRequest() {
-        AnalysisRequest request = createTestRequest();
+        AnalysisTarget request = createTestRequest();
         String systemPrompt = "Analyze for security issues";
         
         String jsonRequest = openAIClient.formatRequest(request, systemPrompt);
         
         assertNotNull(jsonRequest);
         assertNotEquals("", jsonRequest);
-        assertTrue(jsonRequest.contains("gpt-3.5-turbo"));
+        assertTrue(jsonRequest.contains("gpt-4o-mini"));
         assertTrue(jsonRequest.contains(systemPrompt));
         assertTrue(jsonRequest.contains(request.getMethod()));
         assertTrue(jsonRequest.contains(request.getUrl()));
@@ -50,7 +50,7 @@ public class OpenAIClientTest {
             "  }]\n" +
             "}";
         
-        AnalysisResponse response = openAIClient.parseResponse(mockResponse);
+        AnalysisResult response = openAIClient.parseResponse(mockResponse);
         
         assertNotNull(response);
         assertEquals("Analysis: This request exposes user ID in URL path", response.getAnalysis());
@@ -63,10 +63,10 @@ public class OpenAIClientTest {
         mockClient.setEndpoint("https://api.openai.com/v1/chat/completions");
         mockClient.setApiKey("test-key");
         
-        AnalysisRequest request = createTestRequest();
+        AnalysisTarget request = createTestRequest();
         String systemPrompt = "Analyze for security issues";
         
-        AnalysisResponse response = mockClient.analyze(request, systemPrompt);
+        AnalysisResult response = mockClient.analyze(request, systemPrompt);
         
         assertNotNull(response);
         assertNotEquals("", response.getAnalysis());
@@ -76,24 +76,24 @@ public class OpenAIClientTest {
     @Test
     public void testErrorHandling() {
         // Test with null request
-        AnalysisResponse response = openAIClient.analyze(null, "prompt");
+        AnalysisResult response = openAIClient.analyze(null, "prompt");
         assertNotNull(response);
         assertEquals("", response.getAnalysis());
         
         // Test with empty prompt
-        AnalysisRequest request = createTestRequest();
+        AnalysisTarget request = createTestRequest();
         response = openAIClient.analyze(request, "");
         assertNotNull(response);
         assertEquals("", response.getAnalysis());
         
         // Test parsing invalid JSON
-        AnalysisResponse parsedResponse = openAIClient.parseResponse("invalid json");
+        AnalysisResult parsedResponse = openAIClient.parseResponse("invalid json");
         assertNotNull(parsedResponse);
         assertEquals("No content found in response", parsedResponse.getAnalysis());
     }
 
-    private AnalysisRequest createTestRequest() {
-        AnalysisRequest request = new AnalysisRequest();
+    private AnalysisTarget createTestRequest() {
+        AnalysisTarget request = new AnalysisTarget();
         request.setMethod("GET");
         request.setUrl("https://api.example.com/users/123");
         

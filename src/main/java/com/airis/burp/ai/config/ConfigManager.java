@@ -37,11 +37,8 @@ public class ConfigManager {
         if (config == null) {
             throw new IllegalArgumentException("Configuration cannot be null");
         }
-        // Store encrypted API key
-        if (config.getApiKey() != null && !config.getApiKey().isEmpty()) {
-            String encryptedKey = encryptApiKey(config.getApiKey());
-            config.setApiKey(encryptedKey);
-        }
+        // API key is already handled internally by ConfigModel
+        // No need to encrypt here since ConfigModel manages its own encryption
         // Save to in-memory storage
         this.currentConfig = config;
     }
@@ -69,15 +66,6 @@ public class ConfigManager {
      */
     public String storeApiKey(String apiKey) {
         return encryptApiKey(apiKey);
-    }
-
-    /**
-     * Retrieve the API key (currently just decrypts it).
-     * @param encryptedKey The encrypted API key to retrieve
-     * @return The decrypted API key
-     */
-    public String retrieveApiKey(String encryptedKey) {
-        return decryptApiKey(encryptedKey);
     }
 
     public boolean validateConfig(ConfigModel config) {

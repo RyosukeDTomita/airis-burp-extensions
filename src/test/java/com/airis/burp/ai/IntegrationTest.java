@@ -3,8 +3,8 @@ package com.airis.burp.ai;
 import com.airis.burp.ai.config.ConfigManager;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.core.AnalysisEngine;
-import com.airis.burp.ai.core.AnalysisRequest;
-import com.airis.burp.ai.core.AnalysisResponse;
+import com.airis.burp.ai.core.AnalysisTarget;
+import com.airis.burp.ai.core.AnalysisResult;
 import com.airis.burp.ai.core.RequestProcessor;
 import com.airis.burp.ai.llm.OpenAIClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +56,7 @@ public class IntegrationTest {
         
         // Analyze the traffic (this will use mock client since we don't have real API)
         try {
-            AnalysisResponse response = engine.analyzeHttpTraffic(httpRequest, httpResponse);
+            AnalysisResult response = engine.analyzeHttpTraffic(httpRequest, httpResponse);
             assertNotNull(response);
             // Response will be empty due to HTTP not implemented, but that's expected in test
         } catch (Exception e) {
@@ -84,12 +84,8 @@ public class IntegrationTest {
         assertNotNull(loadedConfig);
         assertEquals(originalConfig.getProvider(), loadedConfig.getProvider());
         assertEquals(originalConfig.getEndpoint(), loadedConfig.getEndpoint());
-        assertEquals(originalConfig.getEncryptedApiKey(), loadedConfig.getEncryptedApiKey());
+        assertEquals(originalConfig.getApiKey(), loadedConfig.getApiKey());
         assertEquals(originalConfig.getSystemPrompt(), loadedConfig.getSystemPrompt());
-        
-        // Test encryption/decryption
-        String decryptedKey = configManager2.decryptApiKey(loadedConfig.getEncryptedApiKey());
-        assertEquals("anthropic-key-123", decryptedKey);
     }
 
     @Test
@@ -111,7 +107,7 @@ public class IntegrationTest {
                 "\r\n" +
                 "{\"id\": 123, \"name\": \"John Doe\", \"updated_at\": \"2024-01-01T10:00:00Z\"}";
         
-        AnalysisRequest request = processor.createAnalysisRequest(complexRequest, complexResponse);
+        AnalysisTarget request = processor.createAnalysisRequest(complexRequest, complexResponse);
         
         assertNotNull(request);
         assertEquals("PUT", request.getMethod());

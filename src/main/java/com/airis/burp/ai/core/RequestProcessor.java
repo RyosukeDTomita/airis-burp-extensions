@@ -19,8 +19,8 @@ public class RequestProcessor {
         this.llmClient = llmClient;
     }
 
-    public AnalysisRequest parseHttpRequest(String httpRequest) {
-        AnalysisRequest request = new AnalysisRequest();
+    public AnalysisTarget parseHttpRequest(String httpRequest) {
+        AnalysisTarget request = new AnalysisTarget();
         
         if (httpRequest == null || httpRequest.trim().isEmpty()) {
             return request;
@@ -58,7 +58,7 @@ public class RequestProcessor {
         return request;
     }
 
-    public void parseHttpResponse(AnalysisRequest request, String httpResponse) {
+    public void parseHttpResponse(AnalysisTarget request, String httpResponse) {
         if (httpResponse == null || httpResponse.trim().isEmpty()) {
             return;
         }
@@ -85,8 +85,8 @@ public class RequestProcessor {
         request.setResponseBody(responseBody);
     }
 
-    public AnalysisRequest createAnalysisRequest(String httpRequest, String httpResponse) {
-        AnalysisRequest request = parseHttpRequest(httpRequest);
+    public AnalysisTarget createAnalysisRequest(String httpRequest, String httpResponse) {
+        AnalysisTarget request = parseHttpRequest(httpRequest);
         parseHttpResponse(request, httpResponse);
         return request;
     }

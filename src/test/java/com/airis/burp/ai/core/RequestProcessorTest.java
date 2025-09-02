@@ -22,7 +22,7 @@ public class RequestProcessorTest {
                 "\r\n" +
                 "{\"query\": \"test\"}";
 
-        AnalysisRequest request = requestProcessor.parseHttpRequest(httpRequest);
+        AnalysisTarget request = requestProcessor.parseHttpRequest(httpRequest);
         
         assertNotNull(request);
         assertEquals("GET", request.getMethod());
@@ -43,7 +43,7 @@ public class RequestProcessorTest {
                 "\r\n" +
                 "{\"id\": 123, \"name\": \"John\"}";
 
-        AnalysisRequest request = new AnalysisRequest();
+        AnalysisTarget request = new AnalysisTarget();
         requestProcessor.parseHttpResponse(request, httpResponse);
         
         assertEquals(200, request.getStatusCode());
@@ -63,7 +63,7 @@ public class RequestProcessorTest {
                 "Set-Cookie: session=xyz789\r\n" +
                 "\r\n";
 
-        AnalysisRequest analysisRequest = requestProcessor.createAnalysisRequest(httpRequest, httpResponse);
+        AnalysisTarget analysisRequest = requestProcessor.createAnalysisRequest(httpRequest, httpResponse);
         
         assertNotNull(analysisRequest);
         assertEquals("POST", analysisRequest.getMethod());

@@ -1,7 +1,7 @@
 package com.airis.burp.ai.llm;
 
-import com.airis.burp.ai.core.AnalysisRequest;
-import com.airis.burp.ai.core.AnalysisResponse;
+import com.airis.burp.ai.core.AnalysisTarget;
+import com.airis.burp.ai.core.AnalysisResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,7 +18,7 @@ public class LLMClientTest {
 
     @Test
     public void testAnalyzeRequest() {
-        AnalysisRequest request = new AnalysisRequest();
+        AnalysisTarget request = new AnalysisTarget();
         request.setMethod("GET");
         request.setUrl("https://example.com/api/users/123");
         request.setHeaders(createHeaders());
@@ -28,7 +28,7 @@ public class LLMClientTest {
         
         String systemPrompt = "Analyze this HTTP request for security issues";
         
-        AnalysisResponse response = llmClient.analyze(request, systemPrompt);
+        AnalysisResult response = llmClient.analyze(request, systemPrompt);
         
         assertNotNull(response);
         assertNotEquals("", response.getAnalysis());
@@ -38,12 +38,12 @@ public class LLMClientTest {
     @Test
     public void testInvalidInput() {
         // Test null request
-        AnalysisResponse response = llmClient.analyze(null, "prompt");
+        AnalysisResult response = llmClient.analyze(null, "prompt");
         assertNotNull(response);
         assertEquals("", response.getAnalysis());
         
         // Test empty prompt
-        AnalysisRequest request = new AnalysisRequest();
+        AnalysisTarget request = new AnalysisTarget();
         response = llmClient.analyze(request, "");
         assertNotNull(response);
         assertEquals("", response.getAnalysis());
@@ -83,9 +83,9 @@ public class LLMClientTest {
         private String apiKey = "";
         private int timeout = 30000;
 
-        public AnalysisResponse analyze(AnalysisRequest request, String systemPrompt) {
+        public AnalysisResult analyze(AnalysisTarget request, String systemPrompt) {
             if (request == null || systemPrompt == null || systemPrompt.isEmpty()) {
-                AnalysisResponse response = new AnalysisResponse();
+                AnalysisResult response = new AnalysisResult();
                 response.setAnalysis("");
                 response.setResponseTime(0);
                 return response;

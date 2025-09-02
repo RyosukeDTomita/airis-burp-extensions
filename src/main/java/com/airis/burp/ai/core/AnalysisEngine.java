@@ -19,25 +19,28 @@ public class AnalysisEngine {
         initializeLLMClient();
     }
 
+    /**
+     * 
+     */
     private void initializeLLMClient() {
-        // For now, default to OpenAI client
-        // In the future, this could be factory-based depending on provider
         this.llmClient = new OpenAIClient();
-        
         try {
             ConfigModel config = configManager.loadConfig();
-            if (config != null && !config.getApiKey().isEmpty()) {
-                llmClient.setEndpoint(config.getEndpoint());
-                String apiKey = configManager.retrieveApiKey(config.getApiKey());
-                llmClient.setApiKey(apiKey);
+            if (config == null) {
+                throw new RuntimeException("Unexpected Error: ConfigModel is null");
             }
+            if (config.getApiKey().isEmpty()) {
+                throw new RuntimeException("API key is not set in configuration");
+            }
+            llmClient.setEndpoint(config.getEndpoint());
+            llmClient.setApiKey(config.getApiKey());
         } catch (Exception e) {
-            // Failed to load config, continue with default empty client
+            throw new RuntimeException("Failed to initialize LLM client: " + e.getMessage());
         }
     }
 
-    public AnalysisResponse analyzeRequest(AnalysisRequest request) {
-        AnalysisResponse response = new AnalysisResponse();
+    public AnalysisResult analyzeRequest(AnalysisTarget request) {
+        AnalysisResult response = new AnalysisResult();
         
         if (request == null) {
             response.setAnalysis("");
@@ -76,13 +79,12 @@ public class AnalysisEngine {
             }
 
             // Sanitize sensitive data
-            AnalysisRequest sanitizedRequest = sanitizeRequest(request);
+            AnalysisTarget sanitizedRequest = sanitizeRequest(request);
             
             // Ensure LLM client has the latest configuration
             if (llmClient != null) {
                 llmClient.setEndpoint(config.getEndpoint());
-                String decryptedApiKey = configManager.decryptApiKey(config.getApiKey());
-                llmClient.setApiKey(decryptedApiKey);
+                llmClient.setApiKey(config.getApiKey());
             }
             
             // Perform AI analysis
@@ -97,8 +99,8 @@ public class AnalysisEngine {
         return response;
     }
 
-    public AnalysisResponse analyzeHttpTraffic(String httpRequest, String httpResponse) {
-        AnalysisRequest analysisRequest = requestProcessor.createAnalysisRequest(httpRequest, httpResponse);
+    public AnalysisResult analyzeHttpTraffic(String httpRequest, String httpResponse) {
+        AnalysisTarget analysisRequest = requestProcessor.createAnalysisRequest(httpRequest, httpResponse);
         return analyzeRequest(analysisRequest);
     }
 
@@ -107,7 +109,7 @@ public class AnalysisEngine {
      * This is an alias for analyzeHttpTraffic for better API clarity.
      */
     public String analyzeRequestResponse(String httpRequest, String httpResponse) {
-        AnalysisResponse response = analyzeHttpTraffic(httpRequest, httpResponse);
+        AnalysisResult response = analyzeHttpTraffic(httpRequest, httpResponse);
         return response.getAnalysis();
     }
 
@@ -126,12 +128,12 @@ public class AnalysisEngine {
         this.llmClient = llmClient;
     }
 
-    private AnalysisRequest sanitizeRequest(AnalysisRequest request) {
+    private AnalysisTarget sanitizeRequest(AnalysisTarget request) {
         if (request == null) {
-            return new AnalysisRequest();
+            return new AnalysisTarget();
         }
 
-        AnalysisRequest sanitized = new AnalysisRequest();
+        AnalysisTarget sanitized = new AnalysisTarget();
         sanitized.setMethod(request.getMethod());
         sanitized.setUrl(request.getUrl());
         sanitized.setHeaders(request.getHeaders());

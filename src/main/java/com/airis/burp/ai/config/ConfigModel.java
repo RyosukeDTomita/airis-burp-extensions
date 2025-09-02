@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class ConfigModel {
     private static final List<String> VALID_PROVIDERS = Arrays.asList("openai", "anthropic");
-    
+
     private String provider = "";
     private String endpoint = "";
     private String apiKey = "";  // Plain text API key (stored in memory only)
@@ -27,7 +27,7 @@ public class ConfigModel {
     public String getApiKey() {
         return apiKey;
     }
-    
+
     // Deprecated - kept for backward compatibility
     @Deprecated
     public String getEncryptedApiKey() {
@@ -50,7 +50,7 @@ public class ConfigModel {
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey != null ? apiKey : "";
     }
-    
+
     // Deprecated - kept for backward compatibility
     @Deprecated
     public void setEncryptedApiKey(String apiKey) {
