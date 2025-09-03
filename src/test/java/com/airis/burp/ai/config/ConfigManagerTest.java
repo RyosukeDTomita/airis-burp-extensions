@@ -96,8 +96,8 @@ public class ConfigManagerTest {
     }
 
     @Test
-    public void testGetDefaultSystemPrompt() {
-        String defaultPrompt = configManager.getDefaultSystemPrompt();
+    public void testGetDefaultUserPrompt() {
+        String defaultPrompt = configManager.getDefaultUserPrompt();
         assertNotNull(defaultPrompt);
         assertNotEquals("", defaultPrompt);
         assertTrue(defaultPrompt.contains("HTTP"));

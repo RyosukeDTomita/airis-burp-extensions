@@ -76,8 +76,8 @@ public class AnalysisEngine {
                     if (config.getApiKey() == null || config.getApiKey().isEmpty()) {
                         errorMsg.append("API key is not set. ");
                     }
-                    if (config.getSystemPrompt() == null || config.getSystemPrompt().isEmpty()) {
-                        errorMsg.append("System prompt is not set. ");
+                    if (config.getUserPrompt() == null || config.getUserPrompt().isEmpty()) {
+                        errorMsg.append("User prompt is not set. ");
                     }
                 }
                 
@@ -97,7 +97,7 @@ public class AnalysisEngine {
             }
             
             // Perform AI analysis
-            response = llmClient.analyze(sanitizedRequest, config.getSystemPrompt());
+            response = llmClient.analyze(sanitizedRequest, config.getUserPrompt());
             
         } catch (Exception e) {
             // Return error response with detailed error message

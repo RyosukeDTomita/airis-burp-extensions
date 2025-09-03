@@ -78,13 +78,13 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
                         montoyaApi.logging().logToError("AnalysisEngine is not initialized");
                         JOptionPane.showMessageDialog(
                             null,
-                            "分析エンジンが初期化されていません。設定を確認してください。",
-                            "初期化エラー",
+                            "Analysis engine is not initialized. Please check your configuration.",
+                            "Initialization Error",
                             JOptionPane.ERROR_MESSAGE
                         );
                         return;
                     }
-                    
+
                     montoyaApi.logging().logToOutput("Starting AI analysis...");
                     String requestString = "";
                     String responseString = "";
@@ -116,8 +116,8 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(
                         null,
-                        "分析中にエラーが発生しました: " + ex.getMessage(),
-                        "AI分析エラー",
+                        "Error occurred during analysis: " + ex.getMessage(),
+                        "AI Analysis Error",
                         JOptionPane.ERROR_MESSAGE
                     );
                 }

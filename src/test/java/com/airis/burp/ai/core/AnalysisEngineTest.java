@@ -125,7 +125,7 @@ public class AnalysisEngineTest {
         private String apiKey = "";
         private int timeout = 30000;
 
-        public AnalysisResult analyze(AnalysisTarget request, String systemPrompt) {
+        public AnalysisResult analyze(AnalysisTarget request, String userPrompt) {
             AnalysisResult response = new AnalysisResult();
             response.setAnalysis("Mock analysis: Request exposes user ID in URL path");
             response.setResponseTime(100);

@@ -28,14 +28,14 @@ public class OpenAIClientTest {
     @Test
     public void testFormatRequest() {
         AnalysisTarget request = createTestRequest();
-        String systemPrompt = "Analyze for security issues";
+        String userPrompt = "Analyze for security issues";
         
-        String jsonRequest = openAIClient.formatRequest(request, systemPrompt);
+        String jsonRequest = openAIClient.formatRequest(request, userPrompt);
         
         assertNotNull(jsonRequest);
         assertNotEquals("", jsonRequest);
         assertTrue(jsonRequest.contains("gpt-4o-mini"));
-        assertTrue(jsonRequest.contains(systemPrompt));
+        assertTrue(jsonRequest.contains(userPrompt));
         assertTrue(jsonRequest.contains(request.getMethod()));
         assertTrue(jsonRequest.contains(request.getUrl()));
     }
@@ -64,9 +64,9 @@ public class OpenAIClientTest {
         mockClient.setApiKey("test-key");
         
         AnalysisTarget request = createTestRequest();
-        String systemPrompt = "Analyze for security issues";
+        String userPrompt = "Analyze for security issues";
         
-        AnalysisResult response = mockClient.analyze(request, systemPrompt);
+        AnalysisResult response = mockClient.analyze(request, userPrompt);
         
         assertNotNull(response);
         assertNotEquals("", response.getAnalysis());

@@ -5,15 +5,15 @@ import java.util.List;
 
 /**
  * Configuration model for AI Extension settings.
- * Contains provider, endpoint, API key, and system prompt information.
+ * Contains provider, endpoint, API key, and user prompt information.
  */
 public class ConfigModel {
     private static final List<String> VALID_PROVIDERS = Arrays.asList("openai", "anthropic");
 
-    private String provider = "";
+    private String provider = ""; // OpenAI or Anthropic or Gemini
     private String endpoint = "";
     private String apiKey = "";  // Plain text API key (stored in memory only)
-    private String systemPrompt = "";
+    private String userPrompt = "";
 
     // Getters
     public String getProvider() {
@@ -34,8 +34,8 @@ public class ConfigModel {
         return apiKey;
     }
 
-    public String getSystemPrompt() {
-        return systemPrompt;
+    public String getUserPrompt() {
+        return userPrompt;
     }
 
     // Setters with null safety
@@ -57,8 +57,8 @@ public class ConfigModel {
         this.apiKey = apiKey != null ? apiKey : "";
     }
 
-    public void setSystemPrompt(String systemPrompt) {
-        this.systemPrompt = systemPrompt != null ? systemPrompt : "";
+    public void setUserPrompt(String userPrompt) {
+        this.userPrompt = userPrompt != null ? userPrompt : "";
     }
 
     // Validation methods
@@ -81,6 +81,6 @@ public class ConfigModel {
         return !provider.isEmpty() && 
                !endpoint.isEmpty() && 
                !apiKey.isEmpty() && 
-               !systemPrompt.isEmpty();
+               !userPrompt.isEmpty();
     }
 }

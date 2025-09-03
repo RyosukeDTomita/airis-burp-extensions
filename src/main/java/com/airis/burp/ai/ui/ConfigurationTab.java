@@ -10,7 +10,7 @@ import java.awt.event.ActionListener;
 
 /**
  * Configuration tab for the AI Security Analyzer extension.
- * User can edit LLM provider, api endpoint URL, API key, and system prompt.
+ * User can edit LLM provider, api endpoint URL, API key, and user prompt.
  */
 public class ConfigurationTab {
     private final ConfigManager configManager;
@@ -19,7 +19,7 @@ public class ConfigurationTab {
     private JComboBox<String> providerCombo;
     private JTextField endpointField;
     private JPasswordField apiKeyField;
-    private JTextArea systemPromptArea;
+    private JTextArea userPromptArea;
     private JButton saveButton;
     private JButton testButton;
     private JLabel statusLabel;
@@ -103,17 +103,17 @@ public class ConfigurationTab {
         gbc.gridy = 4;
         gbc.fill = GridBagConstraints.NONE;
         gbc.weightx = 0;
-        configPanel.add(new JLabel("System Prompt:"), gbc);
+        configPanel.add(new JLabel("User Prompt:"), gbc);
 
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
-        systemPromptArea = new JTextArea(8, 40);
-        systemPromptArea.setLineWrap(true);
-        systemPromptArea.setWrapStyleWord(true);
-        systemPromptArea.setText(configManager.getDefaultSystemPrompt());
-        JScrollPane scrollPane = new JScrollPane(systemPromptArea);
+        userPromptArea = new JTextArea(8, 40);
+        userPromptArea.setLineWrap(true);
+        userPromptArea.setWrapStyleWord(true);
+        userPromptArea.setText(configManager.getDefaultUserPrompt());
+        JScrollPane scrollPane = new JScrollPane(userPromptArea);
         configPanel.add(scrollPane, gbc);
 
         // Buttons
@@ -167,8 +167,8 @@ public class ConfigurationTab {
             if (!config.getEndpoint().isEmpty()) {
                 endpointField.setText(config.getEndpoint());
             }
-            if (!config.getSystemPrompt().isEmpty()) {
-                systemPromptArea.setText(config.getSystemPrompt());
+            if (!config.getUserPrompt().isEmpty()) {
+                userPromptArea.setText(config.getUserPrompt());
             }
             // Load API key (decrypt from stored encrypted value)
             if (!config.getApiKey().isEmpty()) {
@@ -203,7 +203,7 @@ public class ConfigurationTab {
                     config.setApiKey(apiKey);
                 }
 
-                config.setSystemPrompt(systemPromptArea.getText().trim());
+                config.setUserPrompt(userPromptArea.getText().trim());
 
                 // Validate configuration
                 if (configManager.validateConfig(config)) {

@@ -26,9 +26,9 @@ public class LLMClientTest {
         request.setStatusCode(200);
         request.setResponseBody("{\"id\": 123, \"name\": \"test\"}");
         
-        String systemPrompt = "Analyze this HTTP request for security issues";
+        String userPrompt = "Analyze this HTTP request for security issues";
         
-        AnalysisResult response = llmClient.analyze(request, systemPrompt);
+        AnalysisResult response = llmClient.analyze(request, userPrompt);
         
         assertNotNull(response);
         assertNotEquals("", response.getAnalysis());
@@ -83,15 +83,15 @@ public class LLMClientTest {
         private String apiKey = "";
         private int timeout = 30000;
 
-        public AnalysisResult analyze(AnalysisTarget request, String systemPrompt) {
-            if (request == null || systemPrompt == null || systemPrompt.isEmpty()) {
+        public AnalysisResult analyze(AnalysisTarget request, String userPrompt) {
+            if (request == null || userPrompt == null || userPrompt.isEmpty()) {
                 AnalysisResult response = new AnalysisResult();
                 response.setAnalysis("");
                 response.setResponseTime(0);
                 return response;
             }
             
-            AnalysisResponse response = new AnalysisResponse();
+            AnalysisResult response = new AnalysisResult();
             response.setAnalysis("Mock analysis: The request appears to expose user ID in URL");
             response.setResponseTime(100);
             return response;

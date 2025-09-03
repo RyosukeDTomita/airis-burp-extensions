@@ -5,7 +5,7 @@ package com.airis.burp.ai.config;
  */
 public class ConfigManager {
     private static final String DEFAULT_CONFIG_PATH = "burp_ai_config.json";
-    private static final String DEFAULT_SYSTEM_PROMPT = 
+    private static final String DEFAULT_USER_PROMPT = 
         "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, " +
         "potential issues, and provide recommendations. Focus on common web application security issues like " +
         "injection attacks, authentication bypasses, authorization issues, and data exposure.";
@@ -83,7 +83,7 @@ public class ConfigManager {
         if (config.getApiKey() == null || config.getApiKey().isEmpty()) {
             return false;
         }
-        if (config.getSystemPrompt() == null || config.getSystemPrompt().isEmpty()) {
+        if (config.getUserPrompt() == null || config.getUserPrompt().isEmpty()) {
             return false;
         }
         
@@ -100,13 +100,13 @@ public class ConfigManager {
         return true;
     }
 
-    public String getDefaultSystemPrompt() {
-        return DEFAULT_SYSTEM_PROMPT;
+    public String getDefaultUserPrompt() {
+        return DEFAULT_USER_PROMPT;
     }
 
     public ConfigModel createDefaultConfig() {
         ConfigModel config = new ConfigModel();
-        config.setSystemPrompt(DEFAULT_SYSTEM_PROMPT);
+        config.setUserPrompt(DEFAULT_USER_PROMPT);
         return config;
     }
 }

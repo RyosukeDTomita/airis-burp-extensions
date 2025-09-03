@@ -19,9 +19,9 @@ public class OpenAIClient implements LLMClient {
     private String apiKey = "";
     private int timeout = DEFAULT_TIMEOUT;
 
-    public AnalysisResult analyze(AnalysisTarget request, String systemPrompt) {
+    public AnalysisResult analyze(AnalysisTarget request, String userPrompt) {
         AnalysisResult response = new AnalysisResult();
-        if (request == null || systemPrompt == null || systemPrompt.trim().isEmpty()) {
+        if (request == null || userPrompt == null || userPrompt.trim().isEmpty()) {
             response.setAnalysis("");
             response.setResponseTime(0);
             return response;
@@ -29,7 +29,7 @@ public class OpenAIClient implements LLMClient {
 
         long startTime = System.currentTimeMillis();
         try {
-            String jsonRequest = formatRequest(request, systemPrompt);
+            String jsonRequest = formatRequest(request, userPrompt);
             String jsonResponse = makeHttpRequest(jsonRequest);
             response = parseResponse(jsonResponse);
         } catch (Exception e) {
@@ -41,14 +41,14 @@ public class OpenAIClient implements LLMClient {
         return response;
     }
 
-    public String formatRequest(AnalysisTarget request, String systemPrompt) {
+    public String formatRequest(AnalysisTarget request, String userPrompt) {
         StringBuilder json = new StringBuilder();
         json.append("{\n");
         json.append("  \"model\": \"").append(DEFAULT_MODEL).append("\",\n");
         json.append("  \"messages\": [\n");
         json.append("    {\n");
         json.append("      \"role\": \"system\",\n");
-        json.append("      \"content\": \"").append(escapeJson(systemPrompt)).append("\"\n");
+        json.append("      \"content\": \"").append(escapeJson(userPrompt)).append("\"\n");
         json.append("    },\n");
         json.append("    {\n");
         json.append("      \"role\": \"user\",\n");
