@@ -1,1 +1,0 @@
-rootProject.name = "extension-template-project"

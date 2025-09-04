@@ -16,13 +16,6 @@ public class ConfigModel {
   private String apiKey = ""; // Plain text API key (stored in memory only)
   private String userPrompt = "";
 
-  public ConfigModel() {
-    setProvider("");
-    setEndpoint("");
-    setApiKey("");
-    setUserPrompt("");
-  }
-
   /**
    * @param userPrompt Custom user prompt for analysis The other parameters(provider, endpoint,
    *     apiKey) vary depending on the user, so they are set to empty strings by default.
