@@ -1,156 +1,146 @@
 package com.airis.burp.ai.core;
 
 import burp.api.montoya.logging.Logging;
-import com.airis.burp.ai.config.ConfigManager;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.LLMClient;
 import com.airis.burp.ai.llm.OpenAIClient;
 
-/** Core analysis engine that orchestrates request processing and AI analysis. */
 public class AnalysisEngine {
-  private final ConfigManager configManager;
+  private final ConfigModel configModel;
   private final Logging logging;
-  private LLMClient llmClient;
-  private RequestProcessor requestProcessor;
+  private final RequestProcessor requestProcessor;
+  private volatile boolean isAnalyzing = false;
 
   public AnalysisEngine(
-      RequestProcessor requestProcessor, ConfigManager configManager, Logging logging) {
-    this.configManager = configManager;
+      RequestProcessor requestProcessor, ConfigModel configModel, Logging logging) {
+    this.configModel = configModel;
     this.logging = logging;
     this.requestProcessor = requestProcessor;
-    initializeLLMClient();
-  }
-
-  /** */
-  private void initializeLLMClient() {
-    this.llmClient = new OpenAIClient();
-    try {
-      ConfigModel config = configManager.loadConfig();
-      if (config == null) {
-        // Log warning but don't throw exception
-        logging.logToOutput("Warning: ConfigModel is null, using default configuration");
-        return;
-      }
-      if (config.getApiKey().isEmpty()) {
-        // Log warning but don't throw exception
-        logging.logToOutput(
-            "Warning: API key is not set in configuration. Please configure API key in the extension settings.");
-        return;
-      }
-      llmClient.setEndpoint(config.getEndpoint());
-      llmClient.setApiKey(config.getApiKey());
-      logging.logToOutput("LLM client initialized successfully");
-    } catch (Exception e) {
-      // Log error but don't throw exception
-      logging.logToError("Warning: Failed to initialize LLM client: " + e.getMessage());
-    }
-  }
-
-  public AnalysisResult analyzeRequest(AnalysisTarget request) {
-    AnalysisResult response = new AnalysisResult();
-
-    if (request == null) {
-      response.setAnalysis("");
-      response.setResponseTime(0);
-      return response;
-    }
-
-    try {
-      ConfigModel config = configManager.loadConfig();
-
-      // Validate configuration with detailed error messages
-      if (!configManager.validateConfig(config)) {
-        StringBuilder errorMsg = new StringBuilder("Configuration validation failed. ");
-
-        if (config == null) {
-          errorMsg.append("Configuration is not initialized.");
-        } else {
-          if (config.getProvider() == null || config.getProvider().isEmpty()) {
-            errorMsg.append("Provider is not set. ");
-          }
-          if (config.getEndpoint() == null || config.getEndpoint().isEmpty()) {
-            errorMsg.append("API endpoint is not set. ");
-          }
-          if (config.getApiKey() == null || config.getApiKey().isEmpty()) {
-            errorMsg.append("API key is not set. ");
-          }
-          if (config.getUserPrompt() == null || config.getUserPrompt().isEmpty()) {
-            errorMsg.append("User prompt is not set. ");
-          }
-        }
-
-        errorMsg.append("Please check your settings in the AI Security Analyzer tab.");
-        response.setAnalysis(errorMsg.toString());
-        response.setResponseTime(0);
-        return response;
-      }
-
-      // Sanitize sensitive data
-      AnalysisTarget sanitizedRequest = sanitizeRequest(request);
-
-      // Ensure LLM client has the latest configuration
-      if (llmClient != null) {
-        llmClient.setEndpoint(config.getEndpoint());
-        llmClient.setApiKey(config.getApiKey());
-      }
-
-      // Perform AI analysis
-      response = llmClient.analyze(sanitizedRequest, config.getUserPrompt());
-
-    } catch (Exception e) {
-      // Return error response with detailed error message
-      response.setAnalysis("Error during AI analysis: " + e.getMessage());
-      response.setResponseTime(0);
-    }
-
-    return response;
-  }
-
-  public AnalysisResult analyzeHttpTraffic(String httpRequest, String httpResponse) {
-    AnalysisTarget analysisRequest =
-        requestProcessor.createAnalysisRequest(httpRequest, httpResponse);
-    return analyzeRequest(analysisRequest);
   }
 
   /**
-   * Convenience method for analyzing request and response data. This is an alias for
-   * analyzeHttpTraffic for better API clarity.
+   * Main method to initiate AI analysis of HTTP request/response
+   *
+   * @param request The HTTP request to analyze
+   * @param response The HTTP response to analyze (nullable)
+   * @return Analysis result or error message
    */
-  public String analyzeRequestResponse(String httpRequest, String httpResponse) {
-    AnalysisResult response = analyzeHttpTraffic(httpRequest, httpResponse);
-    return response.getAnalysis();
-  }
+  public String analyzeRequest(String request, String response) {
+    if (isAnalyzing) {
+      return "Analysis already in progress. Please wait...";
+    }
 
-  public void setConfiguration(ConfigModel config) {
-    if (config != null) {
-      configManager.saveConfig(config);
-      initializeLLMClient(); // Reinitialize with new config
+    try {
+      isAnalyzing = true;
+      logging.logToOutput("Starting AI analysis...");
+
+      // Validate configuration
+      if (!configModel.isValid()) {
+        return "Configuration is incomplete. Please configure API settings.";
+      }
+
+      // Create LLM client based on provider
+      LLMClient llmClient = createLLMClient(configModel.getProvider());
+      if (llmClient == null) {
+        return "Unsupported AI provider: " + configModel.getProvider();
+      }
+
+      // Setup client
+      llmClient.setEndpoint(configModel.getEndpoint());
+      llmClient.setApiKey(configModel.getApiKey());
+
+      // Create analysis target using RequestProcessor
+      AnalysisTarget target = requestProcessor.createAnalysisRequest(request, response);
+
+      // Execute analysis
+      AnalysisResult result = llmClient.analyze(target, configModel.getUserPrompt());
+      logging.logToOutput("Analysis completed successfully");
+
+      return result != null ? result.getAnalysis() : "No analysis result";
+
+    } catch (Exception e) {
+      logging.logToError("Analysis failed: " + e.getMessage());
+      return "Analysis failed: " + e.getMessage();
+    } finally {
+      isAnalyzing = false;
     }
   }
 
-  public ConfigManager getConfigManager() {
-    return configManager;
-  }
+  /**
+   * Build the complete prompt for AI analysis
+   *
+   * @param request HTTP request content
+   * @param response HTTP response content (nullable)
+   * @return Complete prompt string
+   */
+  private String buildAnalysisPrompt(String request, String response) {
+    StringBuilder promptBuilder = new StringBuilder();
 
-  public void setLLMClient(LLMClient llmClient) {
-    this.llmClient = llmClient;
-  }
-
-  private AnalysisTarget sanitizeRequest(AnalysisTarget request) {
-    if (request == null) {
-      return new AnalysisTarget();
+    // Add user-defined prompt
+    String userPrompt = configModel.getUserPrompt();
+    if (userPrompt != null && !userPrompt.isEmpty()) {
+      promptBuilder.append(userPrompt).append("\n\n");
     }
 
-    AnalysisTarget sanitized = new AnalysisTarget();
-    sanitized.setMethod(request.getMethod());
-    sanitized.setUrl(request.getUrl());
-    sanitized.setHeaders(request.getHeaders());
-    sanitized.setStatusCode(request.getStatusCode());
+    // Add request
+    promptBuilder.append("=== HTTP Request ===\n");
+    promptBuilder.append(request).append("\n\n");
 
-    // Sanitize body and response body
-    sanitized.setBody(requestProcessor.sanitizeData(request.getBody()));
-    sanitized.setResponseBody(requestProcessor.sanitizeData(request.getResponseBody()));
+    // Add response if available
+    if (response != null && !response.isEmpty()) {
+      promptBuilder.append("=== HTTP Response ===\n");
+      promptBuilder.append(response).append("\n");
+    }
 
-    return sanitized;
+    return promptBuilder.toString();
+  }
+
+  /**
+   * Create appropriate LLM client based on provider
+   *
+   * @param provider The AI provider name
+   * @return LLM client instance or null if unsupported
+   */
+  private LLMClient createLLMClient(String provider) {
+    if (provider == null) {
+      return null;
+    }
+
+    switch (provider.toLowerCase()) {
+      case "openai":
+        return new OpenAIClient();
+      case "anthropic":
+        // TODO: Implement AnthropicClient
+        logging.logToError("Anthropic client not yet implemented");
+        return null;
+      case "gemini":
+        // TODO: Implement GeminiClient
+        logging.logToError("Gemini client not yet implemented");
+        return null;
+      default:
+        logging.logToError("Unknown AI provider: " + provider);
+        return null;
+    }
+  }
+
+  /**
+   * Check if analysis is currently in progress
+   *
+   * @return true if analyzing, false otherwise
+   */
+  public boolean isAnalyzing() {
+    return isAnalyzing;
+  }
+
+  public ConfigModel getConfigModel() {
+    return configModel;
+  }
+
+  public Logging getLogging() {
+    return logging;
+  }
+
+  public RequestProcessor getRequestProcessor() {
+    return requestProcessor;
   }
 }

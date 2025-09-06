@@ -6,9 +6,11 @@ import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.http.message.responses.HttpResponse;
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
-import com.airis.burp.ai.config.ConfigManager;
+import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.core.AnalysisEngine;
-import java.awt.Component;
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -16,194 +18,159 @@ import java.util.List;
 import javax.swing.*;
 
 /**
- * This Class provides the result view for the LLM analysis. To add an item to Burp's right-click
- * context menu, register a ContextMenuItemsProvider and implement the provideMenuItems() method.
+ * Context menu provider for Burp Suite that allows AI analysis of HTTP requests/responses.
+ * Displays analysis results in a custom dialog window.
  */
 public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
-
+  /**
+   * Core analysis engine for processing requests
+   */
   private final AnalysisEngine analysisEngine;
   private final MontoyaApi montoyaApi;
+  private final ConfigModel configModel;
 
   public AIAnalysisMenuProvider(
-      AnalysisEngine analysisEngine, ConfigManager configManager, MontoyaApi montoyaApi) {
+      AnalysisEngine analysisEngine, ConfigModel configModel, MontoyaApi montoyaApi) {
     this.analysisEngine = analysisEngine;
+    this.configModel = configModel;
     this.montoyaApi = montoyaApi;
   }
 
   /**
-   * Invoked by Burp Suite when the user requests a context menu with WebSocket information in the
-   * user interface.
+   * Provides menu items for the context menu when right-clicking in Burp
    *
-   * @param ContextMenuEvent
+   * @param event Context menu event containing selected HTTP items
+   * @return List of menu items to display
    */
   @Override
   public List<Component> provideMenuItems(ContextMenuEvent event) {
-    List<Component> menuItems = new ArrayList<>();
+    List<Component> menuItemList = new ArrayList<>();
 
-    try {
-      List<HttpRequestResponse> selectedMessages = event.selectedRequestResponses();
-      if (selectedMessages.isEmpty()) {
-        return menuItems;
-      }
-      JMenuItem analyzeMenuItem = new JMenuItem("AI Security Analyzer");
-      // TODO: 選択された通信履歴のうち、最初の1つのみ扱っている
-      HttpRequestResponse message = selectedMessages.get(0);
+    // Check if valid HTTP request/response is selected
+    if (event.selectedRequestResponses() != null && !event.selectedRequestResponses().isEmpty()) {
+      JMenuItem analyzeMenuItem = new JMenuItem("Analyze with AI");
 
-      // handler of click Event
+      // Add action listener for menu click
       analyzeMenuItem.addActionListener(
-          new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-              analyzeWithMontoya(message);
-            }
+          e -> {
+            // Get first selected item
+            HttpRequestResponse item = event.selectedRequestResponses().get(0);
+            analyzeWithMontoya(item);
           });
-      menuItems.add(analyzeMenuItem);
-    } catch (Exception e) {
-      if (montoyaApi != null) {
-        montoyaApi.logging().logToError("Error in provideMenuItems: " + e.getMessage());
-      }
-      e.printStackTrace();
+
+      menuItemList.add(analyzeMenuItem);
     }
-    return menuItems;
+
+    return menuItemList;
   }
 
-  /** callback functions Analyze request/response using Montoya API */
-  private void analyzeWithMontoya(HttpRequestResponse message) {
-    SwingUtilities.invokeLater(
-        new Runnable() {
-          @Override
-          public void run() {
+  /**
+   * Analyzes HTTP request/response using Montoya API
+   */
+  private void analyzeWithMontoya(HttpRequestResponse requestResponse) {
+    try {
+      // Extract request as string
+      String request = requestResponse.request().toString();
+
+      // Extract response if available
+      final String response;
+      if (requestResponse.response() != null) {
+        response = requestResponse.response().toString();
+      } else {
+        response = "";
+      }
+
+      // Log to Burp output
+      montoyaApi.logging().logToOutput("Starting AI analysis...");
+
+      // Perform analysis in background thread
+      SwingUtilities.invokeLater(
+          () -> {
             try {
-              // Null check for analysisEngine
-              if (analysisEngine == null) {
-                montoyaApi.logging().logToError("AnalysisEngine is not initialized");
-                JOptionPane.showMessageDialog(
-                    null,
-                    "Analysis engine is not initialized. Please check your configuration.",
-                    "Initialization Error",
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-              }
+              // Show loading dialog
+              JDialog loadingDialog = new JDialog();
+              loadingDialog.setTitle("AI Analysis");
+              loadingDialog.setModal(false);
+              loadingDialog.setSize(300, 100);
+              loadingDialog.setLocationRelativeTo(null);
 
-              montoyaApi.logging().logToOutput("Starting AI analysis...");
-              String requestString = "";
-              String responseString = "";
-
-              HttpRequest request = message.request();
-              // NOTE: message.hasRequest is not exist.
-              if (request == null) {
-                montoyaApi.logging().logToError("Request is null");
-              }
-              requestString = request.toString();
-              if (message.hasResponse()) {
-                HttpResponse response = message.response();
-                if (response != null) {
-                  responseString = response.toString();
-                }
-              }
+              JPanel panel = new JPanel(new BorderLayout());
+              panel.add(new JLabel("Analyzing... Please wait.", SwingConstants.CENTER));
+              loadingDialog.add(panel);
+              loadingDialog.setVisible(true);
 
               // Perform analysis
-              String result = analysisEngine.analyzeRequestResponse(requestString, responseString);
+              new Thread(
+                      () -> {
+                        String result = analysisEngine.analyzeRequest(request, response);
 
-              // Check if we have a meaningful result
-              if (result == null || result.trim().isEmpty()) {
-                result =
-                    "AI analysis returned no result. Please check your API configuration and ensure the endpoint and API key are correctly set.";
-              }
-              montoyaApi.logging().logToOutput("Analysis result: " + result);
-              showAnalysisResultMontoya(result);
+                        SwingUtilities.invokeLater(
+                            () -> {
+                              loadingDialog.dispose();
+                              showAnalysisResultMontoya(result);
+                            });
+                      })
+                  .start();
+
             } catch (Exception ex) {
-              montoyaApi.logging().logToError("Error during AI analysis: " + ex.getMessage());
-              ex.printStackTrace();
+              montoyaApi.logging().logToError("Analysis failed: " + ex.getMessage());
               JOptionPane.showMessageDialog(
-                  null,
-                  "Error occurred during analysis: " + ex.getMessage(),
-                  "AI Analysis Error",
-                  JOptionPane.ERROR_MESSAGE);
+                  null, "Analysis failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
-          }
-        });
+          });
+
+    } catch (Exception e) {
+      montoyaApi.logging().logToError("Failed to analyze request: " + e.getMessage());
+    }
   }
 
-  /** Show analysis result dialog */
+  /**
+   * Shows analysis result in a dialog (Montoya API version)
+   */
   private void showAnalysisResultMontoya(String result) {
-    SwingUtilities.invokeLater(
-        new Runnable() {
-          @Override
-          public void run() {
-            // Create dialog to show analysis result
-            JDialog resultDialog = new JDialog();
-            resultDialog.setTitle("AI Security Analysis Results");
-            resultDialog.setSize(1000, 700);
-            resultDialog.setLocationRelativeTo(null);
-            resultDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+    JDialog resultDialog = new JDialog();
+    resultDialog.setTitle("AI Analysis Result");
+    resultDialog.setModal(true);
+    resultDialog.setSize(800, 600);
+    resultDialog.setLocationRelativeTo(null);
 
-            // Create main panel with border layout
-            JPanel mainPanel = new JPanel(new java.awt.BorderLayout());
+    // Create text area for result
+    JTextArea resultArea = new JTextArea(result);
+    resultArea.setEditable(false);
+    resultArea.setWrapStyleWord(true);
+    resultArea.setLineWrap(true);
+    resultArea.setCaretPosition(0);
 
-            // Add header
-            JLabel headerLabel = new JLabel("AI Security Analysis Results");
-            headerLabel.setFont(headerLabel.getFont().deriveFont(16.0f));
-            headerLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            mainPanel.add(headerLabel, java.awt.BorderLayout.NORTH);
+    // Add scroll pane
+    JScrollPane scrollPane = new JScrollPane(resultArea);
+    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
-            // Create text area with better formatting
-            JTextArea resultArea = new JTextArea(result);
-            resultArea.setEditable(false);
-            resultArea.setWrapStyleWord(true);
-            resultArea.setLineWrap(true);
-            resultArea.setFont(
-                new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.PLAIN, 12));
-            resultArea.setMargin(new java.awt.Insets(10, 10, 10, 10));
+    // Create button panel
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-            // Add scroll pane
-            JScrollPane scrollPane = new JScrollPane(resultArea);
-            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-            mainPanel.add(scrollPane, java.awt.BorderLayout.CENTER);
-
-            // Create button panel
-            JPanel buttonPanel = new JPanel(new java.awt.FlowLayout());
-
-            JButton copyButton = new JButton("Copy to Clipboard");
-            copyButton.addActionListener(
-                new ActionListener() {
-                  @Override
-                  public void actionPerformed(ActionEvent e) {
-                    java.awt.datatransfer.StringSelection selection =
-                        new java.awt.datatransfer.StringSelection(result);
-                    java.awt.Toolkit.getDefaultToolkit()
-                        .getSystemClipboard()
-                        .setContents(selection, null);
-                    JOptionPane.showMessageDialog(
-                        resultDialog,
-                        "Analysis results copied to clipboard",
-                        "Copied",
-                        JOptionPane.INFORMATION_MESSAGE);
-                  }
-                });
-
-            JButton closeButton = new JButton("Close");
-            closeButton.addActionListener(
-                new ActionListener() {
-                  @Override
-                  public void actionPerformed(ActionEvent e) {
-                    resultDialog.dispose();
-                  }
-                });
-
-            buttonPanel.add(copyButton);
-            buttonPanel.add(closeButton);
-            mainPanel.add(buttonPanel, java.awt.BorderLayout.SOUTH);
-
-            resultDialog.add(mainPanel);
-            resultDialog.setVisible(true);
-
-            montoyaApi
-                .logging()
-                .logToOutput(
-                    "AI Analysis completed. Result length: " + result.length() + " characters");
-          }
+    // Copy button
+    JButton copyButton = new JButton("Copy to Clipboard");
+    copyButton.addActionListener(
+        e -> {
+          StringSelection selection = new StringSelection(result);
+          Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+          clipboard.setContents(selection, null);
+          JOptionPane.showMessageDialog(
+              resultDialog, "Copied to clipboard!", "Success", JOptionPane.INFORMATION_MESSAGE);
         });
+
+    // Close button
+    JButton closeButton = new JButton("Close");
+    closeButton.addActionListener(e -> resultDialog.dispose());
+
+    buttonPanel.add(copyButton);
+    buttonPanel.add(closeButton);
+
+    // Add components to dialog
+    resultDialog.setLayout(new BorderLayout());
+    resultDialog.add(scrollPane, BorderLayout.CENTER);
+    resultDialog.add(buttonPanel, BorderLayout.SOUTH);
+
+    resultDialog.setVisible(true);
   }
 }

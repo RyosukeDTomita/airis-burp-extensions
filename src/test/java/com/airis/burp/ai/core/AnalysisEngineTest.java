@@ -1,162 +1,127 @@
 package com.airis.burp.ai.core;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-import com.airis.burp.ai.config.ConfigManager;
+import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.LLMClient;
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class AnalysisEngineTest {
   private AnalysisEngine analysisEngine;
-  private ConfigManager configManager;
-
+  private ConfigModel configModel;
+  private RequestProcessor requestProcessor;
+  
+  @Mock
+  private Logging mockLogging;
+  
+  @Mock
+  private LLMClient mockLLMClient;
+  
   @BeforeEach
   public void setUp() {
-    configManager = new ConfigManager("test_analysis_config.json");
-    analysisEngine = new AnalysisEngine(configManager);
-  }
-
-  @AfterEach
-  public void tearDown() {
-    // Clean up test config file
-    File testFile = new File("test_analysis_config.json");
-    if (testFile.exists()) {
-      testFile.delete();
-    }
+    MockitoAnnotations.openMocks(this);
+    configModel = new ConfigModel();
+    requestProcessor = new RequestProcessor(mockLLMClient);
+    analysisEngine = new AnalysisEngine(requestProcessor, configModel, mockLogging);
   }
 
   @Test
-  public void testInitialization() {
-    assertNotNull(analysisEngine);
-    assertNotNull(analysisEngine.getConfigManager());
-  }
-
-  @Test
-  public void testAnalyzeRequest() {
+  public void testAnalyzeRequestWithValidConfig() {
     // Setup valid configuration
-    ConfigModel config = new ConfigModel();
-    config.setProvider("openai");
-    config.setEndpoint("https://api.openai.com/v1/chat/completions");
-    config.setEncryptedApiKey("encrypted-key");
-    config.setSystemPrompt("Analyze for security issues");
-    configManager.saveConfig(config);
-
-    // Create test request
-    AnalysisTarget request = createTestRequest();
-
-    // Mock the LLM client to avoid actual API calls
-    analysisEngine.setLLMClient(new MockLLMClient());
-
-    AnalysisResult response = analysisEngine.analyzeRequest(request);
-
-    assertNotNull(response);
-    assertNotEquals("", response.getAnalysis());
-    assertTrue(response.getResponseTime() >= 0);
+    configModel.setProvider("openai");
+    configModel.setEndpoint("https://api.openai.com/v1/chat/completions");
+    configModel.setApiKey("test-api-key");
+    configModel.setUserPrompt("Analyze for security issues");
+    
+    String request = "GET /test HTTP/1.1\r\nHost: example.com\r\n\r\n";
+    String response = "HTTP/1.1 200 OK\r\n\r\nTest response";
+    
+    // Since we don't have a real API, it will fail, but we can verify the attempt
+    String result = analysisEngine.analyzeRequest(request, response);
+    assertNotNull(result);
+    
+    // Verify logging was called
+    verify(mockLogging).logToOutput("Starting AI analysis...");
   }
 
   @Test
-  public void testAnalyzeWithInvalidConfig() {
-    // Don't save any config (invalid state)
-    AnalysisTarget request = createTestRequest();
-
-    AnalysisResult response = analysisEngine.analyzeRequest(request);
-
-    assertNotNull(response);
-    assertEquals(
-        "Configuration validation failed. Please check your API endpoint and key in the AI Security Analyzer tab.",
-        response.getAnalysis());
+  public void testAnalyzeRequestWithInvalidConfig() {
+    // Config is invalid (missing required fields)
+    String request = "GET /test HTTP/1.1\r\nHost: example.com\r\n\r\n";
+    String response = "HTTP/1.1 200 OK\r\n\r\nTest response";
+    
+    String result = analysisEngine.analyzeRequest(request, response);
+    
+    assertEquals("Configuration is incomplete. Please configure API settings.", result);
   }
 
   @Test
-  public void testAnalyzeWithEmptyRequest() {
+  public void testAnalyzeRequestWithNullResponse() {
     // Setup valid configuration
-    ConfigModel config = new ConfigModel();
-    config.setProvider("openai");
-    config.setEndpoint("https://api.openai.com/v1/chat/completions");
-    config.setEncryptedApiKey("encrypted-key");
-    config.setSystemPrompt("Analyze for security issues");
-    configManager.saveConfig(config);
-
-    AnalysisResult response = analysisEngine.analyzeRequest(null);
-
-    assertNotNull(response);
-    assertEquals("", response.getAnalysis());
+    configModel.setProvider("openai");
+    configModel.setEndpoint("https://api.openai.com/v1/chat/completions");
+    configModel.setApiKey("test-api-key");
+    configModel.setUserPrompt("Analyze for security issues");
+    
+    String request = "GET /test HTTP/1.1\r\nHost: example.com\r\n\r\n";
+    
+    // Should handle null response gracefully
+    String result = analysisEngine.analyzeRequest(request, null);
+    assertNotNull(result);
   }
 
   @Test
-  public void testSetConfiguration() {
-    ConfigModel config = new ConfigModel();
-    config.setProvider("anthropic");
-    config.setEndpoint("https://api.anthropic.com/v1/messages");
-    config.setEncryptedApiKey("encrypted-anthropic-key");
-    config.setSystemPrompt("Custom analysis prompt");
-
-    analysisEngine.setConfiguration(config);
-
-    // Verify configuration was saved
-    ConfigModel savedConfig = configManager.loadConfig();
-    assertEquals("anthropic", savedConfig.getProvider());
-    assertEquals("https://api.anthropic.com/v1/messages", savedConfig.getEndpoint());
-    assertEquals("encrypted-anthropic-key", savedConfig.getEncryptedApiKey());
-    assertEquals("Custom analysis prompt", savedConfig.getSystemPrompt());
+  public void testIsAnalyzing() {
+    assertFalse(analysisEngine.isAnalyzing());
+    
+    // Note: We can't easily test the true state without mocking the AI client
+    // as the analysis would complete immediately with an error
   }
 
-  private AnalysisTarget createTestRequest() {
-    AnalysisTarget request = new AnalysisTarget();
-    request.setMethod("GET");
-    request.setUrl("https://api.example.com/users/123");
-
-    Map<String, String> headers = new HashMap<String, String>();
-    headers.put("Authorization", "Bearer token");
-    request.setHeaders(headers);
-
-    request.setStatusCode(200);
-    request.setResponseBody("{\"id\": 123, \"name\": \"John\"}");
-
-    return request;
+  @Test
+  public void testGetConfigModel() {
+    assertSame(configModel, analysisEngine.getConfigModel());
   }
 
-  // Mock LLM client for testing
-  private class MockLLMClient implements LLMClient {
-    private String endpoint = "";
-    private String apiKey = "";
-    private int timeout = 30000;
+  @Test
+  public void testGetLogging() {
+    assertSame(mockLogging, analysisEngine.getLogging());
+  }
 
-    public AnalysisResult analyze(AnalysisTarget request, String userPrompt) {
-      AnalysisResult response = new AnalysisResult();
-      response.setAnalysis("Mock analysis: Request exposes user ID in URL path");
-      response.setResponseTime(100);
-      return response;
-    }
+  @Test
+  public void testGetRequestProcessor() {
+    assertSame(requestProcessor, analysisEngine.getRequestProcessor());
+  }
 
-    public void setEndpoint(String endpoint) {
-      this.endpoint = endpoint;
-    }
-
-    public String getEndpoint() {
-      return endpoint;
-    }
-
-    public void setApiKey(String apiKey) {
-      this.apiKey = apiKey;
-    }
-
-    public String getApiKey() {
-      return apiKey;
-    }
-
-    public void setTimeout(int timeoutMs) {
-      this.timeout = timeoutMs;
-    }
-
-    public int getTimeout() {
-      return timeout;
-    }
+  @Test
+  public void testAnalyzeRequestWithDifferentProviders() {
+    configModel.setEndpoint("https://api.example.com");
+    configModel.setApiKey("test-key");
+    configModel.setUserPrompt("Test prompt");
+    
+    // Test with OpenAI provider
+    configModel.setProvider("openai");
+    String result1 = analysisEngine.analyzeRequest("test", "test");
+    assertNotNull(result1);
+    
+    // Test with Anthropic provider
+    configModel.setProvider("anthropic");
+    String result2 = analysisEngine.analyzeRequest("test", "test");
+    assertNotNull(result2);
+    
+    // Test with Gemini provider
+    configModel.setProvider("gemini");
+    String result3 = analysisEngine.analyzeRequest("test", "test");
+    assertNotNull(result3);
+    
+    // Test with unknown provider
+    configModel.setProvider("unknown");
+    String result4 = analysisEngine.analyzeRequest("test", "test");
+    assertTrue(result4.contains("Unsupported AI provider"));
   }
 }

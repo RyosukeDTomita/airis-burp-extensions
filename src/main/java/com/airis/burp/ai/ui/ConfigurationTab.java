@@ -1,7 +1,6 @@
 package com.airis.burp.ai.ui;
 
 import burp.api.montoya.logging.Logging;
-import com.airis.burp.ai.config.ConfigManager;
 import com.airis.burp.ai.config.ConfigModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -9,11 +8,11 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 
 /**
- * Configuration tab for the AI Security Analyzer extension. User can edit LLM provider, api
- * endpoint URL, API key, and user prompt.
+ * Configuration tab for AI Extension settings in Burp Suite. Provides UI for configuring AI
+ * provider, endpoint, API key, and custom prompts.
  */
 public class ConfigurationTab {
-  private final ConfigManager configManager;
+  private final ConfigModel configModel;
   private final Logging logging; // For Montoya API logging (optional)
   private JPanel mainPanel;
   private JComboBox<String> providerCombo;
@@ -24,8 +23,8 @@ public class ConfigurationTab {
   private JButton testButton;
   private JLabel statusLabel;
 
-  public ConfigurationTab(ConfigManager configManager, Logging logging) {
-    this.configManager = configManager;
+  public ConfigurationTab(ConfigModel configModel, Logging logging) {
+    this.configModel = configModel;
     this.logging = logging;
 
     initializeUI();
@@ -33,141 +32,119 @@ public class ConfigurationTab {
   }
 
   /**
-   * Get the component for Montoya API registration
+   * Get the main component for Burp extension tab
    *
-   * @return JPanel The main panel component
+   * @return JComponent to be added to Burp's UI
    */
   public Component getComponent() {
     return mainPanel;
   }
 
-  /** A configuration tab for LLM-related settings. */
+  /**
+   * Initialize the UI components
+   */
   private void initializeUI() {
     mainPanel = new JPanel(new BorderLayout());
 
-    // Create configuration panel
-    JPanel configPanel = new JPanel(new GridBagLayout());
+    // Create form panel
+    JPanel formPanel = new JPanel(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets = new Insets(5, 5, 5, 5);
-    gbc.anchor = GridBagConstraints.WEST;
-
-    // Title
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    gbc.gridwidth = 2;
-    JLabel titleLabel = new JLabel("AI Security Analyzer Configuration");
-    titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 16f));
-    configPanel.add(titleLabel, gbc);
 
     // Provider selection
     gbc.gridx = 0;
-    gbc.gridy = 1;
-    gbc.gridwidth = 1;
-    configPanel.add(new JLabel("LLM Provider:"), gbc);
+    gbc.gridy = 0;
+    formPanel.add(new JLabel("AI Provider:"), gbc);
 
     gbc.gridx = 1;
-    // TODO: OpenAI以外は未実装
-    providerCombo = new JComboBox<>(new String[] {"OpenAI", "Anthropic", "Gemini"});
-    configPanel.add(providerCombo, gbc);
-
-    // Endpoint URL
-    gbc.gridx = 0;
-    gbc.gridy = 2;
-    configPanel.add(new JLabel("Endpoint URL:"), gbc);
-
-    gbc.gridx = 1;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.weightx = 1.0;
-    endpointField = new JTextField(40);
-    endpointField.setText("https://api.openai.com/v1/chat/completions");
-    configPanel.add(endpointField, gbc);
+    providerCombo = new JComboBox<>(new String[] {"openai", "anthropic", "gemini"});
+    providerCombo.addActionListener(e -> updateEndpointForProvider());
+    formPanel.add(providerCombo, gbc);
+
+    // Endpoint
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.weightx = 0;
+    formPanel.add(new JLabel("API Endpoint:"), gbc);
+
+    gbc.gridx = 1;
+    gbc.weightx = 1.0;
+    endpointField = new JTextField();
+    formPanel.add(endpointField, gbc);
 
     // API Key
     gbc.gridx = 0;
-    gbc.gridy = 3;
-    gbc.fill = GridBagConstraints.NONE;
+    gbc.gridy = 2;
     gbc.weightx = 0;
-    configPanel.add(new JLabel("API Key:"), gbc);
+    formPanel.add(new JLabel("API Key:"), gbc);
 
     gbc.gridx = 1;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.weightx = 1.0;
-    apiKeyField = new JPasswordField(40);
-    configPanel.add(apiKeyField, gbc);
+    apiKeyField = new JPasswordField();
+    formPanel.add(apiKeyField, gbc);
 
     // User Prompt
     gbc.gridx = 0;
-    gbc.gridy = 4;
-    gbc.fill = GridBagConstraints.NONE;
+    gbc.gridy = 3;
     gbc.weightx = 0;
-    configPanel.add(new JLabel("User Prompt:"), gbc);
+    gbc.anchor = GridBagConstraints.NORTH;
+    formPanel.add(new JLabel("Analysis Prompt:"), gbc);
 
     gbc.gridx = 1;
-    gbc.fill = GridBagConstraints.BOTH;
     gbc.weightx = 1.0;
     gbc.weighty = 1.0;
-    userPromptArea = new JTextArea(8, 40);
+    gbc.fill = GridBagConstraints.BOTH;
+    userPromptArea = new JTextArea(10, 50);
     userPromptArea.setLineWrap(true);
     userPromptArea.setWrapStyleWord(true);
-    userPromptArea.setText(configManager.getDefaultUserPrompt());
     JScrollPane scrollPane = new JScrollPane(userPromptArea);
-    configPanel.add(scrollPane, gbc);
+    formPanel.add(scrollPane, gbc);
 
-    // Buttons
-    gbc.gridx = 0;
-    gbc.gridy = 5;
-    gbc.gridwidth = 2;
-    gbc.fill = GridBagConstraints.NONE;
-    gbc.weightx = 0;
-    gbc.weighty = 0;
-    gbc.anchor = GridBagConstraints.CENTER;
-
-    JPanel buttonPanel = new JPanel(new FlowLayout());
-
+    // Button panel
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
     saveButton = new JButton("Save Configuration");
-    saveButton.addActionListener(new SaveAction());
-    buttonPanel.add(saveButton);
-
     testButton = new JButton("Test Connection");
-    testButton.addActionListener(new TestAction());
+    JButton defaultPromptButton = new JButton("Reset to Default Prompt");
+
+    // Add action for default prompt button
+    defaultPromptButton.addActionListener(
+        e -> userPromptArea.setText(ConfigModel.DEFAULT_USER_PROMPT));
+
+    buttonPanel.add(saveButton);
     buttonPanel.add(testButton);
+    buttonPanel.add(defaultPromptButton);
 
-    configPanel.add(buttonPanel, gbc);
-
-    // Status label
-    gbc.gridy = 6;
+    // Status panel
+    JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
     statusLabel = new JLabel("Ready");
     statusLabel.setForeground(Color.BLUE);
-    configPanel.add(statusLabel, gbc);
+    statusPanel.add(new JLabel("Status:"));
+    statusPanel.add(statusLabel);
 
-    mainPanel.add(configPanel, BorderLayout.CENTER);
+    // Add components to main panel
+    mainPanel.add(formPanel, BorderLayout.CENTER);
 
-    // Add provider change listener
-    providerCombo.addActionListener(
-        new ActionListener() {
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            updateEndpointForProvider();
-          }
-        });
+    JPanel bottomPanel = new JPanel(new BorderLayout());
+    bottomPanel.add(buttonPanel, BorderLayout.NORTH);
+    bottomPanel.add(statusPanel, BorderLayout.SOUTH);
+    mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+
+    // Add action listeners
+    saveButton.addActionListener(new SaveAction());
+    testButton.addActionListener(new TestAction());
   }
 
-  /** Load configuration from ConfigManager and populate UI fields. */
+  /**
+   * Load existing configuration into UI
+   */
   private void loadConfiguration() {
-    ConfigModel config = configManager.loadConfig();
-    if (config != null) {
-      if (!config.getProvider().isEmpty()) {
-        providerCombo.setSelectedItem(config.getProvider());
-      }
-      if (!config.getEndpoint().isEmpty()) {
-        endpointField.setText(config.getEndpoint());
-      }
-      if (!config.getUserPrompt().isEmpty()) {
-        userPromptArea.setText(config.getUserPrompt());
-      }
-      if (!config.getApiKey().isEmpty()) {
-        apiKeyField.setText(config.getApiKey());
-      }
+    if (configModel != null) {
+      providerCombo.setSelectedItem(configModel.getProvider());
+      endpointField.setText(configModel.getEndpoint());
+      apiKeyField.setText(configModel.getApiKey());
+      userPromptArea.setText(configModel.getUserPrompt());
     }
   }
 
@@ -184,66 +161,63 @@ public class ConfigurationTab {
     @Override
     public void actionPerformed(ActionEvent e) {
       try {
-        ConfigModel config = new ConfigModel();
-        config.setProvider((String) providerCombo.getSelectedItem());
-        config.setEndpoint(endpointField.getText().trim());
+        // Update config model
+        configModel.setProvider((String) providerCombo.getSelectedItem());
+        configModel.setEndpoint(endpointField.getText());
+        configModel.setApiKey(new String(apiKeyField.getPassword()));
+        configModel.setUserPrompt(userPromptArea.getText());
 
-        // Store API key (plain text for validation, will be encrypted on save)
-        String apiKey = new String(apiKeyField.getPassword());
-        if (!apiKey.isEmpty()) {
-          config.setApiKey(apiKey);
+        // Validate
+        if (!configModel.isValid()) {
+          statusLabel.setText("Error: All fields are required");
+          statusLabel.setForeground(Color.RED);
+          return;
         }
 
-        config.setUserPrompt(userPromptArea.getText().trim());
+        statusLabel.setText("Configuration saved successfully");
+        statusLabel.setForeground(Color.GREEN);
 
-        // Validate configuration
-        if (configManager.validateConfig(config)) {
-          configManager.saveConfig(config);
-          statusLabel.setText("Configuration saved successfully");
-          statusLabel.setForeground(Color.GREEN);
-
-          // Log using appropriate API
-          if (logging != null) {
-            logging.logToOutput("Configuration saved successfully");
-          }
-        } else {
-          statusLabel.setText("Invalid configuration - please check all fields");
-          statusLabel.setForeground(Color.RED);
-
-          // Log using appropriate API
-          if (logging != null) {
-            logging.logToError("Invalid configuration - please check all fields");
-          }
+        if (logging != null) {
+          logging.logToOutput("Configuration saved successfully");
         }
 
       } catch (Exception ex) {
         statusLabel.setText("Error saving configuration: " + ex.getMessage());
         statusLabel.setForeground(Color.RED);
+
+        if (logging != null) {
+          logging.logToError("Failed to save configuration: " + ex.getMessage());
+        }
       }
     }
   }
 
-  /** test LLM API Connections(Mock) */
+  /**
+   * Action handler for test connection button
+   */
   private class TestAction implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
-      statusLabel.setText(
-          "Testing connection... (Note: Actual API test not implemented in this version)");
-      statusLabel.setForeground(Color.ORANGE);
+      statusLabel.setText("Testing connection...");
+      statusLabel.setForeground(Color.BLUE);
 
-      // In a real implementation, this would test the API connection
-      Timer timer =
-          new Timer(
-              2000,
-              new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                  statusLabel.setText("Connection test completed (mock)");
-                  statusLabel.setForeground(Color.BLUE);
-                  ((Timer) e.getSource()).stop();
-                }
-              });
-      timer.start();
+      // TODO: Implement actual connection test
+      // For now, just validate configuration
+      if (configModel.isValid()) {
+        statusLabel.setText("Configuration is valid");
+        statusLabel.setForeground(Color.GREEN);
+      } else {
+        statusLabel.setText("Configuration is incomplete");
+        statusLabel.setForeground(Color.RED);
+      }
     }
+  }
+
+  public String getTabTitle() {
+    return "AIris Config";
+  }
+
+  public JPanel getMainPanel() {
+    return mainPanel;
   }
 }
