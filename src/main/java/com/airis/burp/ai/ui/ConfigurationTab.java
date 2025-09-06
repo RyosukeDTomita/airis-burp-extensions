@@ -13,7 +13,7 @@ import javax.swing.*;
  */
 public class ConfigurationTab {
   private final ConfigModel configModel;
-  private final Logging logging; // For Montoya API logging (optional)
+  private final Logging logging;
   private JPanel mainPanel;
   private JComboBox<String> providerCombo;
   private JTextField endpointField;
@@ -211,10 +211,6 @@ public class ConfigurationTab {
         statusLabel.setForeground(Color.RED);
       }
     }
-  }
-
-  public String getTabTitle() {
-    return "AIris Config";
   }
 
   public JPanel getMainPanel() {
