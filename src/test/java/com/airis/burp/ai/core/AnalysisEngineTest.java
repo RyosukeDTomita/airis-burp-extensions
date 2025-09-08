@@ -15,13 +15,11 @@ public class AnalysisEngineTest {
   private AnalysisEngine analysisEngine;
   private ConfigModel configModel;
   private RequestProcessor requestProcessor;
-  
-  @Mock
-  private Logging mockLogging;
-  
-  @Mock
-  private LLMClient mockLLMClient;
-  
+
+  @Mock private Logging mockLogging;
+
+  @Mock private LLMClient mockLLMClient;
+
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
@@ -37,14 +35,14 @@ public class AnalysisEngineTest {
     configModel.setEndpoint("https://api.openai.com/v1/chat/completions");
     configModel.setApiKey("test-api-key");
     configModel.setUserPrompt("Analyze for security issues");
-    
+
     String request = "GET /test HTTP/1.1\r\nHost: example.com\r\n\r\n";
     String response = "HTTP/1.1 200 OK\r\n\r\nTest response";
-    
+
     // Since we don't have a real API, it will fail, but we can verify the attempt
     String result = analysisEngine.analyzeRequest(request, response);
     assertNotNull(result);
-    
+
     // Verify logging was called
     verify(mockLogging).logToOutput("Starting AI analysis...");
   }
@@ -54,9 +52,9 @@ public class AnalysisEngineTest {
     // Config is invalid (missing required fields)
     String request = "GET /test HTTP/1.1\r\nHost: example.com\r\n\r\n";
     String response = "HTTP/1.1 200 OK\r\n\r\nTest response";
-    
+
     String result = analysisEngine.analyzeRequest(request, response);
-    
+
     assertEquals("Configuration is incomplete. Please configure API settings.", result);
   }
 
@@ -67,9 +65,9 @@ public class AnalysisEngineTest {
     configModel.setEndpoint("https://api.openai.com/v1/chat/completions");
     configModel.setApiKey("test-api-key");
     configModel.setUserPrompt("Analyze for security issues");
-    
+
     String request = "GET /test HTTP/1.1\r\nHost: example.com\r\n\r\n";
-    
+
     // Should handle null response gracefully
     String result = analysisEngine.analyzeRequest(request, null);
     assertNotNull(result);
@@ -78,7 +76,7 @@ public class AnalysisEngineTest {
   @Test
   public void testIsAnalyzing() {
     assertFalse(analysisEngine.isAnalyzing());
-    
+
     // Note: We can't easily test the true state without mocking the AI client
     // as the analysis would complete immediately with an error
   }
@@ -103,22 +101,22 @@ public class AnalysisEngineTest {
     configModel.setEndpoint("https://api.example.com");
     configModel.setApiKey("test-key");
     configModel.setUserPrompt("Test prompt");
-    
+
     // Test with OpenAI provider
     configModel.setProvider("openai");
     String result1 = analysisEngine.analyzeRequest("test", "test");
     assertNotNull(result1);
-    
+
     // Test with Anthropic provider
     configModel.setProvider("anthropic");
     String result2 = analysisEngine.analyzeRequest("test", "test");
     assertNotNull(result2);
-    
+
     // Test with Gemini provider
     configModel.setProvider("gemini");
     String result3 = analysisEngine.analyzeRequest("test", "test");
     assertNotNull(result3);
-    
+
     // Test with unknown provider
     configModel.setProvider("unknown");
     String result4 = analysisEngine.analyzeRequest("test", "test");

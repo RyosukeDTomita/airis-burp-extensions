@@ -10,16 +10,17 @@ import java.util.List;
 public class ConfigModel {
   private static final List<String> VALID_PROVIDERS =
       Arrays.asList("openai", "anthropic", "gemini");
-  
+
   // Default endpoints for different providers
   public static final String DEFAULT_OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions";
   public static final String DEFAULT_ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages";
-  public static final String DEFAULT_GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
-  
-  public static final String DEFAULT_USER_PROMPT = 
-      "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, " +
-      "potential issues, and provide recommendations. Focus on common web application security issues like " +
-      "injection attacks, authentication bypasses, authorization issues, and data exposure.";
+  public static final String DEFAULT_GEMINI_ENDPOINT =
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+
+  public static final String DEFAULT_USER_PROMPT =
+      "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, "
+          + "potential issues, and provide recommendations. Focus on common web application security issues like "
+          + "injection attacks, authentication bypasses, authorization issues, and data exposure.";
 
   private String provider = "openai"; // OpenAI or Anthropic or Gemini
   private String endpoint = DEFAULT_OPENAI_ENDPOINT;
@@ -83,7 +84,7 @@ public class ConfigModel {
   public void setUserPrompt(String userPrompt) {
     this.userPrompt = userPrompt;
   }
-  
+
   public boolean isValid() {
     // null and empty checks
     if (provider == null || provider.isEmpty()) {

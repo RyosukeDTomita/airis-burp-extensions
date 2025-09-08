@@ -1,4 +1,5 @@
 buildやテスト時にはbuild.shを使って
+ユーザからのコードベースへの質問に対しては批判的に疑って考えて回答してください。
 
 <!--https://qiita.com/nokonoko_1203/items/8bafb6033409aadccd9f-->
 # Guidelines

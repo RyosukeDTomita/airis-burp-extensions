@@ -40,9 +40,7 @@ public class ConfigurationTab {
     return mainPanel;
   }
 
-  /**
-   * Initialize the UI components
-   */
+  /** Initialize the UI components */
   private void initializeUI() {
     mainPanel = new JPanel(new BorderLayout());
 
@@ -136,9 +134,7 @@ public class ConfigurationTab {
     testButton.addActionListener(new TestAction());
   }
 
-  /**
-   * Load existing configuration into UI
-   */
+  /** Load existing configuration into UI */
   private void loadConfiguration() {
     if (configModel != null) {
       providerCombo.setSelectedItem(configModel.getProvider());
@@ -192,9 +188,7 @@ public class ConfigurationTab {
     }
   }
 
-  /**
-   * Action handler for test connection button
-   */
+  /** Action handler for test connection button */
   private class TestAction implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {

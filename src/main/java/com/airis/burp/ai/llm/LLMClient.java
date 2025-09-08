@@ -12,7 +12,7 @@ public interface LLMClient {
    * @param userPrompt The user prompt for analysis
    * @return Analysis response from the AI model
    */
-  AnalysisResult analyze(AnalysisTarget request, String userPrompt);
+  AnalysisResult analyze(AnalysisTarget requestResponse, String userPrompt);
 
   /**
    * Set the API endpoint URL.

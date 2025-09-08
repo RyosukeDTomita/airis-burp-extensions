@@ -19,13 +19,14 @@ public class AnalysisEngine {
   }
 
   /**
-   * Main method to initiate AI analysis of HTTP request/response
+   * Entry point of AI analysis
    *
    * @param request The HTTP request to analyze
    * @param response The HTTP response to analyze (nullable)
    * @return Analysis result or error message
    */
   public String analyzeRequest(String request, String response) {
+    // Prevent concurrent analysis
     if (isAnalyzing) {
       return "Analysis already in progress. Please wait...";
     }
@@ -34,7 +35,6 @@ public class AnalysisEngine {
       isAnalyzing = true;
       logging.logToOutput("Starting AI analysis...");
 
-      // Validate configuration
       if (!configModel.isValid()) {
         return "Configuration is incomplete. Please configure API settings.";
       }
@@ -49,51 +49,24 @@ public class AnalysisEngine {
       llmClient.setEndpoint(configModel.getEndpoint());
       llmClient.setApiKey(configModel.getApiKey());
 
-      // Create analysis target using RequestProcessor
-      AnalysisTarget target = requestProcessor.createAnalysisRequest(request, response);
-
       // Execute analysis
-      AnalysisResult result = llmClient.analyze(target, configModel.getUserPrompt());
+      AnalysisTarget requestResponse = requestProcessor.createAnalysisRequest(request, response);
+      AnalysisResult result = llmClient.analyze(requestResponse, configModel.getUserPrompt());
       logging.logToOutput("Analysis completed successfully");
-
-      return result != null ? result.getAnalysis() : "No analysis result";
+      if (result == null) {
+        return "No analysis result returned from LLM client.";
+      } else {
+        return result.getAnalysis();
+      }
 
     } catch (Exception e) {
       logging.logToError("Analysis failed: " + e.getMessage());
       return "Analysis failed: " + e.getMessage();
     } finally {
-      isAnalyzing = false;
+      this.isAnalyzing = false; // Reset analyzing flag
     }
   }
 
-  /**
-   * Build the complete prompt for AI analysis
-   *
-   * @param request HTTP request content
-   * @param response HTTP response content (nullable)
-   * @return Complete prompt string
-   */
-  private String buildAnalysisPrompt(String request, String response) {
-    StringBuilder promptBuilder = new StringBuilder();
-
-    // Add user-defined prompt
-    String userPrompt = configModel.getUserPrompt();
-    if (userPrompt != null && !userPrompt.isEmpty()) {
-      promptBuilder.append(userPrompt).append("\n\n");
-    }
-
-    // Add request
-    promptBuilder.append("=== HTTP Request ===\n");
-    promptBuilder.append(request).append("\n\n");
-
-    // Add response if available
-    if (response != null && !response.isEmpty()) {
-      promptBuilder.append("=== HTTP Response ===\n");
-      promptBuilder.append(response).append("\n");
-    }
-
-    return promptBuilder.toString();
-  }
 
   /**
    * Create appropriate LLM client based on provider
@@ -124,22 +97,24 @@ public class AnalysisEngine {
   }
 
   /**
-   * Check if analysis is currently in progress
-   *
+   * Get LLM analysis is already running
    * @return true if analyzing, false otherwise
    */
   public boolean isAnalyzing() {
     return isAnalyzing;
   }
 
+  // TODO: テスト用
   public ConfigModel getConfigModel() {
     return configModel;
   }
 
+  // TODO: テスト用
   public Logging getLogging() {
     return logging;
   }
 
+  // TODO: テスト用
   public RequestProcessor getRequestProcessor() {
     return requestProcessor;
   }

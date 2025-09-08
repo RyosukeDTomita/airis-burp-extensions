@@ -2,8 +2,6 @@ package com.airis.burp.ai.ui;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
-import burp.api.montoya.http.message.requests.HttpRequest;
-import burp.api.montoya.http.message.responses.HttpResponse;
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 import com.airis.burp.ai.config.ConfigModel;
@@ -11,28 +9,23 @@ import com.airis.burp.ai.core.AnalysisEngine;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 
 /**
- * Context menu provider for Burp Suite that allows AI analysis of HTTP requests/responses.
- * Displays analysis results in a custom dialog window.
+ * Context menu provider for Burp Suite that allows AI analysis of HTTP requests/responses. Displays
+ * analysis results in a custom dialog window.
  */
 public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
-  /**
-   * Core analysis engine for processing requests
-   */
+  /** Core analysis engine for processing requests */
   private final AnalysisEngine analysisEngine;
+
   private final MontoyaApi montoyaApi;
-  private final ConfigModel configModel;
 
   public AIAnalysisMenuProvider(
       AnalysisEngine analysisEngine, ConfigModel configModel, MontoyaApi montoyaApi) {
     this.analysisEngine = analysisEngine;
-    this.configModel = configModel;
     this.montoyaApi = montoyaApi;
   }
 
@@ -64,10 +57,9 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
     return menuItemList;
   }
 
-  /**
-   * Analyzes HTTP request/response using Montoya API
-   */
+  /** Analyzes HTTP request/response using Montoya API */
   private void analyzeWithMontoya(HttpRequestResponse requestResponse) {
+
     try {
       // Extract request as string
       String request = requestResponse.request().toString();
@@ -80,9 +72,6 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
         response = "";
       }
 
-      // Log to Burp output
-      montoyaApi.logging().logToOutput("Starting AI analysis...");
-
       // Perform analysis in background thread
       SwingUtilities.invokeLater(
           () -> {
@@ -93,7 +82,6 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
               loadingDialog.setModal(false);
               loadingDialog.setSize(300, 100);
               loadingDialog.setLocationRelativeTo(null);
-
               JPanel panel = new JPanel(new BorderLayout());
               panel.add(new JLabel("Analyzing... Please wait.", SwingConstants.CENTER));
               loadingDialog.add(panel);
@@ -124,9 +112,7 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
     }
   }
 
-  /**
-   * Shows analysis result in a dialog (Montoya API version)
-   */
+  /** Shows analysis result in a dialog (Montoya API version) */
   private void showAnalysisResultMontoya(String result) {
     JDialog resultDialog = new JDialog();
     resultDialog.setTitle("AI Analysis Result");
