@@ -57,7 +57,10 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
     return menuItemList;
   }
 
-  /** Analyzes HTTP request/response using Montoya API */
+  /**
+   * Analyzes HTTP request/response using Montoya API
+   * @param requestResponse The HTTP request and response to analyze
+   */
   private void analyzeWithMontoya(HttpRequestResponse requestResponse) {
 
     try {
@@ -112,7 +115,10 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
     }
   }
 
-  /** Shows analysis result in a dialog (Montoya API version) */
+  /**
+   * Shows analysis result in a dialog.
+   * @param result
+   */
   private void showAnalysisResultMontoya(String result) {
     JDialog resultDialog = new JDialog();
     resultDialog.setTitle("AI Analysis Result");

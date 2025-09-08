@@ -1,6 +1,8 @@
 package com.airis.burp.ai.core;
 
-/** Individual security finding from AI analysis. */
+/**
+ * TODO: あとで書く
+ */
 public class Finding {
   private String title = "";
   private String description = "";

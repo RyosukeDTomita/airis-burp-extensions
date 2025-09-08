@@ -4,14 +4,12 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Configuration model for AI Extension settings. Contains provider, endpoint, API key, and user
+ * DTO for AI Extension settings. Contains provider, endpoint, API key, and user
  * prompt information.
  */
 public class ConfigModel {
-  private static final List<String> VALID_PROVIDERS =
-      Arrays.asList("openai", "anthropic", "gemini");
-
   // Default endpoints for different providers
+  // TODO: これらの定数はLLMClient側に移すべきな気がする
   public static final String DEFAULT_OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions";
   public static final String DEFAULT_ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages";
   public static final String DEFAULT_GEMINI_ENDPOINT =
@@ -27,6 +25,9 @@ public class ConfigModel {
   private String apiKey = ""; // Plain text API key (stored in memory only)
   private String userPrompt = "";
 
+  /**
+   * Default constructor initializing with default values
+   */
   public ConfigModel() {
     setProvider("openai");
     setEndpoint(DEFAULT_OPENAI_ENDPOINT);
@@ -61,9 +62,13 @@ public class ConfigModel {
     return userPrompt;
   }
 
+  /**
+   * Update the this.endpoint accordingly for provider.
+   * @param provider
+   * TODO: これもLLMClient側に移すべきな気がする
+   */
   public void setProvider(String provider) {
     this.provider = provider;
-    // Update endpoint when provider changes
     if ("openai".equals(provider)) {
       this.endpoint = DEFAULT_OPENAI_ENDPOINT;
     } else if ("anthropic".equals(provider)) {
@@ -85,6 +90,10 @@ public class ConfigModel {
     this.userPrompt = userPrompt;
   }
 
+  /**
+   * Validate the configuration
+   * @return boolean
+   */
   public boolean isValid() {
     // null and empty checks
     if (provider == null || provider.isEmpty()) {

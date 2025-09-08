@@ -9,7 +9,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
-/** OpenAI API client implementation. */
+/**
+ * TODO: あとでかく
+ */
 public class OpenAIClient implements LLMClient {
   private static final String DEFAULT_MODEL = "gpt-4o-mini";
   private static final int DEFAULT_TIMEOUT = 30000;
@@ -17,6 +19,12 @@ public class OpenAIClient implements LLMClient {
   private String apiKey = "";
   private int timeout = DEFAULT_TIMEOUT;
 
+  /**
+   * TODO:
+   * @param request
+   * @param userPrompt
+   * @return
+   */
   public AnalysisResult analyze(AnalysisTarget request, String userPrompt) {
     AnalysisResult response = new AnalysisResult();
     if (request == null || userPrompt == null || userPrompt.trim().isEmpty()) {
@@ -32,7 +40,7 @@ public class OpenAIClient implements LLMClient {
       response = parseResponse(jsonResponse);
     } catch (Exception e) {
       response.setAnalysis("API request failed: " + e.getMessage());
-      // TODO
+      // TODO: Implement error handling
     }
     long endTime = System.currentTimeMillis();
     response.setResponseTime(endTime - startTime);
@@ -60,6 +68,11 @@ public class OpenAIClient implements LLMClient {
     return json.toString();
   }
 
+  /**
+   * TODO
+   * @param jsonResponse
+   * @return
+   */
   public AnalysisResult parseResponse(String jsonResponse) {
     AnalysisResult response = new AnalysisResult();
 
@@ -135,6 +148,11 @@ public class OpenAIClient implements LLMClient {
     }
   }
 
+  /**
+   * TODO
+   * @param request
+   * @return
+   */
   private String formatHttpData(AnalysisTarget request) {
     StringBuilder data = new StringBuilder();
 
@@ -178,6 +196,11 @@ public class OpenAIClient implements LLMClient {
     return data.toString();
   }
 
+  /**
+   * TODO
+   * @param jsonResponse
+   * @return
+   */
   private String extractContent(String jsonResponse) {
     try {
       // Look for content field in choices array

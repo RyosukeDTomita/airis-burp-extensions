@@ -207,6 +207,10 @@ public class ConfigurationTab {
     }
   }
 
+  /**
+   * Get the main panel for the configuration tab.
+   * @return The main panel.
+   */
   public JPanel getMainPanel() {
     return mainPanel;
   }

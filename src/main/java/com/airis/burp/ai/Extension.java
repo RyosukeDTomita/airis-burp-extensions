@@ -17,6 +17,8 @@ import com.airis.burp.ai.ui.ConfigurationTab;
  */
 public class Extension implements BurpExtension {
   private static final String EXTENSION_NAME = "AIris: request insight system";
+  // Tab display name in Burp
+  private static final String TAB_NAME = "AIris Config";
   // Coreコンポーネント 本当はDIしたいけど、BurpExtension形式だと難しいので、ここで生成
   private MontoyaApi api;
   private ConfigModel configModel;
@@ -27,7 +29,7 @@ public class Extension implements BurpExtension {
   @Override
   public void initialize(MontoyaApi api) {
     this.api = api;
-
+    
     // Set extension name
     api.extension().setName(EXTENSION_NAME);
 
@@ -40,7 +42,9 @@ public class Extension implements BurpExtension {
     api.logging().logToOutput("Extension loaded successfully");
   }
 
-  /** Initialize core components */
+  /**
+   * Initialize core components
+   */
   private void initializeComponents() {
     Logging logging = api.logging();
 
@@ -49,7 +53,7 @@ public class Extension implements BurpExtension {
       this.llmClient = new OpenAIClient();
       this.requestProcessor = new RequestProcessor(llmClient);
       this.analysisEngine = new AnalysisEngine(requestProcessor, configModel, logging);
-
+      
       logging.logToOutput("Components initialized successfully");
     } catch (Exception e) {
       logging.logToError("Failed to initialize components: " + e.getMessage());
@@ -57,10 +61,12 @@ public class Extension implements BurpExtension {
     }
   }
 
-  /** Register UI components including context menu and tabs */
+  /**
+   * Register UI components including context menu and tabs
+   */
   private void registerUI() {
     Logging logging = api.logging();
-
+    
     try {
       // Register context menu
       AIAnalysisMenuProvider menuProvider =
@@ -69,7 +75,7 @@ public class Extension implements BurpExtension {
 
       // Register configuration tab
       ConfigurationTab configTab = new ConfigurationTab(configModel, logging);
-      api.userInterface().registerSuiteTab(configTab.getTabTitle(), configTab.getMainPanel());
+      api.userInterface().registerSuiteTab(TAB_NAME, configTab.getMainPanel());
 
       logging.logToOutput("UI components registered successfully");
     } catch (Exception e) {
@@ -82,14 +88,17 @@ public class Extension implements BurpExtension {
     return configModel;
   }
 
+  // TODO: テストのためだけのpublicなので消す
   public AnalysisEngine getAnalysisEngine() {
     return analysisEngine;
   }
 
+  // TODO: テストのためだけのpublicなので消す
   public LLMClient getLLMClient() {
     return llmClient;
   }
 
+  // TODO: テストのためだけのpublicなので消す
   public RequestProcessor getRequestProcessor() {
     return requestProcessor;
   }
