@@ -1,6 +1,8 @@
-# AIRIS: Artificial Intelligence Request Insight System
+# AIris: Artificial Intelligence Request Insight System
 
 ![mit license](https://img.shields.io/github/license/RyosukeDTomita/airis)
+
+<img src="./assets/airis_icon_thunder.png" width="33%" height="33%" alt="AIris">
 
 ## INDEX
 
@@ -8,14 +10,18 @@
 - [HOW TO USE](#how-to-use)
 - [ENVIRONMENT](#environment)
 - [PREPARING](#preparing)
+- [For Developers](#for-developers)
 
 ---
 
 ## ABOUT
 
-This is an [Burp Suite](https://portswigger.net/burp) extension that allows you to **custom API key and API endpoint**, and send the selected request and response from within Burp Suite as context for analysis by an LLM.
+This is an [Burp Suite](https://portswigger.net/burp) extension that allows you to **LLM custom API key and API endpoint**, and send the selected request and response from within Burp Suite as context for analysis by an LLM.
 
-By configuring a system prompt, you can streamline vulnerability assessments.
+### Why AIris?
+
+- [Burp AI](https://portswigger.net/burp/ai) is not supported in the free version of Burp Suite.
+- Some companies only allow the use of organization-managed AI services, such as [Azure OpenAI](https://learn.microsoft.com/ja-jp/azure/ai-foundry/openai/overview), [Amazon Bedrock](https://aws.amazon.com/jp/bedrock/).
 
 ---
 
@@ -34,12 +40,13 @@ By configuring a system prompt, you can streamline vulnerability assessments.
 
 ## ENVIRONMENT
 
-This project is just Vibe Coding.
-I will improve it someday.
+This project is just Vibe Coding right now.
+I'm improveing it little by little.
 
 - Docker Image: gradle:9.0.0-jdk21-noble
-  - Java
-  - Gradle
+- Java: 21
+  - montoya-api: 2025.7
+- Gradle: 9.0.0
 
 ---
 
@@ -52,3 +59,11 @@ cd airis
 
 ---
 
+## For Developers
+
+### Format code
+
+```shell
+cd airis
+./gradlew fmt
+```
