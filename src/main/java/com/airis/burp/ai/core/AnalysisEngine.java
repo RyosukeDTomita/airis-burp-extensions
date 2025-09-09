@@ -5,9 +5,7 @@ import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.LLMClient;
 import com.airis.burp.ai.llm.OpenAIClient;
 
-/**
- * TODO: あとでかく
- */
+/** TODO: あとでかく */
 public class AnalysisEngine {
   private final ConfigModel configModel;
   private final Logging logging;
@@ -70,7 +68,6 @@ public class AnalysisEngine {
     }
   }
 
-
   /**
    * Create appropriate LLM client based on provider
    *
@@ -101,6 +98,7 @@ public class AnalysisEngine {
 
   /**
    * Get LLM analysis is already running
+   *
    * @return true if analyzing, false otherwise
    */
   public boolean isAnalyzing() {

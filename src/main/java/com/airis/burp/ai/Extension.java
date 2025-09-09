@@ -29,7 +29,7 @@ public class Extension implements BurpExtension {
   @Override
   public void initialize(MontoyaApi api) {
     this.api = api;
-    
+
     // Set extension name
     api.extension().setName(EXTENSION_NAME);
 
@@ -42,9 +42,7 @@ public class Extension implements BurpExtension {
     api.logging().logToOutput("Extension loaded successfully");
   }
 
-  /**
-   * Initialize core components
-   */
+  /** Initialize core components */
   private void initializeComponents() {
     Logging logging = api.logging();
 
@@ -53,7 +51,7 @@ public class Extension implements BurpExtension {
       this.llmClient = new OpenAIClient();
       this.requestProcessor = new RequestProcessor(llmClient);
       this.analysisEngine = new AnalysisEngine(requestProcessor, configModel, logging);
-      
+
       logging.logToOutput("Components initialized successfully");
     } catch (Exception e) {
       logging.logToError("Failed to initialize components: " + e.getMessage());
@@ -61,12 +59,10 @@ public class Extension implements BurpExtension {
     }
   }
 
-  /**
-   * Register UI components including context menu and tabs
-   */
+  /** Register UI components including context menu and tabs */
   private void registerUI() {
     Logging logging = api.logging();
-    
+
     try {
       // Register context menu
       AIAnalysisMenuProvider menuProvider =

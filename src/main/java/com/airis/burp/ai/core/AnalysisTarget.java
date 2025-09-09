@@ -3,9 +3,7 @@ package com.airis.burp.ai.core;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * TODO: あとでかく
- */
+/** TODO: あとでかく */
 public class AnalysisTarget {
   private String method = "";
   private String url = "";

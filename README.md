@@ -67,3 +67,10 @@ cd airis
 cd airis
 ./gradlew fmt
 ```
+
+### Test code
+
+```shell
+cd airis
+./gradlew test --tests <ClassName of Test.java>
+```

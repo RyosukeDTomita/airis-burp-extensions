@@ -2,6 +2,7 @@ package com.airis.burp.ai.ui;
 
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
+import com.airis.burp.ai.llm.LLMProviderRegistry;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -25,6 +26,8 @@ public class ConfigurationTab {
 
   public ConfigurationTab(ConfigModel configModel, Logging logging) {
     this.configModel = configModel;
+    // If not set a default endpoint, the endpoint for OpenAI will be empty in the initial state.
+    configModel.setEndpoint(LLMProviderRegistry.getDefaultEndpoint("openai"));
     this.logging = logging;
 
     initializeUI();
@@ -50,11 +53,12 @@ public class ConfigurationTab {
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets = new Insets(5, 5, 5, 5);
 
-    // Provider selection
+    // Provider
     gbc.gridx = 0;
     gbc.gridy = 0;
     formPanel.add(new JLabel("AI Provider:"), gbc);
 
+    // Provider select combo box
     gbc.gridx = 1;
     gbc.weightx = 1.0;
     providerCombo = new JComboBox<>(new String[] {"openai", "anthropic", "gemini"});
@@ -67,6 +71,7 @@ public class ConfigurationTab {
     gbc.weightx = 0;
     formPanel.add(new JLabel("API Endpoint:"), gbc);
 
+    // Endpoint text field
     gbc.gridx = 1;
     gbc.weightx = 1.0;
     endpointField = new JTextField();
@@ -78,6 +83,7 @@ public class ConfigurationTab {
     gbc.weightx = 0;
     formPanel.add(new JLabel("API Key:"), gbc);
 
+    // API key field(NOTE: JPasswordField is used for better security).
     gbc.gridx = 1;
     gbc.weightx = 1.0;
     apiKeyField = new JPasswordField();
@@ -90,6 +96,7 @@ public class ConfigurationTab {
     gbc.anchor = GridBagConstraints.NORTH;
     formPanel.add(new JLabel("Analysis Prompt:"), gbc);
 
+    // User prompt text area
     gbc.gridx = 1;
     gbc.weightx = 1.0;
     gbc.weighty = 1.0;
@@ -136,28 +143,28 @@ public class ConfigurationTab {
 
   /** Load existing configuration into UI */
   private void loadConfiguration() {
-    if (configModel != null) {
-      providerCombo.setSelectedItem(configModel.getProvider());
-      endpointField.setText(configModel.getEndpoint());
-      apiKeyField.setText(configModel.getApiKey());
-      userPromptArea.setText(configModel.getUserPrompt());
+    if (configModel == null) {
+      return;
     }
+    providerCombo.setSelectedItem(configModel.getProvider());
+    endpointField.setText(configModel.getEndpoint());
+    apiKeyField.setText(configModel.getApiKey());
+    userPromptArea.setText(configModel.getUserPrompt());
   }
 
+  /** Update the endpoint field when the provider is changed */
   private void updateEndpointForProvider() {
     String provider = (String) providerCombo.getSelectedItem();
-    if ("openai".equals(provider)) {
-      endpointField.setText("https://api.openai.com/v1/chat/completions");
-    } else if ("anthropic".equals(provider)) {
-      endpointField.setText("https://api.anthropic.com/v1/messages");
-    }
+    endpointField.setText(LLMProviderRegistry.getDefaultEndpoint(provider));
   }
 
+  /** Action handler for save button. */
   private class SaveAction implements ActionListener {
+    /** when the save button is clicked, validate and save the configuration ConfigModel. */
     @Override
     public void actionPerformed(ActionEvent e) {
       try {
-        // Update config model
+        // Update ConfigModel
         configModel.setProvider((String) providerCombo.getSelectedItem());
         configModel.setEndpoint(endpointField.getText());
         configModel.setApiKey(new String(apiKeyField.getPassword()));
@@ -209,6 +216,7 @@ public class ConfigurationTab {
 
   /**
    * Get the main panel for the configuration tab.
+   *
    * @return The main panel.
    */
   public JPanel getMainPanel() {

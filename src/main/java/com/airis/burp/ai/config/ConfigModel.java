@@ -1,19 +1,9 @@
 package com.airis.burp.ai.config;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
- * DTO for AI Extension settings. Contains provider, endpoint, API key, and user
- * prompt information.
+ * DTO for AI Extension settings. Contains provider, endpoint, API key, and user prompt information.
  */
 public class ConfigModel {
-  // Default endpoints for different providers
-  // TODO: これらの定数はLLMClient側に移すべきな気がする
-  public static final String DEFAULT_OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions";
-  public static final String DEFAULT_ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages";
-  public static final String DEFAULT_GEMINI_ENDPOINT =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
   public static final String DEFAULT_USER_PROMPT =
       "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, "
@@ -21,29 +11,16 @@ public class ConfigModel {
           + "injection attacks, authentication bypasses, authorization issues, and data exposure.";
 
   private String provider = "openai"; // OpenAI or Anthropic or Gemini
-  private String endpoint = DEFAULT_OPENAI_ENDPOINT;
+  private String endpoint = ""; // API endpoint URL
   private String apiKey = ""; // Plain text API key (stored in memory only)
   private String userPrompt = "";
 
-  /**
-   * Default constructor initializing with default values
-   */
+  /** Default constructor initializing with default values */
   public ConfigModel() {
     setProvider("openai");
-    setEndpoint(DEFAULT_OPENAI_ENDPOINT);
+    setEndpoint("");
     setApiKey("");
     setUserPrompt(DEFAULT_USER_PROMPT);
-  }
-
-  /**
-   * @param userPrompt Custom user prompt for analysis The other parameters(provider, endpoint,
-   *     apiKey) vary depending on the user, so they are set to default values.
-   */
-  public ConfigModel(String userPrompt) {
-    setProvider("openai");
-    setEndpoint(DEFAULT_OPENAI_ENDPOINT);
-    setApiKey("");
-    setUserPrompt(userPrompt);
   }
 
   public String getProvider() {
@@ -62,20 +39,8 @@ public class ConfigModel {
     return userPrompt;
   }
 
-  /**
-   * Update the this.endpoint accordingly for provider.
-   * @param provider
-   * TODO: これもLLMClient側に移すべきな気がする
-   */
   public void setProvider(String provider) {
     this.provider = provider;
-    if ("openai".equals(provider)) {
-      this.endpoint = DEFAULT_OPENAI_ENDPOINT;
-    } else if ("anthropic".equals(provider)) {
-      this.endpoint = DEFAULT_ANTHROPIC_ENDPOINT;
-    } else if ("gemini".equals(provider)) {
-      this.endpoint = DEFAULT_GEMINI_ENDPOINT;
-    }
   }
 
   public void setEndpoint(String endpoint) {
@@ -92,6 +57,7 @@ public class ConfigModel {
 
   /**
    * Validate the configuration
+   *
    * @return boolean
    */
   public boolean isValid() {

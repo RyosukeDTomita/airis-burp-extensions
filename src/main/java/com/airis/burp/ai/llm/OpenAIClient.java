@@ -9,9 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
-/**
- * TODO: あとでかく
- */
+/** TODO: あとでかく */
 public class OpenAIClient implements LLMClient {
   private static final String DEFAULT_MODEL = "gpt-4o-mini";
   private static final int DEFAULT_TIMEOUT = 30000;
@@ -21,6 +19,7 @@ public class OpenAIClient implements LLMClient {
 
   /**
    * TODO:
+   *
    * @param request
    * @param userPrompt
    * @return
@@ -70,6 +69,7 @@ public class OpenAIClient implements LLMClient {
 
   /**
    * TODO
+   *
    * @param jsonResponse
    * @return
    */
@@ -150,6 +150,7 @@ public class OpenAIClient implements LLMClient {
 
   /**
    * TODO
+   *
    * @param request
    * @return
    */
@@ -198,6 +199,7 @@ public class OpenAIClient implements LLMClient {
 
   /**
    * TODO
+   *
    * @param jsonResponse
    * @return
    */

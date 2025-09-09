@@ -1,8 +1,6 @@
 package com.airis.burp.ai.core;
 
-/**
- * TODO: あとで書く
- */
+/** TODO: あとで書く */
 public class Finding {
   private String title = "";
   private String description = "";

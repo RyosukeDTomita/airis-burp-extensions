@@ -3,9 +3,7 @@ package com.airis.burp.ai.core;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * TODO: あとでかく
- */
+/** TODO: あとでかく */
 public class AnalysisResult {
 
   private String analysis = "";
