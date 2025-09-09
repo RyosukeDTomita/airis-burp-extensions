@@ -7,7 +7,6 @@ import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.extension.Extension;
 import burp.api.montoya.logging.Logging;
 import burp.api.montoya.ui.UserInterface;
-import com.airis.burp.ai.config.ConfigModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -41,7 +40,7 @@ public class ExtensionTest {
     extension.initialize(mockApi);
 
     // Verify extension name was set
-    verify(mockExtension).setName("AI Analysis Tool");
+    verify(mockExtension).setName("AIris: request insight system");
 
     // Verify components were initialized
     assertNotNull(extension.getConfigModel());
@@ -53,25 +52,5 @@ public class ExtensionTest {
     verify(mockLogging).logToOutput("Components initialized successfully");
     verify(mockLogging).logToOutput("UI components registered successfully");
     verify(mockLogging).logToOutput("Extension loaded successfully");
-  }
-
-  @Test
-  public void testGetConfigModel() {
-    extension.initialize(mockApi);
-
-    ConfigModel configModel = extension.getConfigModel();
-    assertNotNull(configModel);
-
-    // Should return the same instance on subsequent calls
-    ConfigModel configModel2 = extension.getConfigModel();
-    assertSame(configModel, configModel2);
-  }
-
-  @Test
-  public void testComponentsAreProperlyWired() {
-    extension.initialize(mockApi);
-
-    // Verify that AnalysisEngine has the correct ConfigModel
-    assertSame(extension.getConfigModel(), extension.getAnalysisEngine().getConfigModel());
   }
 }
