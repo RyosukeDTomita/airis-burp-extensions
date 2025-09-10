@@ -47,7 +47,7 @@ public class Extension implements BurpExtension {
     Logging logging = api.logging();
 
     try {
-      this.configModel = new ConfigModel();
+      this.configModel = ConfigModel.getInstance();
       this.llmClient = new OpenAIClient();
       this.requestProcessor = new RequestProcessor(llmClient);
       this.analysisEngine = new AnalysisEngine(requestProcessor, configModel, logging);

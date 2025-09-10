@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.LLMClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -23,9 +24,15 @@ public class AnalysisEngineTest {
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    configModel = new ConfigModel();
+    ConfigModel.resetInstance();
+    configModel = ConfigModel.getInstance();
     requestProcessor = new RequestProcessor(mockLLMClient);
     analysisEngine = new AnalysisEngine(requestProcessor, configModel, mockLogging);
+  }
+
+  @AfterEach
+  public void tearDown() {
+    ConfigModel.resetInstance();
   }
 
   @Test

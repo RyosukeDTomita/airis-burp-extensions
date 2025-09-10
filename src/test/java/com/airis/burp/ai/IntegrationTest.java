@@ -8,6 +8,7 @@ import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.core.AnalysisEngine;
 import com.airis.burp.ai.core.RequestProcessor;
 import com.airis.burp.ai.llm.LLMClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -20,12 +21,18 @@ public class IntegrationTest {
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
+    ConfigModel.resetInstance();
+  }
+
+  @AfterEach
+  public void tearDown() {
+    ConfigModel.resetInstance();
   }
 
   @Test
   public void testEndToEndWorkflow() {
     // Create and configure model
-    ConfigModel config = new ConfigModel();
+    ConfigModel config = ConfigModel.getInstance();
     config.setProvider("openai");
     config.setEndpoint("https://api.openai.com/v1/chat/completions");
     config.setApiKey("test-api-key");
@@ -60,7 +67,7 @@ public class IntegrationTest {
 
   @Test
   public void testConfigurationValidation() {
-    ConfigModel config = new ConfigModel();
+    ConfigModel config = ConfigModel.getInstance();
 
     // Initially invalid
     assertFalse(config.isValid());
@@ -81,7 +88,7 @@ public class IntegrationTest {
 
   @Test
   public void testDefaultUserPrompt() {
-    ConfigModel config = new ConfigModel();
+    ConfigModel config = ConfigModel.getInstance();
 
     // Should have default prompt
     assertNotNull(config.getUserPrompt());
@@ -90,7 +97,7 @@ public class IntegrationTest {
 
   @Test
   public void testAnalysisEngineWithInvalidConfig() {
-    ConfigModel config = new ConfigModel();
+    ConfigModel config = ConfigModel.getInstance();
     // config is invalid (missing provider, endpoint, apiKey)
 
     LLMClient mockLLMClient = mock(LLMClient.class);

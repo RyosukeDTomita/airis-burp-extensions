@@ -2,6 +2,7 @@ package com.airis.burp.ai.config;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -10,7 +11,23 @@ public class ConfigModelTest {
 
   @BeforeEach
   public void setUp() {
-    configModel = new ConfigModel();
+    ConfigModel.resetInstance();
+    configModel = ConfigModel.getInstance();
+  }
+
+  @AfterEach
+  public void tearDown() {
+    ConfigModel.resetInstance();
+  }
+
+  @Test
+  public void testSingletonInstance() {
+    // Act
+    ConfigModel firstInstance = ConfigModel.getInstance();
+    ConfigModel secondInstance = ConfigModel.getInstance();
+
+    // Assert
+    assertSame(firstInstance, secondInstance);
   }
 
   @Test

@@ -10,17 +10,42 @@ public class ConfigModel {
           + "potential issues, and provide recommendations. Focus on common web application security issues like "
           + "injection attacks, authentication bypasses, authorization issues, and data exposure.";
 
+  private static volatile ConfigModel instance;
+  private static final Object lock = new Object();
+
   private String provider = "openai"; // OpenAI or Anthropic or Gemini
   private String endpoint = ""; // API endpoint URL
   private String apiKey = ""; // Plain text API key (stored in memory only)
   private String userPrompt = "";
 
-  /** Default constructor initializing with default values */
-  public ConfigModel() {
+  /** Private constructor for singleton pattern */
+  private ConfigModel() {
     setProvider("openai");
     setEndpoint("");
     setApiKey("");
     setUserPrompt(DEFAULT_USER_PROMPT);
+  }
+
+  /**
+   * Get the singleton(DCL) instance of ConfigModel
+   * @return ConfigModel instance
+   */
+  public static ConfigModel getInstance() {
+    if (instance == null) {
+      synchronized (lock) {
+        if (instance == null) {
+          instance = new ConfigModel();
+        }
+      }
+    }
+    return instance;
+  }
+
+  /** Reset the singleton instance (mainly for testing purposes) */
+  public static void resetInstance() {
+    synchronized (lock) {
+      instance = null;
+    }
   }
 
   public String getProvider() {
