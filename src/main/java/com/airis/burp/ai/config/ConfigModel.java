@@ -101,4 +101,32 @@ public class ConfigModel {
     }
     return true;
   }
+
+  /**
+   * Returns a string representation of the ConfigModel with masked API key
+   *
+   * @return String representation of ConfigModel
+   */
+  @Override
+  public String toString() {
+    String FORMAT = "ConfigModel(provider=%s, endpoint=%s, apiKey=%s, userPrompt=%s)";
+    return String.format(FORMAT,
+        provider, endpoint, maskApiKey(apiKey), userPrompt);
+  }
+
+  /**
+   * Masks the API key by showing only the last 4 characters
+   *
+   * @param key API key to mask
+   * @return masked API key
+   */
+  private String maskApiKey(String key) {
+    if (key == null || key.isEmpty()) {
+      return "***";
+    }
+    if (key.length() <= 4) {
+      return "***" + key;
+    }
+    return "***" + key.substring(key.length() - 4);
+  }
 }
