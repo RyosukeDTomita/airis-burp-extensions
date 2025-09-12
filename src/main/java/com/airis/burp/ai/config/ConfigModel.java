@@ -28,6 +28,7 @@ public class ConfigModel {
 
   /**
    * Get the singleton(DCL) instance of ConfigModel
+   *
    * @return ConfigModel instance
    */
   public static ConfigModel getInstance() {
@@ -110,8 +111,7 @@ public class ConfigModel {
   @Override
   public String toString() {
     String FORMAT = "ConfigModel(provider=%s, endpoint=%s, apiKey=%s, userPrompt=%s)";
-    return String.format(FORMAT,
-        provider, endpoint, maskApiKey(apiKey), userPrompt);
+    return String.format(FORMAT, provider, endpoint, maskApiKey(apiKey), userPrompt);
   }
 
   /**

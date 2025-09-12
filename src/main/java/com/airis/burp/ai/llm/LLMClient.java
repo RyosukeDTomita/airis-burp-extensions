@@ -1,7 +1,7 @@
 package com.airis.burp.ai.llm;
 
-import com.airis.burp.ai.core.AnalysisResult;
-import com.airis.burp.ai.core.AnalysisTarget;
+import com.airis.burp.ai.config.ConfigModel;
+import com.airis.burp.ai.core.HttpRequestResponse;
 
 /** Interface for LLM client implementations. */
 public interface LLMClient {
@@ -12,47 +12,5 @@ public interface LLMClient {
    * @param userPrompt The user prompt for analysis
    * @return Analysis response from the AI model
    */
-  AnalysisResult analyze(AnalysisTarget requestResponse, String userPrompt);
-
-  /**
-   * Set the API endpoint URL.
-   *
-   * @param endpoint The endpoint URL
-   */
-  void setEndpoint(String endpoint);
-
-  /**
-   * Get the API endpoint URL.
-   *
-   * @return The endpoint URL
-   */
-  String getEndpoint();
-
-  /**
-   * Set the API key for authentication.
-   *
-   * @param apiKey The API key
-   */
-  void setApiKey(String apiKey);
-
-  /**
-   * Get the API key for authentication.
-   *
-   * @return The API key
-   */
-  String getApiKey();
-
-  /**
-   * Set the request timeout in milliseconds.
-   *
-   * @param timeoutMs Timeout in milliseconds
-   */
-  void setTimeout(int timeoutMs);
-
-  /**
-   * Get the request timeout in milliseconds.
-   *
-   * @return Timeout in milliseconds
-   */
-  int getTimeout();
+  String analyze(ConfigModel configModel, HttpRequestResponse requestResponse, String userPrompt);
 }

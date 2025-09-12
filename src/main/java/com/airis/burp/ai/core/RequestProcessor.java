@@ -1,28 +1,13 @@
 package com.airis.burp.ai.core;
 
-import com.airis.burp.ai.llm.LLMClient;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /** Processes HTTP requests and responses for analysis. */
 public class RequestProcessor {
-  private static final Pattern PASSWORD_PATTERN =
-      Pattern.compile(
-          "(password|pwd|pass)[\"\\s]*[=:][\"\\s]*([^&\\s,}]+)", Pattern.CASE_INSENSITIVE);
-  private static final Pattern API_KEY_PATTERN =
-      Pattern.compile(
-          "(api[_-]?key|token|secret)[\"\\s]*[=:][\"\\s]*([^&\\s,}]+)", Pattern.CASE_INSENSITIVE);
-  private static final String REDACTED = "[REDACTED]";
 
-  private final LLMClient llmClient;
-
-  public RequestProcessor(LLMClient llmClient) {
-    this.llmClient = llmClient;
-  }
-
-  public AnalysisTarget parseHttpRequest(String httpRequest) {
-    AnalysisTarget request = new AnalysisTarget();
+  public HttpRequestResponse parseHttpRequest(String httpRequest) {
+    HttpRequestResponse request = new HttpRequestResponse();
 
     if (httpRequest == null || httpRequest.trim().isEmpty()) {
       return request;
@@ -60,7 +45,7 @@ public class RequestProcessor {
     return request;
   }
 
-  public void parseHttpResponse(AnalysisTarget request, String httpResponse) {
+  public void parseHttpResponse(HttpRequestResponse request, String httpResponse) {
     if (httpResponse == null || httpResponse.trim().isEmpty()) {
       return;
     }
@@ -87,42 +72,37 @@ public class RequestProcessor {
     request.setResponseBody(responseBody);
   }
 
-  public AnalysisTarget createAnalysisRequest(String httpRequest, String httpResponse) {
-    AnalysisTarget request = parseHttpRequest(httpRequest);
-    parseHttpResponse(request, httpResponse);
-    return request;
+  public HttpRequestResponse createAnalysisRequest(String httpRequest, String httpResponse) {
+    HttpRequestResponse requestResponse = parseHttpRequest(httpRequest);
+    parseHttpResponse(requestResponse, httpResponse);
+    return requestResponse;
   }
 
-  public String sanitizeData(String data) {
-    if (data == null) {
-      return "";
-    }
-
-    String sanitized = data;
-
-    // Redact passwords
-    sanitized = PASSWORD_PATTERN.matcher(sanitized).replaceAll("$1\": \"" + REDACTED + "\"");
-
-    // Redact API keys and tokens
-    sanitized = API_KEY_PATTERN.matcher(sanitized).replaceAll("$1\": \"" + REDACTED + "\"");
-
-    return sanitized;
-  }
-
+  /**
+   * Extracts HTTP headers from a string of header lines and returns them as a Map.
+   *
+   * @param headerLines String containing HTTP headers separated by CRLF
+   * @return Map of header names to values
+   */
   public Map<String, String> extractHeaders(String headerLines) {
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
 
+    // Return empty map for null or empty input
     if (headerLines == null || headerLines.trim().isEmpty()) {
       return headers;
     }
 
-    String[] lines = headerLines.split("\\r\\n");
-    for (String line : lines) {
+    // Split header lines by CRLF
+    for (String line : headerLines.split("\\r\\n")) {
+      // Skip empty lines
       if (line.trim().isEmpty()) {
         continue;
       }
 
+      // Find the colon separator
       int colonIndex = line.indexOf(':');
+
+      // Check if colon exists and is not at start/end of line
       if (colonIndex > 0 && colonIndex < line.length() - 1) {
         String name = line.substring(0, colonIndex).trim();
         String value = line.substring(colonIndex + 1).trim();

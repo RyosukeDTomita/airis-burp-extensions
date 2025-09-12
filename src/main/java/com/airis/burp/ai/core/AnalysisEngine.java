@@ -5,7 +5,7 @@ import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.LLMClient;
 import com.airis.burp.ai.llm.OpenAIClient;
 
-/** TODO: あとでかく */
+/** chose LLM provider and start analysis. */
 public class AnalysisEngine {
   private final ConfigModel configModel;
   private final Logging logging;
@@ -26,7 +26,7 @@ public class AnalysisEngine {
    * @param response The HTTP response to analyze (nullable)
    * @return Analysis result or error message
    */
-  public String analyzeRequest(String request, String response) {
+  public String analyze(String request, String response) {
     // Prevent concurrent analysis
     if (isAnalyzing) {
       return "Analysis already in progress. Please wait...";
@@ -46,18 +46,15 @@ public class AnalysisEngine {
         return "Unsupported AI provider: " + configModel.getProvider();
       }
 
-      // Setup client
-      llmClient.setEndpoint(configModel.getEndpoint());
-      llmClient.setApiKey(configModel.getApiKey());
-
       // Execute analysis
-      AnalysisTarget requestResponse = requestProcessor.createAnalysisRequest(request, response);
-      AnalysisResult result = llmClient.analyze(requestResponse, configModel.getUserPrompt());
+      HttpRequestResponse requestResponse =
+          requestProcessor.createAnalysisRequest(request, response);
+      String result = llmClient.analyze(configModel, requestResponse, configModel.getUserPrompt());
       logging.logToOutput("Analysis completed successfully");
       if (result == null) {
         return "No analysis result returned from LLM client.";
       } else {
-        return result.getAnalysis();
+        return result;
       }
 
     } catch (Exception e) {
@@ -103,20 +100,5 @@ public class AnalysisEngine {
    */
   public boolean isAnalyzing() {
     return isAnalyzing;
-  }
-
-  // TODO: テスト用
-  public ConfigModel getConfigModel() {
-    return configModel;
-  }
-
-  // TODO: テスト用
-  public Logging getLogging() {
-    return logging;
-  }
-
-  // TODO: テスト用
-  public RequestProcessor getRequestProcessor() {
-    return requestProcessor;
   }
 }

@@ -49,7 +49,7 @@ public class Extension implements BurpExtension {
     try {
       this.configModel = ConfigModel.getInstance();
       this.llmClient = new OpenAIClient();
-      this.requestProcessor = new RequestProcessor(llmClient);
+      this.requestProcessor = new RequestProcessor();
       this.analysisEngine = new AnalysisEngine(requestProcessor, configModel, logging);
 
       logging.logToOutput("Components initialized successfully");
@@ -77,25 +77,5 @@ public class Extension implements BurpExtension {
     } catch (Exception e) {
       logging.logToError("Failed to register UI components: " + e.getMessage());
     }
-  }
-
-  // TODO: テストのためだけのpublicなので消す
-  public ConfigModel getConfigModel() {
-    return configModel;
-  }
-
-  // TODO: テストのためだけのpublicなので消す
-  public AnalysisEngine getAnalysisEngine() {
-    return analysisEngine;
-  }
-
-  // TODO: テストのためだけのpublicなので消す
-  public LLMClient getLLMClient() {
-    return llmClient;
-  }
-
-  // TODO: テストのためだけのpublicなので消す
-  public RequestProcessor getRequestProcessor() {
-    return requestProcessor;
   }
 }

@@ -3,8 +3,12 @@ package com.airis.burp.ai.core;
 import java.util.HashMap;
 import java.util.Map;
 
-/** TODO: あとでかく */
-public class AnalysisTarget {
+/** */
+/**
+ * Represents an HTTP request-response pair for security analysis. Contains all relevant information
+ * including request method, URL, headers, body, response status code, and response content.
+ */
+public class HttpRequestResponse {
   private String method = "";
   private String url = "";
   private Map<String, String> headers = new HashMap<>();

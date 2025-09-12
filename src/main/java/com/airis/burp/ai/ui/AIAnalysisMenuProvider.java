@@ -94,7 +94,7 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
               // Perform analysis
               new Thread(
                       () -> {
-                        String result = analysisEngine.analyzeRequest(request, response);
+                        String result = analysisEngine.analyze(request, response);
 
                         SwingUtilities.invokeLater(
                             () -> {

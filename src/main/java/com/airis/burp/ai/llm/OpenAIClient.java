@@ -1,7 +1,7 @@
 package com.airis.burp.ai.llm;
 
-import com.airis.burp.ai.core.AnalysisResult;
-import com.airis.burp.ai.core.AnalysisTarget;
+import com.airis.burp.ai.config.ConfigModel;
+import com.airis.burp.ai.core.HttpRequestResponse;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -9,56 +9,80 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
-/** TODO: あとでかく */
+/** OpenAI Client to send requests to the OpenAI API */
 public class OpenAIClient implements LLMClient {
   private static final String DEFAULT_MODEL = "gpt-4o-mini";
   private static final int DEFAULT_TIMEOUT = 30000;
-  private String endpoint = "";
-  private String apiKey = "";
+  private static final String SYSTEM_PROMPT =
+      "You are an expert security analyst specializing in web application security."
+          + "Following the user's prompt, analyze the provided HTTP request and response.\n";
   private int timeout = DEFAULT_TIMEOUT;
 
   /**
-   * TODO:
+   * analyze the given HTTP request and response using the OpenAI API
    *
    * @param request
    * @param userPrompt
    * @return
    */
-  public AnalysisResult analyze(AnalysisTarget request, String userPrompt) {
-    AnalysisResult response = new AnalysisResult();
-    if (request == null || userPrompt == null || userPrompt.trim().isEmpty()) {
-      response.setAnalysis("");
-      response.setResponseTime(0);
-      return response;
+  public String analyze(
+      ConfigModel config, HttpRequestResponse requestAndResponse, String userPrompt) {
+
+    if (!config.isValid()) {
+      return "[ERROR] Configuration is incomplete. Please configure API settings.";
     }
 
-    long startTime = System.currentTimeMillis();
+    String response;
+    if (requestAndResponse == null) {
+      return "[ERROR] requestAndResponse is null";
+    } else if (userPrompt == null || userPrompt.trim().isEmpty()) {
+      return "[ERROR] userPrompt is null or empty";
+    }
+
     try {
-      String jsonRequest = formatRequest(request, userPrompt);
-      String jsonResponse = makeHttpRequest(jsonRequest);
+      String jsonRequest = formatRequest(requestAndResponse, userPrompt);
+      String jsonResponse = sendHttpRequest(config, jsonRequest);
       response = parseResponse(jsonResponse);
     } catch (Exception e) {
-      response.setAnalysis("API request failed: " + e.getMessage());
+      response = "[ERROR] API request failed: " + e.getMessage();
       // TODO: Implement error handling
     }
-    long endTime = System.currentTimeMillis();
-    response.setResponseTime(endTime - startTime);
     return response;
   }
 
-  public String formatRequest(AnalysisTarget request, String userPrompt) {
+  /**
+   * Create JSON request body for OpenAI API
+   *
+   * @param HttpRequestResponse
+   * @param userPrompt
+   * @return
+   */
+  public String formatRequest(HttpRequestResponse request, String userPrompt) {
     StringBuilder json = new StringBuilder();
     json.append("{\n");
     json.append("  \"model\": \"").append(DEFAULT_MODEL).append("\",\n");
     json.append("  \"messages\": [\n");
+
+    // System prompt - セキュリティ分析の基本指示
     json.append("    {\n");
     json.append("      \"role\": \"system\",\n");
-    json.append("      \"content\": \"").append(escapeJson(userPrompt)).append("\"\n");
+    json.append("      \"content\": \"").append(escapeJson(SYSTEM_PROMPT)).append("\"\n");
     json.append("    },\n");
+
+    // User prompt - ユーザーからの追加指示とHTTPデータを含む
     json.append("    {\n");
     json.append("      \"role\": \"user\",\n");
-    json.append("      \"content\": \"").append(escapeJson(formatHttpData(request))).append("\"\n");
+
+    // ユーザープロンプトとHTTPデータを結合
+    StringBuilder userContent = new StringBuilder();
+    if (userPrompt != null && !userPrompt.isEmpty()) {
+      userContent.append(userPrompt).append("\n\n");
+    }
+    userContent.append(formatHttpData(request));
+
+    json.append("      \"content\": \"").append(escapeJson(userContent.toString())).append("\"\n");
     json.append("    }\n");
+
     json.append("  ],\n");
     json.append("  \"max_tokens\": 1000,\n");
     json.append("  \"temperature\": 0.3\n");
@@ -68,38 +92,38 @@ public class OpenAIClient implements LLMClient {
   }
 
   /**
-   * TODO
+   * parse the JSON response from OpenAI API.
    *
    * @param jsonResponse
    * @return
    */
-  public AnalysisResult parseResponse(String jsonResponse) {
-    AnalysisResult response = new AnalysisResult();
-
+  public String parseResponse(String jsonResponse) {
+    String response;
     try {
       // Simple JSON parsing for the response
-      String content = extractContent(jsonResponse);
-      response.setAnalysis(content);
+      response = extractContent(jsonResponse);
     } catch (Exception e) {
-      response.setAnalysis("");
+      response = "";
+      // TODO: Implement error handling
     }
-
     return response;
   }
 
-  protected String makeHttpRequest(String jsonRequest) {
-    if (endpoint.isEmpty() || apiKey.isEmpty()) {
-      throw new RuntimeException("Endpoint or API key not configured");
-    }
-
+  /**
+   * Send HTTP request to OpenAI API and get the result as a string
+   *
+   * @param jsonRequest
+   * @return
+   */
+  protected String sendHttpRequest(ConfigModel config, String jsonRequest) {
     try {
-      URL url = new URL(endpoint);
+      URL url = new URL(config.getEndpoint());
       HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
       // Set request method and headers
       connection.setRequestMethod("POST");
       connection.setRequestProperty("Content-Type", "application/json");
-      connection.setRequestProperty("Authorization", "Bearer " + apiKey);
+      connection.setRequestProperty("Authorization", "Bearer " + config.getApiKey());
       connection.setDoOutput(true);
       connection.setConnectTimeout(timeout);
       connection.setReadTimeout(timeout);
@@ -154,7 +178,7 @@ public class OpenAIClient implements LLMClient {
    * @param request
    * @return
    */
-  private String formatHttpData(AnalysisTarget request) {
+  private String formatHttpData(HttpRequestResponse request) {
     StringBuilder data = new StringBuilder();
 
     data.append(
@@ -198,7 +222,7 @@ public class OpenAIClient implements LLMClient {
   }
 
   /**
-   * TODO
+   * Parse json response
    *
    * @param jsonResponse
    * @return
@@ -270,30 +294,5 @@ public class OpenAIClient implements LLMClient {
         .replace("\t", "\\t")
         .replace("\b", "\\b")
         .replace("\f", "\\f");
-  }
-
-  // LLMClient interface methods
-  public void setEndpoint(String endpoint) {
-    this.endpoint = endpoint != null ? endpoint : "";
-  }
-
-  public String getEndpoint() {
-    return endpoint;
-  }
-
-  public void setApiKey(String apiKey) {
-    this.apiKey = apiKey != null ? apiKey : "";
-  }
-
-  public String getApiKey() {
-    return apiKey;
-  }
-
-  public void setTimeout(int timeoutMs) {
-    this.timeout = timeoutMs;
-  }
-
-  public int getTimeout() {
-    return timeout;
   }
 }
