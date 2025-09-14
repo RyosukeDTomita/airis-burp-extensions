@@ -2,9 +2,8 @@ package com.airis.burp.ai.llm;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.AfterEach;
-
 import com.airis.burp.ai.config.ConfigModel;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -57,7 +57,7 @@ public class OpenAIClient implements LLMClient {
    * @param userPrompt
    * @return
    */
-  public String formatRequest(HttpRequestResponse request, String userPrompt) {
+  private String formatRequest(HttpRequestResponse request, String userPrompt) {
     StringBuilder json = new StringBuilder();
     json.append("{\n");
     json.append("  \"model\": \"").append(DEFAULT_MODEL).append("\",\n");
@@ -97,7 +97,7 @@ public class OpenAIClient implements LLMClient {
    * @param jsonResponse
    * @return
    */
-  public String parseResponse(String jsonResponse) {
+  private String parseResponse(String jsonResponse) {
     String response;
     try {
       // Simple JSON parsing for the response
@@ -115,7 +115,7 @@ public class OpenAIClient implements LLMClient {
    * @param jsonRequest
    * @return
    */
-  protected String sendHttpRequest(ConfigModel config, String jsonRequest) {
+  private String sendHttpRequest(ConfigModel config, String jsonRequest) {
     try {
       URL url = new URL(config.getEndpoint());
       HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -222,7 +222,7 @@ public class OpenAIClient implements LLMClient {
   }
 
   /**
-   * Parse json response
+   * Parse json response from OpenAI
    *
    * @param jsonResponse
    * @return

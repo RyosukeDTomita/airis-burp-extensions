@@ -1,7 +1,5 @@
 package com.airis.burp.ai.llm;
 
-import java.util.*;
-
 /** Registry for available LLM providers. Manages supported providers and their clients. */
 public class LLMProviderRegistry {
 
