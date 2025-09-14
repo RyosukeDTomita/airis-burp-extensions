@@ -675,3 +675,232 @@ copyButton.addActionListener(e -> {
 - **ユーザー視点のテスト**: 開発者以外による操作確認
 
 この学びにより、外部APIとの統合、特にセキュリティツールとの連携において重要な実装パターンとデバッグ手法を習得できました。
+
+## 11. Montoya API移行による技術的な学び
+
+### 背景：なぜMontoya APIへの移行が必要だったか
+
+Burp Suiteには2つの拡張機能API が存在します：
+1. **Legacy Extender API**: 従来のIBurpExtenderインターフェース
+2. **Montoya API**: 2022年から導入された新しいAPI
+
+当初は古いExtender APIで実装していましたが、「motoya-api」への移行要求を受けて、新しいMontoya APIへの全面移行を実施しました。
+
+### Montoya API移行での主要な変更点
+
+#### 1. 依存関係の変更
+
+```gradle
+// 以前：手動でJARファイルを管理
+compileOnly files('lib/burp-extender-api.jar')
+
+// 現在：Maven Centralから自動取得
+compileOnly 'net.portswigger.burp.extensions:montoya-api:+'
+```
+
+**学び**：
+- Maven Centralを使うことで依存関係管理が大幅に簡素化
+- バージョン管理が容易になり、最新APIへの追従が簡単に
+
+#### 2. Java バージョンの制約
+
+```gradle
+// 以前：Java 21を使用
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+// 現在：Java 17以下が必須
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17) // Montoya API requires Java 17 or lower
+    }
+}
+```
+
+**学び**：
+- Burp Suite自体のJavaバージョン制約を考慮する必要性
+- 新しいAPIでも互換性のために古いJavaバージョンが必要な場合がある
+
+#### 3. エントリーポイントの変更
+
+```java
+// Legacy API
+public class BurpExtender implements IBurpExtender {
+    @Override
+    public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
+        callbacks.setExtensionName("airis");
+    }
+}
+
+// Montoya API
+public class MontoyaExtension implements BurpExtension {
+    @Override
+    public void initialize(MontoyaApi api) {
+        api.extension().setName("airis");
+    }
+}
+```
+
+**学び**：
+- より直感的なメソッド名（registerExtenderCallbacks → initialize）
+- オブジェクト指向的なAPI設計（api.extension().setName() のようなメソッドチェーン）
+
+#### 4. ロギングAPIの改善
+
+```java
+// Legacy API
+callbacks.printOutput("Message");
+callbacks.printError("Error");
+
+// Montoya API
+api.logging().logToOutput("Message");
+api.logging().logToError("Error");
+```
+
+**学び**：
+- より明確なメソッド名で意図が分かりやすい
+- ロギング専用のAPIオブジェクトで責務が明確
+
+#### 5. コンテキストメニュー実装の変更
+
+```java
+// Legacy API
+public class Factory implements IContextMenuFactory {
+    @Override
+    public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
+        // メニューアイテムの作成
+    }
+}
+
+// Montoya API
+public class Provider implements ContextMenuItemsProvider {
+    @Override
+    public List<Component> provideMenuItems(ContextMenuEvent event) {
+        // より汎用的なComponent型を返す
+    }
+}
+```
+
+**学び**：
+- より柔軟なUI実装が可能（JMenuItemに限定されない）
+- イベントオブジェクトがより豊富な情報を提供
+
+#### 6. HTTP リクエスト/レスポンスの扱い
+
+```java
+// Legacy API
+IHttpRequestResponse message = invocation.getSelectedMessages()[0];
+byte[] request = message.getRequest();
+byte[] response = message.getResponse();
+
+// Montoya API
+HttpRequestResponse message = event.selectedRequestResponses().get(0);
+HttpRequest request = message.request();
+HttpResponse response = message.response();
+// 型安全で、toString()などのメソッドが使える
+```
+
+**学び**：
+- バイト配列から型安全なオブジェクトへ
+- より直感的なメソッド名とアクセス方法
+- null安全性の向上（hasResponse()メソッドなど）
+
+### 移行戦略の学び
+
+#### 1. 後方互換性の維持
+
+```java
+// 両方のAPIをサポートする設計
+public class RepeaterContextMenuFactory 
+    implements IContextMenuFactory,     // Legacy API
+               ContextMenuItemsProvider { // Montoya API
+    
+    // コンストラクタで使用するAPIを判定
+    public RepeaterContextMenuFactory(IBurpExtenderCallbacks callbacks, ...) {
+        // Legacy API用
+    }
+    
+    public RepeaterContextMenuFactory(..., MontoyaApi api) {
+        // Montoya API用
+    }
+}
+```
+
+**学び**：
+- 段階的移行のために両方のAPIをサポートする設計が有効
+- インターフェースの多重実装で柔軟な対応が可能
+
+#### 2. スタブクラスの活用
+
+```java
+// コンパイル用のスタブを作成
+package burp;
+public interface IBurpExtender {
+    void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks);
+}
+```
+
+**学び**：
+- 古いAPIのインターフェースをスタブとして残すことでコンパイルエラーを回避
+- 段階的な移行を可能にする実装パターン
+
+### 移行時の課題と解決
+
+#### 1. Gradle Wrapperの問題
+
+```bash
+# Error: Invalid or corrupt jarfile gradle-wrapper.jar
+# 解決：正しいwrapper jarを手動で配置
+curl -L https://services.gradle.org/distributions/gradle-8.5-bin.zip -o gradle.zip
+unzip gradle.zip
+cp gradle-8.5/lib/plugins/gradle-wrapper-8.5.jar gradle/wrapper/
+```
+
+**学び**：
+- ビルドツールの環境構築も重要な技術要素
+- Gradle wrapperの構造を理解することで問題解決が迅速に
+
+#### 2. パッケージ構造の維持
+
+新旧APIを共存させるためのパッケージ構造：
+```
+src/main/java/
+├── burp/                    # Legacy API（必須パッケージ名）
+│   ├── IBurpExtender.java
+│   └── BurpExtender.java
+└── com/airis/burp/ai/       # アプリケーションコード
+    ├── MontoyaExtension.java # 新API用エントリーポイント
+    └── ...
+```
+
+**学び**：
+- Burp Suiteの制約（burpパッケージ必須）を守りつつ、独自の構造を維持
+- 新旧APIの分離で保守性を確保
+
+### Montoya API移行の総括
+
+#### 技術的メリット
+
+1. **型安全性の向上**：byte[]からオブジェクトへ
+2. **API設計の改善**：より直感的で理解しやすいメソッド名
+3. **依存関係管理**：Maven Centralによる自動化
+4. **拡張性**：将来の機能追加が容易な設計
+
+#### 実装上の教訓
+
+1. **段階的移行の重要性**：両APIサポートで安全な移行
+2. **ドキュメントの確認**：公式JavaDocの活用が必須
+3. **互換性テスト**：新旧両方の環境での動作確認
+4. **エラーハンドリング**：API差異によるエラーの適切な処理
+
+#### 今後の展望
+
+Montoya APIは今後のBurp Suite拡張機能開発の標準となるため：
+- 新規開発は最初からMontoya APIを使用
+- 既存拡張機能も段階的に移行を推奨
+- より高度な機能（WebSocket、HTTP/2）の活用が可能
+
+この移行経験により、レガシーシステムの現代化における実践的なアプローチと、APIマイグレーションのベストプラクティスを習得できました。

@@ -1,32 +1,27 @@
-# AIRIS: Artificial Intelligence Request Insight System
+# AIris: Artificial Intelligence Request Insight System
 
 ![mit license](https://img.shields.io/github/license/RyosukeDTomita/airis)
+
+<img src="./assets/airis_icon_thunder.png" width="33%" height="33%" alt="AIris">
 
 ## INDEX
 
 - [ABOUT](#about)
+- [HOW TO USE](#how-to-use)
 - [ENVIRONMENT](#environment)
 - [PREPARING](#preparing)
-- [HOW TO USE](#how-to-use)
+- [For Developers](#for-developers)
 
 ---
 
 ## ABOUT
 
-This is an [Burp Suite](https://portswigger.net/burp) extension that allows you to **custom API key and API endpoint**, and send the selected request and response from within Burp Suite as context for analysis by an LLM.
+This is an [Burp Suite](https://portswigger.net/burp) extension that allows you to **LLM custom API key and API endpoint**, and send the selected request and response from within Burp Suite as context for analysis by an LLM.
 
-By configuring a system prompt, you can streamline vulnerability assessments.
+### Why AIris?
 
----
-
-## ENVIRONMENT
-
-This project is just Vibe Coding.
-I will improve it someday.
-
----
-
-## PREPARING
+- [Burp AI](https://portswigger.net/burp/ai) is not supported in the free version of Burp Suite.
+- Some companies only allow the use of organization-managed AI services, such as [Azure OpenAI](https://learn.microsoft.com/ja-jp/azure/ai-foundry/openai/overview), [Amazon Bedrock](https://aws.amazon.com/jp/bedrock/).
 
 ---
 
@@ -42,3 +37,42 @@ I will improve it someday.
     ![response](./assets/example2.png)
 
 ---
+
+## ENVIRONMENT
+
+This project is just Vibe Coding right now.
+I'm improveing it little by little.
+
+- Docker Image: gradle:9.0.0-jdk21-noble
+- Java: 21
+  - montoya-api: 2025.7
+- Gradle: 9.0.0
+
+---
+
+## PREPARING
+
+```shell
+cd airis
+./build.sh
+```
+
+---
+
+## For Developers
+
+### Format code
+
+```shell
+cd airis
+./gradlew fmt
+```
+
+### Test code
+
+```shell
+cd airis
+./gradlew test --tests <ClassName of Test.java>
+# all test
+./gradlew test
+```

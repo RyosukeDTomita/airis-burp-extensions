@@ -1,6 +1,12 @@
-<!--https://qiita.com/nokonoko_1203/items/8bafb6033409aadccd9f-->
-# Guidelines
+## Developer Rule
 
+- build時には`build.sh`を使う
+- testには`./gradlew test`を使う
+- ユーザからのコードベースへの質問に対しては批判的に疑って考えて回答してください。
+
+---
+
+<!--https://qiita.com/nokonoko_1203/items/8bafb6033409aadccd9f-->
 This document defines the project's rules, objectives, and progress management methods. Please proceed with the project according to the following content.
 
 ## Top-Level Rules

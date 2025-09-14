@@ -1,0 +1,26 @@
+name: New-Feature(YAML)
+description: new feature issue
+title: "[Enhancement]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this new feature!
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Details
+      description: How can we get in touch with you if we need more info?
+      placeholder: ex. email@example.com
+    validations:
+      required: false
+  - type: textarea
+    id: idea
+    attributes:
+      label: idea
+      description: We need your help.
+      placeholder: Tell us what you think!
+      value: "Genious idea."
+    validations:
+      required: true
