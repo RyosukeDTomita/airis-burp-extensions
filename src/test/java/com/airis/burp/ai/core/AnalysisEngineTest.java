@@ -21,15 +21,14 @@ public class AnalysisEngineTest {
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    ConfigModel.resetInstance();
-    configModel = ConfigModel.getInstance();
+    configModel = new ConfigModel();
     requestProcessor = new RequestProcessor();
     analysisEngine = new AnalysisEngine(requestProcessor, configModel, mockLogging);
   }
 
   @AfterEach
   public void tearDown() {
-    ConfigModel.resetInstance();
+    configModel = null;
   }
 
   @Test

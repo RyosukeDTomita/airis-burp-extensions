@@ -11,13 +11,12 @@ public class ConfigModelTest {
 
   @BeforeEach
   public void setUp() {
-    ConfigModel.resetInstance();
-    configModel = ConfigModel.getInstance();
+    configModel = new ConfigModel();
   }
 
   @AfterEach
   public void tearDown() {
-    ConfigModel.resetInstance();
+    configModel = null;
   }
 
   @Test
