@@ -8,7 +8,6 @@ import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.core.AnalysisEngine;
 import com.airis.burp.ai.core.RequestProcessor;
-import com.airis.burp.ai.llm.OpenAIClient;
 import com.airis.burp.ai.ui.AIAnalysisMenuProvider;
 import com.airis.burp.ai.ui.ConfigurationTab;
 import java.util.concurrent.ExecutorService;
@@ -53,9 +52,6 @@ public class Extension implements BurpExtension {
               // Shutdown executor service
               executorService.shutdownNow();
 
-              // Close all active HTTP connections
-              OpenAIClient.closeAllConnections();
-
               api.logging().logToOutput("Extension unloaded successfully");
             });
 
@@ -69,7 +65,7 @@ public class Extension implements BurpExtension {
     try {
       this.configModel = new ConfigModel();
       this.requestProcessor = new RequestProcessor();
-      this.analysisEngine = new AnalysisEngine(requestProcessor, configModel, logging);
+      this.analysisEngine = new AnalysisEngine(requestProcessor, configModel, logging, api);
 
       logging.logToOutput("Components initialized successfully");
     } catch (Exception e) {

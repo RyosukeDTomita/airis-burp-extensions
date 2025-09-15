@@ -3,6 +3,8 @@ package com.airis.burp.ai.core;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.http.Http;
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
 import org.junit.jupiter.api.AfterEach;
@@ -17,13 +19,16 @@ public class AnalysisEngineTest {
   private RequestProcessor requestProcessor;
 
   @Mock private Logging mockLogging;
+  @Mock private MontoyaApi mockMontoyaApi;
+  @Mock private Http mockHttp;
 
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
+    when(mockMontoyaApi.http()).thenReturn(mockHttp);
     configModel = new ConfigModel();
     requestProcessor = new RequestProcessor();
-    analysisEngine = new AnalysisEngine(requestProcessor, configModel, mockLogging);
+    analysisEngine = new AnalysisEngine(requestProcessor, configModel, mockLogging, mockMontoyaApi);
   }
 
   @AfterEach

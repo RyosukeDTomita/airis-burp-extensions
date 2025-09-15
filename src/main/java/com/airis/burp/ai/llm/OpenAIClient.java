@@ -2,15 +2,9 @@ package com.airis.burp.ai.llm;
 
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.core.HttpRequestResponse;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
+
+import burp.api.montoya.MontoyaApi;
 
 /** OpenAI Client to send requests to the OpenAI API */
 public class OpenAIClient implements LLMClient {
@@ -20,10 +14,15 @@ public class OpenAIClient implements LLMClient {
       "You are an expert security analyst specializing in web application security."
           + "Following the user's prompt, analyze the provided HTTP request and response.\n";
   private int timeout = DEFAULT_TIMEOUT;
+  private final MontoyaApi montoyaApi;
 
-  // Track active connections for cleanup during extension unload
-  private static final Set<HttpURLConnection> activeConnections =
-      Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+  /**
+   * Constructor
+   * @param montoyaApi Burp's Montoya API instance
+   */
+  public OpenAIClient(MontoyaApi montoyaApi) {
+    this.montoyaApi = montoyaApi;
+  }
 
   /**
    * analyze the given HTTP request and response using the OpenAI API
@@ -117,75 +116,48 @@ public class OpenAIClient implements LLMClient {
   }
 
   /**
-   * Send HTTP request to OpenAI API and get the result as a string
+   * Send HTTP request to OpenAI API using Montoya API
    *
-   * @param jsonRequest
-   * @return
+   * @param config Configuration containing endpoint and API key
+   * @param jsonRequest JSON request body
+   * @return JSON response string
    */
   private String sendHttpRequest(ConfigModel config, String jsonRequest) {
-    HttpURLConnection connection = null;
     try {
-      URL url = new URL(config.getEndpoint());
-      connection = (HttpURLConnection) url.openConnection();
+      // Build HTTP request using Montoya API
+      burp.api.montoya.http.message.requests.HttpRequest httpRequest = 
+          burp.api.montoya.http.message.requests.HttpRequest.httpRequestFromUrl(config.getEndpoint())
+              .withMethod("POST")
+              .withHeader("Content-Type", "application/json")
+              .withHeader("Authorization", "Bearer " + config.getApiKey())
+              .withBody(jsonRequest);
 
-      // Track this connection for cleanup during unload
-      activeConnections.add(connection);
+      // Send request through Burp's HTTP client
+      burp.api.montoya.http.message.HttpRequestResponse requestResponse = 
+          montoyaApi.http().sendRequest(httpRequest);
 
-      // Set request method and headers
-      connection.setRequestMethod("POST");
-      connection.setRequestProperty("Content-Type", "application/json");
-      connection.setRequestProperty("Authorization", "Bearer " + config.getApiKey());
-      connection.setDoOutput(true);
-      connection.setConnectTimeout(timeout);
-      connection.setReadTimeout(timeout);
-
-      // Send request
-      try (OutputStream os = connection.getOutputStream()) {
-        byte[] input = jsonRequest.getBytes("utf-8");
-        os.write(input, 0, input.length);
+      // Get response
+      burp.api.montoya.http.message.responses.HttpResponse httpResponse = 
+          requestResponse.response();
+      
+      if (httpResponse == null) {
+        throw new RuntimeException("No response received from API");
       }
 
-      // Check response code
-      int responseCode = connection.getResponseCode();
-      StringBuilder response = new StringBuilder();
-
-      // Read response (success or error)
-      BufferedReader br = null;
-      try {
-        if (responseCode >= 200 && responseCode < 300) {
-          // Success response
-          br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));
-        } else {
-          // Error response
-          br = new BufferedReader(new InputStreamReader(connection.getErrorStream(), "utf-8"));
-        }
-
-        String responseLine;
-        while ((responseLine = br.readLine()) != null) {
-          response.append(responseLine);
-        }
-      } finally {
-        if (br != null) {
-          br.close();
-        }
-      }
+      // Check response status
+      int statusCode = httpResponse.statusCode();
+      String responseBody = httpResponse.bodyToString();
 
       // If error response, throw with detailed error
-      if (responseCode >= 400) {
-        String errorMsg = "HTTP " + responseCode + " Error: " + response.toString();
+      if (statusCode >= 400) {
+        String errorMsg = "HTTP " + statusCode + " Error: " + responseBody;
         throw new RuntimeException(errorMsg);
       }
 
-      return response.toString();
+      return responseBody;
 
     } catch (Exception e) {
       throw new RuntimeException("Failed to make HTTP request: " + e.getMessage(), e);
-    } finally {
-      // Remove from active connections and disconnect
-      if (connection != null) {
-        activeConnections.remove(connection);
-        connection.disconnect();
-      }
     }
   }
 
@@ -311,22 +283,5 @@ public class OpenAIClient implements LLMClient {
         .replace("\t", "\\t")
         .replace("\b", "\\b")
         .replace("\f", "\\f");
-  }
-
-  /**
-   * Close all active HTTP connections. Called during extension unload to ensure proper resource
-   * cleanup.
-   */
-  public static void closeAllConnections() {
-    synchronized (activeConnections) {
-      for (HttpURLConnection connection : activeConnections) {
-        try {
-          connection.disconnect();
-        } catch (Exception e) {
-          // Ignore errors during cleanup
-        }
-      }
-      activeConnections.clear();
-    }
   }
 }
