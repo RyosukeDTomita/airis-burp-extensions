@@ -7,7 +7,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 /** OpenAI Client to send requests to the OpenAI API */
 public class OpenAIClient implements LLMClient {
@@ -17,6 +20,10 @@ public class OpenAIClient implements LLMClient {
       "You are an expert security analyst specializing in web application security."
           + "Following the user's prompt, analyze the provided HTTP request and response.\n";
   private int timeout = DEFAULT_TIMEOUT;
+
+  // Track active connections for cleanup during extension unload
+  private static final Set<HttpURLConnection> activeConnections =
+      Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
   /**
    * analyze the given HTTP request and response using the OpenAI API
@@ -116,9 +123,13 @@ public class OpenAIClient implements LLMClient {
    * @return
    */
   private String sendHttpRequest(ConfigModel config, String jsonRequest) {
+    HttpURLConnection connection = null;
     try {
       URL url = new URL(config.getEndpoint());
-      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+      connection = (HttpURLConnection) url.openConnection();
+
+      // Track this connection for cleanup during unload
+      activeConnections.add(connection);
 
       // Set request method and headers
       connection.setRequestMethod("POST");
@@ -169,6 +180,12 @@ public class OpenAIClient implements LLMClient {
 
     } catch (Exception e) {
       throw new RuntimeException("Failed to make HTTP request: " + e.getMessage(), e);
+    } finally {
+      // Remove from active connections and disconnect
+      if (connection != null) {
+        activeConnections.remove(connection);
+        connection.disconnect();
+      }
     }
   }
 
@@ -294,5 +311,22 @@ public class OpenAIClient implements LLMClient {
         .replace("\t", "\\t")
         .replace("\b", "\\b")
         .replace("\f", "\\f");
+  }
+
+  /**
+   * Close all active HTTP connections. Called during extension unload to ensure proper resource
+   * cleanup.
+   */
+  public static void closeAllConnections() {
+    synchronized (activeConnections) {
+      for (HttpURLConnection connection : activeConnections) {
+        try {
+          connection.disconnect();
+        } catch (Exception e) {
+          // Ignore errors during cleanup
+        }
+      }
+      activeConnections.clear();
+    }
   }
 }

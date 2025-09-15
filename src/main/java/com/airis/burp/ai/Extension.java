@@ -1,15 +1,17 @@
 package com.airis.burp.ai;
 
+import static java.util.concurrent.Executors.newFixedThreadPool;
+
 import burp.api.montoya.BurpExtension;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.core.AnalysisEngine;
 import com.airis.burp.ai.core.RequestProcessor;
-import com.airis.burp.ai.llm.LLMClient;
 import com.airis.burp.ai.llm.OpenAIClient;
 import com.airis.burp.ai.ui.AIAnalysisMenuProvider;
 import com.airis.burp.ai.ui.ConfigurationTab;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Main Burp extension class. Implements BurpExtension interface to register with Burp Suite.
@@ -19,10 +21,8 @@ public class Extension implements BurpExtension {
   private static final String EXTENSION_NAME = "AIris: request insight system";
   // Tab display name in Burp
   private static final String TAB_NAME = "AIris Config";
-  // Coreコンポーネント 本当はDIしたいけど、BurpExtension形式だと難しいので、ここで生成
   private MontoyaApi api;
   private ConfigModel configModel;
-  private LLMClient llmClient;
   private RequestProcessor requestProcessor;
   private AnalysisEngine analysisEngine;
 
@@ -33,11 +33,31 @@ public class Extension implements BurpExtension {
     // Set extension name
     api.extension().setName(EXTENSION_NAME);
 
+    ExecutorService executorService = newFixedThreadPool(3);
+
     // Initialize components
     initializeComponents();
 
     // Register UI components
     registerUI();
+
+    // NOTE: Java's garbage collector cleans up objects once there are no references.
+    // However, threads, sockets, or file handles are not managed by GC.
+    // They must be explicitly shut down using
+    // https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ExecutorService.html#shutdownNow().
+    api.extension()
+        .registerUnloadingHandler(
+            () -> {
+              api.logging().logToOutput("Extension unloading...");
+
+              // Shutdown executor service
+              executorService.shutdownNow();
+
+              // Close all active HTTP connections
+              OpenAIClient.closeAllConnections();
+
+              api.logging().logToOutput("Extension unloaded successfully");
+            });
 
     api.logging().logToOutput("Extension loaded successfully");
   }
@@ -48,7 +68,6 @@ public class Extension implements BurpExtension {
 
     try {
       this.configModel = new ConfigModel();
-      this.llmClient = new OpenAIClient();
       this.requestProcessor = new RequestProcessor();
       this.analysisEngine = new AnalysisEngine(requestProcessor, configModel, logging);
 

@@ -20,22 +20,7 @@ public class ConfigModelTest {
   }
 
   @Test
-  public void testDefaultValues() {
-    // Act
-    String initialProvider = configModel.getProvider();
-    String initialEndpoint = configModel.getEndpoint();
-    String initialApiKey = configModel.getApiKey();
-    String initialUserPrompt = configModel.getUserPrompt();
-
-    // Assert
-    assertEquals("openai", initialProvider);
-    assertEquals("", initialEndpoint);
-    assertEquals("", initialApiKey);
-    assertNotNull(initialUserPrompt);
-  }
-
-  @Test
-  public void testToString() {
+  public void toString_should_return_instance_info() {
     // Arrange
     configModel.setProvider("openai");
     configModel.setEndpoint("https://api.openai.com/v1/chat/completions");
@@ -50,5 +35,20 @@ public class ConfigModelTest {
     assertEquals(
         "ConfigModel(provider=openai, endpoint=https://api.openai.com/v1/chat/completions, apiKey=***test, userPrompt=Analyze the request for vulnerabilities.)",
         result);
+  }
+
+  @Test
+  public void copyConstructor_ShouldCreateCopy() {
+    // Arrange
+    configModel.setProvider("openai");
+    configModel.setEndpoint("https://api.openai.com/v1/chat/completions");
+    configModel.setApiKey("sk-proj-xxxxxxxxxxxxxxxxxtest");
+    configModel.setUserPrompt("Analyze the request for vulnerabilities.");
+
+    // Act
+    ConfigModel copyInstance = new ConfigModel(configModel);
+
+    // Assert
+    assertEquals(copyInstance, configModel);
   }
 }

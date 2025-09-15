@@ -40,16 +40,20 @@ public class AnalysisEngine {
         return "Configuration is incomplete. Please configure API settings.";
       }
 
+      // Create a snapshot of the configuration to ensure thread safety
+      ConfigModel configSnapshot = new ConfigModel(configModel);
+
       // Create LLM client based on provider
-      LLMClient llmClient = createLLMClient(configModel.getProvider());
+      LLMClient llmClient = createLLMClient(configSnapshot.getProvider());
       if (llmClient == null) {
-        return "Unsupported AI provider: " + configModel.getProvider();
+        return "Unsupported AI provider: " + configSnapshot.getProvider();
       }
 
-      // Execute analysis
+      // Execute analysis using the configuration snapshot
       HttpRequestResponse requestResponse =
           requestProcessor.createAnalysisRequest(request, response);
-      String result = llmClient.analyze(configModel, requestResponse, configModel.getUserPrompt());
+      String result =
+          llmClient.analyze(configSnapshot, requestResponse, configSnapshot.getUserPrompt());
       logging.logToOutput("Analysis completed successfully");
       if (result == null) {
         return "No analysis result returned from LLM client.";
