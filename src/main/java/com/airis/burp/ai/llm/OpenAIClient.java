@@ -1,13 +1,12 @@
 package com.airis.burp.ai.llm;
 
-import com.airis.burp.ai.config.ConfigModel;
-import com.airis.burp.ai.core.HttpHistoryItem;
-import java.util.Map;
-
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.http.message.responses.HttpResponse;
+import com.airis.burp.ai.config.ConfigModel;
+import com.airis.burp.ai.core.HttpHistoryItem;
+import java.util.Map;
 
 /** OpenAI Client to send requests to the OpenAI API */
 public class OpenAIClient implements LLMClient {
@@ -19,6 +18,7 @@ public class OpenAIClient implements LLMClient {
 
   /**
    * Constructor
+   *
    * @param montoyaApi Burp's Montoya API instance
    */
   public OpenAIClient(MontoyaApi montoyaApi) {
@@ -32,8 +32,7 @@ public class OpenAIClient implements LLMClient {
    * @param requestAndResponse HTTP request and response data
    * @return
    */
-  public String analyze(
-      ConfigModel config, HttpHistoryItem requestAndResponse) {
+  public String analyze(ConfigModel config, HttpHistoryItem requestAndResponse) {
 
     if (!config.isValid()) {
       return "[ERROR] Configuration is incomplete. Please configure API settings.";
@@ -43,7 +42,7 @@ public class OpenAIClient implements LLMClient {
     if (requestAndResponse == null) {
       return "[ERROR] requestAndResponse is null";
     }
-    
+
     String userPrompt = config.getUserPrompt();
     if (userPrompt == null || userPrompt.trim().isEmpty()) {
       return "[ERROR] userPrompt is null or empty";
@@ -129,7 +128,7 @@ public class OpenAIClient implements LLMClient {
   private String sendHttpRequest(ConfigModel config, String jsonRequest) {
     try {
       // Build HTTP request using Montoya API
-      HttpRequest httpRequest = 
+      HttpRequest httpRequest =
           HttpRequest.httpRequestFromUrl(config.getEndpoint())
               .withMethod("POST")
               .withHeader("Content-Type", "application/json")
@@ -137,13 +136,11 @@ public class OpenAIClient implements LLMClient {
               .withBody(jsonRequest);
 
       // Send request through Burp's HTTP client
-      HttpRequestResponse requestResponse = 
-          montoyaApi.http().sendRequest(httpRequest);
+      HttpRequestResponse requestResponse = montoyaApi.http().sendRequest(httpRequest);
 
       // Get response
-      HttpResponse httpResponse = 
-          requestResponse.response();
-      
+      HttpResponse httpResponse = requestResponse.response();
+
       if (httpResponse == null) {
         throw new RuntimeException("No response received from API");
       }

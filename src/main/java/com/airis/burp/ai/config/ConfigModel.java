@@ -1,5 +1,7 @@
 package com.airis.burp.ai.config;
 
+import com.airis.burp.ai.llm.LLMProviderRegistry;
+
 /**
  * DTO for AI Extension settings. Contains provider, endpoint, API key, and user prompt information.
  */
@@ -100,7 +102,11 @@ public class ConfigModel {
     if (provider == null || provider.isEmpty()) {
       return false;
     }
-    if (endpoint == null || endpoint.isEmpty()) {
+    // Check if provider is valid
+    if (!LLMProviderRegistry.isValidProvider(provider)) {
+      return false;
+    }
+    if (endpoint == null || endpoint.isEmpty() || !endpoint.startsWith("https")) {
       return false;
     }
     if (apiKey == null || apiKey.isEmpty()) {

@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.Http;
 import burp.api.montoya.http.message.HttpRequestResponse;
-import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.http.message.responses.HttpResponse;
 import com.airis.burp.ai.config.ConfigModel;
 import org.junit.jupiter.api.AfterEach;
@@ -18,7 +17,7 @@ import org.mockito.MockitoAnnotations;
 public class OpenAIClientTest {
   private OpenAIClient openAIClient;
   private ConfigModel config;
-  
+
   @Mock private MontoyaApi mockMontoyaApi;
   @Mock private Http mockHttp;
   @Mock private HttpRequestResponse mockRequestResponse;

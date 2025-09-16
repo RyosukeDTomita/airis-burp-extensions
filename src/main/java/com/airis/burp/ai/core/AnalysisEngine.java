@@ -1,11 +1,10 @@
 package com.airis.burp.ai.core;
 
+import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.LLMClient;
 import com.airis.burp.ai.llm.OpenAIClient;
-
-import burp.api.montoya.MontoyaApi;
 
 /** chose LLM provider and start analysis. */
 public class AnalysisEngine {
@@ -16,7 +15,10 @@ public class AnalysisEngine {
   private volatile boolean isAnalyzing = false;
 
   public AnalysisEngine(
-      RequestProcessor requestProcessor, ConfigModel configModel, Logging logging, MontoyaApi montoyaApi) {
+      RequestProcessor requestProcessor,
+      ConfigModel configModel,
+      Logging logging,
+      MontoyaApi montoyaApi) {
     this.configModel = configModel;
     this.logging = logging;
     this.requestProcessor = requestProcessor;
@@ -54,10 +56,8 @@ public class AnalysisEngine {
       }
 
       // Execute analysis using the configuration snapshot
-      HttpHistoryItem requestResponse =
-          requestProcessor.createAnalysisRequest(request, response);
-      String result =
-          llmClient.analyze(configSnapshot, requestResponse);
+      HttpHistoryItem requestResponse = requestProcessor.createAnalysisRequest(request, response);
+      String result = llmClient.analyze(configSnapshot, requestResponse);
       logging.logToOutput("Analysis completed successfully");
       if (result == null) {
         return "No analysis result returned from LLM client.";
