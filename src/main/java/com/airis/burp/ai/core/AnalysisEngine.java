@@ -54,10 +54,10 @@ public class AnalysisEngine {
       }
 
       // Execute analysis using the configuration snapshot
-      HttpRequestResponse requestResponse =
+      HttpHistoryItem requestResponse =
           requestProcessor.createAnalysisRequest(request, response);
       String result =
-          llmClient.analyze(configSnapshot, requestResponse, configSnapshot.getUserPrompt());
+          llmClient.analyze(configSnapshot, requestResponse);
       logging.logToOutput("Analysis completed successfully");
       if (result == null) {
         return "No analysis result returned from LLM client.";

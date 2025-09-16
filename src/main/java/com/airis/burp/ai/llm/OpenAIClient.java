@@ -1,19 +1,20 @@
 package com.airis.burp.ai.llm;
 
 import com.airis.burp.ai.config.ConfigModel;
-import com.airis.burp.ai.core.HttpRequestResponse;
+import com.airis.burp.ai.core.HttpHistoryItem;
 import java.util.Map;
 
 import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.http.message.HttpRequestResponse;
+import burp.api.montoya.http.message.requests.HttpRequest;
+import burp.api.montoya.http.message.responses.HttpResponse;
 
 /** OpenAI Client to send requests to the OpenAI API */
 public class OpenAIClient implements LLMClient {
-  private static final String DEFAULT_MODEL = "gpt-4o-mini";
-  private static final int DEFAULT_TIMEOUT = 30000;
+  private static final String DEFAULT_MODEL = "gpt-4o-mini"; // TODO
   private static final String SYSTEM_PROMPT =
       "You are an expert security analyst specializing in web application security."
           + "Following the user's prompt, analyze the provided HTTP request and response.\n";
-  private int timeout = DEFAULT_TIMEOUT;
   private final MontoyaApi montoyaApi;
 
   /**
@@ -27,12 +28,12 @@ public class OpenAIClient implements LLMClient {
   /**
    * analyze the given HTTP request and response using the OpenAI API
    *
-   * @param request
-   * @param userPrompt
+   * @param config Configuration model containing API settings and user prompt
+   * @param requestAndResponse HTTP request and response data
    * @return
    */
   public String analyze(
-      ConfigModel config, HttpRequestResponse requestAndResponse, String userPrompt) {
+      ConfigModel config, HttpHistoryItem requestAndResponse) {
 
     if (!config.isValid()) {
       return "[ERROR] Configuration is incomplete. Please configure API settings.";
@@ -41,12 +42,15 @@ public class OpenAIClient implements LLMClient {
     String response;
     if (requestAndResponse == null) {
       return "[ERROR] requestAndResponse is null";
-    } else if (userPrompt == null || userPrompt.trim().isEmpty()) {
+    }
+    
+    String userPrompt = config.getUserPrompt();
+    if (userPrompt == null || userPrompt.trim().isEmpty()) {
       return "[ERROR] userPrompt is null or empty";
     }
 
     try {
-      String jsonRequest = formatRequest(requestAndResponse, userPrompt);
+      String jsonRequest = formatRequest(requestAndResponse, config.getUserPrompt());
       String jsonResponse = sendHttpRequest(config, jsonRequest);
       response = parseResponse(jsonResponse);
     } catch (Exception e) {
@@ -59,11 +63,11 @@ public class OpenAIClient implements LLMClient {
   /**
    * Create JSON request body for OpenAI API
    *
-   * @param HttpRequestResponse
+   * @param HttpHistoryItem
    * @param userPrompt
    * @return
    */
-  private String formatRequest(HttpRequestResponse request, String userPrompt) {
+  private String formatRequest(HttpHistoryItem request, String userPrompt) {
     StringBuilder json = new StringBuilder();
     json.append("{\n");
     json.append("  \"model\": \"").append(DEFAULT_MODEL).append("\",\n");
@@ -125,19 +129,19 @@ public class OpenAIClient implements LLMClient {
   private String sendHttpRequest(ConfigModel config, String jsonRequest) {
     try {
       // Build HTTP request using Montoya API
-      burp.api.montoya.http.message.requests.HttpRequest httpRequest = 
-          burp.api.montoya.http.message.requests.HttpRequest.httpRequestFromUrl(config.getEndpoint())
+      HttpRequest httpRequest = 
+          HttpRequest.httpRequestFromUrl(config.getEndpoint())
               .withMethod("POST")
               .withHeader("Content-Type", "application/json")
               .withHeader("Authorization", "Bearer " + config.getApiKey())
               .withBody(jsonRequest);
 
       // Send request through Burp's HTTP client
-      burp.api.montoya.http.message.HttpRequestResponse requestResponse = 
+      HttpRequestResponse requestResponse = 
           montoyaApi.http().sendRequest(httpRequest);
 
       // Get response
-      burp.api.montoya.http.message.responses.HttpResponse httpResponse = 
+      HttpResponse httpResponse = 
           requestResponse.response();
       
       if (httpResponse == null) {
@@ -167,7 +171,7 @@ public class OpenAIClient implements LLMClient {
    * @param request
    * @return
    */
-  private String formatHttpData(HttpRequestResponse request) {
+  private String formatHttpData(HttpHistoryItem request) {
     StringBuilder data = new StringBuilder();
 
     data.append(

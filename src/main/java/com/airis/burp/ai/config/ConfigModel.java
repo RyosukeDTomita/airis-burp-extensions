@@ -54,20 +54,40 @@ public class ConfigModel {
     return userPrompt;
   }
 
+  /**
+   * Set the provider value, if null then set to empty string
+   *
+   * @param provider The provider to set
+   */
   public void setProvider(String provider) {
-    this.provider = provider;
+    this.provider = provider != null ? provider : "";
   }
 
+  /**
+   * Set the endpoint value, if null then set to empty string
+   *
+   * @param endpoint The endpoint to set
+   */
   public void setEndpoint(String endpoint) {
-    this.endpoint = endpoint;
+    this.endpoint = endpoint != null ? endpoint : "";
   }
 
+  /**
+   * Set the API key value, if null then set to empty string
+   *
+   * @param apiKey The API key to set
+   */
   public void setApiKey(String apiKey) {
-    this.apiKey = apiKey;
+    this.apiKey = apiKey != null ? apiKey : "";
   }
 
+  /**
+   * Set the user prompt value, if null then set to empty string
+   *
+   * @param userPrompt The user prompt to set
+   */
   public void setUserPrompt(String userPrompt) {
-    this.userPrompt = userPrompt;
+    this.userPrompt = userPrompt != null ? userPrompt : "";
   }
 
   /**

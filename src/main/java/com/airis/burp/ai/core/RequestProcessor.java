@@ -6,8 +6,8 @@ import java.util.Map;
 /** Processes HTTP requests and responses for analysis. */
 public class RequestProcessor {
 
-  public HttpRequestResponse parseHttpRequest(String httpRequest) {
-    HttpRequestResponse request = new HttpRequestResponse();
+  public HttpHistoryItem parseHttpRequest(String httpRequest) {
+    HttpHistoryItem request = new HttpHistoryItem();
 
     if (httpRequest == null || httpRequest.trim().isEmpty()) {
       return request;
@@ -45,7 +45,7 @@ public class RequestProcessor {
     return request;
   }
 
-  public void parseHttpResponse(HttpRequestResponse request, String httpResponse) {
+  public void parseHttpResponse(HttpHistoryItem request, String httpResponse) {
     if (httpResponse == null || httpResponse.trim().isEmpty()) {
       return;
     }
@@ -72,8 +72,8 @@ public class RequestProcessor {
     request.setResponseBody(responseBody);
   }
 
-  public HttpRequestResponse createAnalysisRequest(String httpRequest, String httpResponse) {
-    HttpRequestResponse requestResponse = parseHttpRequest(httpRequest);
+  public HttpHistoryItem createAnalysisRequest(String httpRequest, String httpResponse) {
+    HttpHistoryItem requestResponse = parseHttpRequest(httpRequest);
     parseHttpResponse(requestResponse, httpResponse);
     return requestResponse;
   }

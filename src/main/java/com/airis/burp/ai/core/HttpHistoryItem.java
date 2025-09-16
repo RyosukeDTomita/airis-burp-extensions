@@ -8,7 +8,7 @@ import java.util.Map;
  * Represents an HTTP request-response pair for security analysis. Contains all relevant information
  * including request method, URL, headers, body, response status code, and response content.
  */
-public class HttpRequestResponse {
+public class HttpHistoryItem {
   private String method = "";
   private String url = "";
   private Map<String, String> headers = new HashMap<>();
