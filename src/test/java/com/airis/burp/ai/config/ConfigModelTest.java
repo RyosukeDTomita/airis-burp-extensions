@@ -109,5 +109,4 @@ public class ConfigModelTest {
 
     assertFalse(isValid);
   }
-
 }

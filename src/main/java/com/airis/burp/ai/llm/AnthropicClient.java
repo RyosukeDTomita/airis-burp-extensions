@@ -1,22 +1,26 @@
 package com.airis.burp.ai.llm;
 
 import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.http.message.HttpRequestResponse;
+import burp.api.montoya.http.message.requests.HttpRequest;
+import burp.api.montoya.http.message.responses.HttpResponse;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.core.HttpHistoryItem;
 
-/** OpenAI Client to send requests to the OpenAI API */
-public class OpenAIClient extends AbstractLLMClient {
-  private static final String DEFAULT_MODEL = "gpt-4o-mini";
+/** Anthropic Claude Client to send requests to the Anthropic API */
+public class AnthropicClient extends AbstractLLMClient {
+  private static final String DEFAULT_MODEL = "claude-3-5-haiku-20241022";
   private static final String SYSTEM_PROMPT =
       "You are an expert security analyst specializing in web application security."
           + "Following the user's prompt, analyze the provided HTTP request and response.\n";
+  private static final String API_VERSION = "2023-06-01";
 
   /**
    * Constructor
    *
    * @param montoyaApi Burp's Montoya API instance
    */
-  public OpenAIClient(MontoyaApi montoyaApi) {
+  public AnthropicClient(MontoyaApi montoyaApi) {
     super(montoyaApi);
   }
 
@@ -31,21 +35,60 @@ public class OpenAIClient extends AbstractLLMClient {
   }
 
   @Override
+  protected String getAuthorizationHeader(String apiKey) {
+    // Anthropic uses x-api-key header instead of Authorization Bearer
+    return apiKey;
+  }
+
+  @Override
+  protected String sendHttpRequest(ConfigModel config, String jsonRequest) {
+    try {
+      HttpRequest httpRequest =
+          HttpRequest.httpRequestFromUrl(config.getEndpoint())
+              .withMethod("POST")
+              .withHeader("Content-Type", "application/json")
+              .withHeader("x-api-key", config.getApiKey())
+              .withHeader("anthropic-version", API_VERSION)
+              .withBody(jsonRequest);
+
+      HttpRequestResponse requestResponse = montoyaApi.http().sendRequest(httpRequest);
+
+      HttpResponse httpResponse = requestResponse.response();
+
+      if (httpResponse == null) {
+        throw new RuntimeException("No response received from API");
+      }
+
+      int statusCode = httpResponse.statusCode();
+      String responseBody = httpResponse.bodyToString();
+
+      if (statusCode >= 400) {
+        String errorMsg = "HTTP " + statusCode + " Error: " + responseBody;
+        throw new RuntimeException(errorMsg);
+      }
+
+      return responseBody;
+
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to make HTTP request: " + e.getMessage(), e);
+    }
+  }
+
+  @Override
   protected String formatRequestBody(
       ConfigModel configModel, HttpHistoryItem requestAndResponse, String userPrompt) {
 
     StringBuilder json = new StringBuilder();
     json.append("{\n");
     json.append("  \"model\": \"").append(getDefaultModel()).append("\",\n");
+    json.append("  \"max_tokens\": 1024,\n");
+    json.append("  \"temperature\": 0.3,\n");
+
+    // System message
+    json.append("  \"system\": \"").append(escapeJson(getSystemPrompt())).append("\",\n");
+
+    // Messages array
     json.append("  \"messages\": [\n");
-
-    // System prompt
-    json.append("    {\n");
-    json.append("      \"role\": \"system\",\n");
-    json.append("      \"content\": \"").append(escapeJson(getSystemPrompt())).append("\"\n");
-    json.append("    },\n");
-
-    // User prompt with HTTP data
     json.append("    {\n");
     json.append("      \"role\": \"user\",\n");
 
@@ -57,10 +100,7 @@ public class OpenAIClient extends AbstractLLMClient {
 
     json.append("      \"content\": \"").append(escapeJson(userContent.toString())).append("\"\n");
     json.append("    }\n");
-
-    json.append("  ],\n");
-    json.append("  \"max_tokens\": 1000,\n");
-    json.append("  \"temperature\": 0.3\n");
+    json.append("  ]\n");
     json.append("}");
 
     return json.toString();
@@ -69,11 +109,17 @@ public class OpenAIClient extends AbstractLLMClient {
   @Override
   protected String parseResponseBody(String jsonResponse) {
     try {
-      // Look for content field in choices array
-      String searchKey = "\"content\":";
+      // Anthropic returns content in a different structure
+      // Look for content array with text blocks
+      String searchKey = "\"text\":";
       int startIndex = jsonResponse.indexOf(searchKey);
       if (startIndex == -1) {
-        return "No content found in response";
+        // Fallback to looking for content field
+        searchKey = "\"content\":";
+        startIndex = jsonResponse.indexOf(searchKey);
+        if (startIndex == -1) {
+          return "No content found in response";
+        }
       }
 
       // Skip to the start of the value
