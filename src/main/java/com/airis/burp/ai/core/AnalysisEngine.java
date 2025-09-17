@@ -80,7 +80,7 @@ public class AnalysisEngine {
       return null;
     }
 
-    switch (provider.toLowerCase()) {
+    switch (provider) {
       case "openai":
         return new OpenAIClient(montoyaApi);
       case "anthropic":

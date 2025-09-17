@@ -21,6 +21,6 @@ public class LLMProviderRegistryTest {
 
     String endpoint = LLMProviderRegistry.getDefaultEndpoint(provider);
 
-  assertEquals("https://api.anthropic.com/v1/messages", endpoint);
+    assertEquals("https://api.anthropic.com/v1/messages", endpoint);
   }
 }

@@ -17,29 +17,9 @@ public class LLMProviderRegistry {
   public static final String DEFAULT_OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions";
   public static final String DEFAULT_ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages";
 
-  /** Convert string to Provider enum */
-  public static Provider getProviderFromString(String providerName) {
-    if (providerName == null) {
-      return null;
-    }
-    switch (providerName.toLowerCase()) {
-      case PROVIDER_OPENAI:
-        return Provider.OPENAI;
-      case PROVIDER_ANTHROPIC:
-        return Provider.ANTHROPIC;
-      default:
-        return null;
-    }
-  }
-
-  /** Check if the provider name is valid */
-  public static boolean isValidProvider(String providerName) {
-    return getProviderFromString(providerName) != null;
-  }
-
   /** Get the default endpoint for a provider */
   public static String getDefaultEndpoint(String provider) {
-    switch (provider.toLowerCase()) {
+    switch (provider) {
       case PROVIDER_OPENAI:
         return DEFAULT_OPENAI_ENDPOINT;
       case PROVIDER_ANTHROPIC:

@@ -103,7 +103,7 @@ public class ConfigModel {
       return false;
     }
     // Check if provider is valid
-    if (!LLMProviderRegistry.isValidProvider(provider)) {
+    if (!isValidProvider(provider)) {
       return false;
     }
     if (!isValidEndpoint(endpoint)) {
@@ -119,6 +119,24 @@ public class ConfigModel {
   }
 
   /**
+   * Check if the provider string is a valid LLM provider
+   *
+   * @param providerString the provider string to check
+   * @return true if valid, false otherwise
+   */
+  public static boolean isValidProvider(String providerString) {
+    if (providerString == null || providerString.isEmpty()) {
+      return false;
+    }
+    try {
+      LLMProviderRegistry.Provider.valueOf(providerString.toUpperCase());
+      return true;
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+  }
+
+  /**
    * Validates if the endpoint URL is properly formatted and uses an acceptable protocol
    *
    * @param endpoint The endpoint URL to validate
@@ -128,28 +146,28 @@ public class ConfigModel {
     if (endpoint == null || endpoint.trim().isEmpty()) {
       return false;
     }
-    
+
     try {
       java.net.URI uri = new java.net.URI(endpoint.trim());
       String scheme = uri.getScheme();
-      
+
       // Scheme must be present and be HTTPS for security
       if (scheme == null || !scheme.toLowerCase().equals("https")) {
         return false;
       }
-      
+
       // Validate host is not empty
       String host = uri.getHost();
       if (host == null || host.trim().isEmpty()) {
         return false;
       }
-      
+
       // Validate port if specified
       int port = uri.getPort();
       if (port != -1 && (port < 1 || port > 65535)) {
         return false;
       }
-      
+
       return true;
     } catch (java.net.URISyntaxException e) {
       return false;
