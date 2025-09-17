@@ -22,7 +22,7 @@ public class ConfigModelTest {
   }
 
   @Test
-  public void toString_should_return_instance_info() {
+  public void shouldReturnInstanceInfoWhenToString() {
     configModel.setProvider("openai");
     configModel.setEndpoint("https://api.openai.com/v1/chat/completions");
     configModel.setApiKey("sk-proj-xxxxxxxxxxxxxxxxxtest");
@@ -37,7 +37,7 @@ public class ConfigModelTest {
   }
 
   @Test
-  public void copyConstructor_ShouldCreateCopy() {
+  public void shouldCreateCopyWithCopyConstructor() {
     configModel.setProvider("openai");
     configModel.setEndpoint("https://api.openai.com/v1/chat/completions");
     configModel.setApiKey("sk-proj-xxxxxxxxxxxxxxxxxtest");
@@ -50,7 +50,7 @@ public class ConfigModelTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"openai", "anthropic"})
-  public void isValid_should_return_true_for_valid_providers(String provider) {
+  public void shouldReturnTrueForValidProviders(String provider) {
     configModel.setProvider(provider);
     configModel.setEndpoint("https://api.example.com/v1/endpoint");
     configModel.setApiKey("test-api-key");
@@ -62,7 +62,7 @@ public class ConfigModelTest {
   }
 
   @Test
-  public void isValid_should_return_false_for_invalid_provider() {
+  public void shouldReturnFalseForInvalidProvider() {
     configModel.setProvider("invalid_provider");
     configModel.setEndpoint("https://api.example.com/v1/chat");
     configModel.setApiKey("sk-xxxxxxxxxxxxxxxxxtest");
@@ -75,7 +75,7 @@ public class ConfigModelTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"", "http://api.example.com/invalid", "api.example.com/invalid"})
-  public void isValid_should_return_false_for_invalid_endpoint(String endpoint) {
+  public void shouldReturnFalseForInvalidEndpoint(String endpoint) {
     configModel.setProvider("openai");
     configModel.setEndpoint(endpoint);
     configModel.setApiKey("sk-xxxxxxxxxxxxxxxxxtest");
@@ -87,7 +87,7 @@ public class ConfigModelTest {
   }
 
   @Test
-  public void isValid_should_return_false_for_empty_apikey() {
+  public void shouldReturnFalseForEmptyApiKey() {
     configModel.setProvider("openai");
     configModel.setEndpoint("https://api.example.com/v1/chat");
     configModel.setApiKey("");
@@ -99,7 +99,7 @@ public class ConfigModelTest {
   }
 
   @Test
-  public void isValid_should_return_false_for_empty_() {
+  public void shouldReturnFalseForEmptyUserPrompt() {
     configModel.setProvider("openai");
     configModel.setEndpoint("https://api.example.com/v1/chat");
     configModel.setApiKey("sk-xxxxxxxxxxxxxxxxxtest");
