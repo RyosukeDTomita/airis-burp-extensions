@@ -49,7 +49,7 @@ public class ConfigModelTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"openai", "anthropic", "gemini"})
+  @ValueSource(strings = {"openai", "anthropic"})
   public void isValid_should_return_true_for_valid_providers(String provider) {
     configModel.setProvider(provider);
     configModel.setEndpoint("https://api.example.com/v1/endpoint");

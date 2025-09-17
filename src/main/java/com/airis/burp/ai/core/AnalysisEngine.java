@@ -4,7 +4,6 @@ import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.AnthropicClient;
-import com.airis.burp.ai.llm.GeminiClient;
 import com.airis.burp.ai.llm.LLMClient;
 import com.airis.burp.ai.llm.OpenAIClient;
 
@@ -94,10 +93,6 @@ public class AnalysisEngine {
         // TODO: Implement Anthropic client with MontoyaApi
         logging.logToError("Anthropic provider is not yet implemented");
         return new AnthropicClient(montoyaApi);
-      case "gemini":
-        // TODO: Implement Gemini client
-        logging.logToError("Gemini provider is not yet implemented");
-        return new GeminiClient(montoyaApi);
       default:
         logging.logToError("Unknown provider: " + provider);
         return null;

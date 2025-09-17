@@ -12,7 +12,7 @@ public class ConfigModel {
           + "potential issues, and provide recommendations. Focus on common web application security issues like "
           + "injection attacks, authentication bypasses, authorization issues, and data exposure.";
 
-  private String provider = "openai"; // OpenAI or Anthropic or Gemini
+  private String provider = "openai"; // OpenAI or Anthropic
   private String endpoint = ""; // API endpoint URL
   private String apiKey = ""; // Plain text API key (stored in memory only)
   private String userPrompt = "";
