@@ -14,5 +14,4 @@ public class LLMProviderRegistryTest {
 
     assertEquals("https://api.openai.com/v1/chat/completions", endpoint);
   }
-
 }

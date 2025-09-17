@@ -16,7 +16,6 @@ import org.mockito.MockitoAnnotations;
 public class AnalysisEngineTest {
   private AnalysisEngine analysisEngine;
   private ConfigModel configModel;
-  private RequestProcessor requestProcessor;
 
   @Mock private Logging mockLogging;
   @Mock private MontoyaApi mockMontoyaApi;
@@ -27,8 +26,7 @@ public class AnalysisEngineTest {
     MockitoAnnotations.openMocks(this);
     when(mockMontoyaApi.http()).thenReturn(mockHttp);
     configModel = new ConfigModel();
-    requestProcessor = new RequestProcessor();
-    analysisEngine = new AnalysisEngine(requestProcessor, configModel, mockLogging, mockMontoyaApi);
+    analysisEngine = new AnalysisEngine(configModel, mockLogging, mockMontoyaApi);
   }
 
   @AfterEach

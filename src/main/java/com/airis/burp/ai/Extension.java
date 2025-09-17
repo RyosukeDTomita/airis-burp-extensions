@@ -7,7 +7,6 @@ import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.core.AnalysisEngine;
-import com.airis.burp.ai.core.RequestProcessor;
 import com.airis.burp.ai.ui.AIAnalysisMenuProvider;
 import com.airis.burp.ai.ui.ConfigurationTab;
 import java.util.concurrent.ExecutorService;
@@ -22,7 +21,6 @@ public class Extension implements BurpExtension {
   private static final String TAB_NAME = "AIris Config";
   private MontoyaApi api;
   private ConfigModel configModel;
-  private RequestProcessor requestProcessor;
   private AnalysisEngine analysisEngine;
 
   @Override
@@ -64,8 +62,7 @@ public class Extension implements BurpExtension {
 
     try {
       this.configModel = new ConfigModel();
-      this.requestProcessor = new RequestProcessor();
-      this.analysisEngine = new AnalysisEngine(requestProcessor, configModel, logging, api);
+      this.analysisEngine = new AnalysisEngine(configModel, logging, api);
 
       logging.logToOutput("Components initialized successfully");
     } catch (Exception e) {

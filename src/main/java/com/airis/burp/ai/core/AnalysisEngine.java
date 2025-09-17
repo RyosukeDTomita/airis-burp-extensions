@@ -11,18 +11,12 @@ import com.airis.burp.ai.llm.OpenAIClient;
 public class AnalysisEngine {
   private final ConfigModel configModel;
   private final Logging logging;
-  private final RequestProcessor requestProcessor;
   private final MontoyaApi montoyaApi;
   private volatile boolean isAnalyzing = false;
 
-  public AnalysisEngine(
-      RequestProcessor requestProcessor,
-      ConfigModel configModel,
-      Logging logging,
-      MontoyaApi montoyaApi) {
+  public AnalysisEngine(ConfigModel configModel, Logging logging, MontoyaApi montoyaApi) {
     this.configModel = configModel;
     this.logging = logging;
-    this.requestProcessor = requestProcessor;
     this.montoyaApi = montoyaApi;
   }
 
@@ -57,7 +51,7 @@ public class AnalysisEngine {
       }
 
       // Execute analysis using the configuration snapshot
-      HttpHistoryItem requestResponse = requestProcessor.createAnalysisRequest(request, response);
+      HttpHistoryItem requestResponse = HttpHistoryItem.fromHttpRequestResponse(request, response);
       String result = llmClient.analyze(configSnapshot, requestResponse);
       logging.logToOutput("Analysis completed successfully");
       if (result == null) {
