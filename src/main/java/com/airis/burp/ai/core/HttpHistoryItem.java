@@ -17,13 +17,14 @@ public class HttpHistoryItem {
   private String responseBody = "";
   private Map<String, String> responseHeaders = new HashMap<>();
 
-  /** Private constructor for internal use by factory methods. */
-  private HttpHistoryItem() {
-    // Initialize with default values (already set by field declarations)
-  }
+  /**
+   * Private constructor for internal use by factory methods. Initialize with default values
+   * (already set by field declarations)
+   */
+  private HttpHistoryItem() {}
 
   /**
-   * Creates an HttpHistoryItem from both HTTP request and response strings.
+   * Static Factory method of HttpHistoryItem from both HTTP request and response strings.
    *
    * @param httpRequest The raw HTTP request string
    * @param httpResponse The raw HTTP response string
