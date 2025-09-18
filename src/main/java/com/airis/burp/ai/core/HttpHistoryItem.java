@@ -17,13 +17,10 @@ public class HttpHistoryItem {
   private String responseBody = "";
   private Map<String, String> responseHeaders = new HashMap<>();
 
-  /**
-   * Private constructor for internal use by factory methods.
-   */
+  /** Private constructor for internal use by factory methods. */
   private HttpHistoryItem() {
     // Initialize with default values (already set by field declarations)
   }
-
 
   /**
    * Creates an HttpHistoryItem from both HTTP request and response strings.
@@ -34,13 +31,13 @@ public class HttpHistoryItem {
    */
   public static HttpHistoryItem fromHttpRequestResponse(String httpRequest, String httpResponse) {
     HttpHistoryItem item = new HttpHistoryItem();
-    
+
     // Parse request
     if (httpRequest != null && !httpRequest.trim().isEmpty()) {
       String[] requestParts = httpRequest.split("\\r\\n\\r\\n", 2);
       String requestHeaderSection = requestParts[0];
       String requestBody = requestParts.length > 1 ? requestParts[1] : "";
-      
+
       String[] requestLines = requestHeaderSection.split("\\r\\n");
       if (requestLines.length > 0) {
         // Parse request line (GET /path HTTP/1.1)
@@ -50,7 +47,7 @@ public class HttpHistoryItem {
           item.setMethod(requestLineParts[0]);
           item.setUrl(requestLineParts[1]);
         }
-        
+
         // Parse request headers
         if (requestLines.length > 1) {
           StringBuilder headerLines = new StringBuilder();
@@ -64,16 +61,16 @@ public class HttpHistoryItem {
           item.setHeaders(headers);
         }
       }
-      
+
       item.setBody(requestBody);
     }
-    
+
     // Parse response
     if (httpResponse != null && !httpResponse.trim().isEmpty()) {
       String[] responseParts = httpResponse.split("\\r\\n\\r\\n", 2);
       String responseHeaderSection = responseParts[0];
       String responseBody = responseParts.length > 1 ? responseParts[1] : "";
-      
+
       String[] responseLines = responseHeaderSection.split("\\r\\n");
       if (responseLines.length > 0) {
         // Parse status line (HTTP/1.1 200 OK)
@@ -87,7 +84,7 @@ public class HttpHistoryItem {
             item.setStatusCode(0);
           }
         }
-        
+
         // Parse response headers
         if (responseLines.length > 1) {
           StringBuilder headerLines = new StringBuilder();
@@ -101,10 +98,10 @@ public class HttpHistoryItem {
           item.setResponseHeaders(responseHeaders);
         }
       }
-      
+
       item.setResponseBody(responseBody);
     }
-    
+
     return item;
   }
 
