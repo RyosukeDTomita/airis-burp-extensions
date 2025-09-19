@@ -1,7 +1,9 @@
 package com.airis.burp.ai.core;
 
+import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
+import com.airis.burp.ai.llm.AnthropicClient;
 import com.airis.burp.ai.llm.LLMClient;
 import com.airis.burp.ai.llm.OpenAIClient;
 
@@ -9,14 +11,12 @@ import com.airis.burp.ai.llm.OpenAIClient;
 public class AnalysisEngine {
   private final ConfigModel configModel;
   private final Logging logging;
-  private final RequestProcessor requestProcessor;
-  private volatile boolean isAnalyzing = false;
+  private final MontoyaApi montoyaApi;
 
-  public AnalysisEngine(
-      RequestProcessor requestProcessor, ConfigModel configModel, Logging logging) {
+  public AnalysisEngine(ConfigModel configModel, Logging logging, MontoyaApi montoyaApi) {
     this.configModel = configModel;
     this.logging = logging;
-    this.requestProcessor = requestProcessor;
+    this.montoyaApi = montoyaApi;
   }
 
   /**
@@ -27,29 +27,25 @@ public class AnalysisEngine {
    * @return Analysis result or error message
    */
   public String analyze(String request, String response) {
-    // Prevent concurrent analysis
-    if (isAnalyzing) {
-      return "Analysis already in progress. Please wait...";
-    }
-
     try {
-      isAnalyzing = true;
       logging.logToOutput("Starting AI analysis...");
 
       if (!configModel.isValid()) {
         return "Configuration is incomplete. Please configure API settings.";
       }
 
+      // Create a snapshot of the configuration to ensure thread safety
+      ConfigModel configSnapshot = new ConfigModel(configModel);
+
       // Create LLM client based on provider
-      LLMClient llmClient = createLLMClient(configModel.getProvider());
+      LLMClient llmClient = createLLMClient(configSnapshot.getProvider());
       if (llmClient == null) {
-        return "Unsupported AI provider: " + configModel.getProvider();
+        return "Unsupported AI provider: " + configSnapshot.getProvider();
       }
 
-      // Execute analysis
-      HttpRequestResponse requestResponse =
-          requestProcessor.createAnalysisRequest(request, response);
-      String result = llmClient.analyze(configModel, requestResponse, configModel.getUserPrompt());
+      // Execute analysis using the configuration snapshot
+      HttpHistoryItem requestResponse = HttpHistoryItem.fromHttpRequestResponse(request, response);
+      String result = llmClient.analyze(configSnapshot, requestResponse);
       logging.logToOutput("Analysis completed successfully");
       if (result == null) {
         return "No analysis result returned from LLM client.";
@@ -61,44 +57,31 @@ public class AnalysisEngine {
       logging.logToError("Analysis failed: " + e.getMessage());
       return "Analysis failed: " + e.getMessage();
     } finally {
-      this.isAnalyzing = false; // Reset analyzing flag
+      logging.logToOutput("Analysis ended.");
     }
   }
 
   /**
-   * Create appropriate LLM client based on provider
+   * Factory method to create appropriate LLM client based on provider
    *
-   * @param provider The AI provider name
-   * @return LLM client instance or null if unsupported
+   * @param provider
+   * @return
    */
   private LLMClient createLLMClient(String provider) {
-    if (provider == null) {
+    if (provider == null || provider.isEmpty()) {
+      logging.logToError("Provider is not configured");
       return null;
     }
 
-    switch (provider.toLowerCase()) {
+    switch (provider) {
       case "openai":
-        return new OpenAIClient();
+        return new OpenAIClient(montoyaApi);
       case "anthropic":
-        // TODO: Implement AnthropicClient
-        logging.logToError("Anthropic client not yet implemented");
-        return null;
-      case "gemini":
-        // TODO: Implement GeminiClient
-        logging.logToError("Gemini client not yet implemented");
-        return null;
+        return new AnthropicClient(montoyaApi);
       default:
-        logging.logToError("Unknown AI provider: " + provider);
-        return null;
+        logging.logToError("Unknown provider: " + provider);
+        throw new IllegalArgumentException("Unsupported provider: " + provider);
     }
   }
 
-  /**
-   * Get LLM analysis is already running
-   *
-   * @return true if analyzing, false otherwise
-   */
-  public boolean isAnalyzing() {
-    return isAnalyzing;
-  }
 }

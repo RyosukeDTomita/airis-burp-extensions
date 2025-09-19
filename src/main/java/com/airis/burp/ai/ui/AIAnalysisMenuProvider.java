@@ -75,6 +75,8 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
       } else {
         response = "";
       }
+      // montoyaApi.logging().logToOutput(String.format("[DEBUG]: request=%s, response=%s", request,
+      // response));
 
       // Perform analysis in background thread
       SwingUtilities.invokeLater(

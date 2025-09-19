@@ -2,6 +2,7 @@ plugins {
     id("java")
     id("application")
     id("com.diffplug.spotless") version "6.25.0"
+    id("jacoco")
 }
 
 group = "com.airis.burp"
@@ -75,4 +76,21 @@ tasks.jar {
     }
     from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// JaCoCo configuration
+jacoco {
+    toolVersion = "0.8.13"
+}
+
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
 }

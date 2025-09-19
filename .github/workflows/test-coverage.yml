@@ -1,0 +1,61 @@
+name: Test
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # Codecovがプルリクエストにコメントするために必要
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Codecovが正しく動作するために履歴全体を取得
+
+    - name: Set up Java 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: wrapper
+
+    - name: Run tests with coverage
+      run: gradle test jacocoTestReport
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./build/reports/jacoco/test/jacocoTestReport.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        verbose: true
+
+    - name: Archive test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          build/reports/tests/
+          build/reports/jacoco/
+
+    - name: Comment coverage on PR
+      if: github.event_name == 'pull_request'
+      uses: 5monkeys/cobertura-action@master
+      with:
+        path: build/reports/jacoco/test/jacocoTestReport.xml
+        minimum_coverage: 75
+        fail_below_threshold: false
+        show_missing: true
+        show_line: true
+        show_branch: true
+        only_changed_files: true

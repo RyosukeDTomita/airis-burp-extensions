@@ -1,6 +1,8 @@
 # AIris: Artificial Intelligence Request Insight System
 
 ![mit license](https://img.shields.io/github/license/RyosukeDTomita/airis)
+[![codecov](https://codecov.io/gh/RyosukeDTomita/airis-burp-extensions/branch/main/graph/badge.svg)](https://codecov.io/gh/RyosukeDTomita/airis-burp-extensions)
+[![Test](https://github.com/RyosukeDTomita/airis-burp-extensions/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/RyosukeDTomita/airis-burp-extensions/actions/workflows/test-coverage.yml)
 
 <img src="./assets/airis_icon_thunder.png" width="33%" height="33%" alt="AIris">
 

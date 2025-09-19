@@ -61,7 +61,7 @@ public class ConfigurationTab {
     // Provider select combo box
     gbc.gridx = 1;
     gbc.weightx = 1.0;
-    providerCombo = new JComboBox<>(new String[] {"openai", "anthropic", "gemini"});
+    providerCombo = new JComboBox<>(new String[] {"openai", "anthropic"});
     providerCombo.addActionListener(e -> updateEndpointForProvider());
     formPanel.add(providerCombo, gbc);
 
