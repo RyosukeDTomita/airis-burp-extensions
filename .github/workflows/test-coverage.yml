@@ -28,7 +28,7 @@ jobs:
         gradle-version: wrapper
 
     - name: Run tests with coverage
-      run: gradle test jacocoTestReport
+      run: gradle test jacocoTestReport && ls build/reports/jacc/test/jacocoTestReport.xml
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
