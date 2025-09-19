@@ -1,0 +1,29 @@
+# Codecov configuration file
+
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 1%
+        if_not_found: success
+    patch:
+      default:
+        target: 75%
+        threshold: 1%
+        if_not_found: success
+
+  ignore:
+    - "src/test/**/*"
+    - "build/**/*"
+    - "**/generated/**/*"
+
+comment:
+  layout: "reach,diff,flags,tree,reach"
+  behavior: default
+  require_changes: false
+  require_base: no
+  require_head: yes
+
+github_checks:
+  annotations: true
