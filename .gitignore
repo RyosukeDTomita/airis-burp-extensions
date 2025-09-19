@@ -4,6 +4,10 @@
 /.gradle
 /.tmp
 /build
+*.jar
+# Gradle Wrapper jar should be included
+!gradle/wrapper/gradle-wrapper.jar
+
 # https://github.com/github/gitignore/blob/main/Java.gitignore
 # Compiled class file
 *.class
