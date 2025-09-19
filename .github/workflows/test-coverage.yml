@@ -2,6 +2,15 @@ name: Test
 
 on:
   push:
+    paths:
+      - "src/**/*.java"
+      - "build.gradle.kts"
+      - "gradle/**"
+  pull_request:
+    paths:
+      - "src/**/*.java"
+      - "build.gradle.kts"
+      - "gradle/**"
 
 jobs:
   test:
@@ -24,11 +33,12 @@ jobs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-version: wrapper
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
 
     - name: Run tests with coverage
-      run: gradle test jacocoTestReport && ls build/reports/jacc/test/jacocoTestReport.xml
+      run: ./gradlew test jacocoTestReport && ls build/reports/jacoco/test/jacocoTestReport.xml
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4

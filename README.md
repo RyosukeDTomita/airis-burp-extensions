@@ -3,6 +3,8 @@
 ![mit license](https://img.shields.io/github/license/RyosukeDTomita/airis)
 [![codecov](https://codecov.io/gh/RyosukeDTomita/airis-burp-extensions/branch/main/graph/badge.svg)](https://codecov.io/gh/RyosukeDTomita/airis-burp-extensions)
 [![Test](https://github.com/RyosukeDTomita/airis-burp-extensions/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/RyosukeDTomita/airis-burp-extensions/actions/workflows/test-coverage.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/RyosukeDTomita/airis-burp-extensions/badge)](https://securityscorecards.dev/viewer/?uri=github.com/RyosukeDTomita/airis-burp-extensions)
+[![Scorecard supply-chain security](https://github.com/RyosukeDTomita/airis-burp-extensions/actions/workflows/scorecard.yml/badge.svg)](https://github.com/RyosukeDTomita/airis-burp-extensions/actions/workflows/scorecard.yml)
 
 <img src="./assets/airis_icon_thunder.png" width="33%" height="33%" alt="AIris">
 
