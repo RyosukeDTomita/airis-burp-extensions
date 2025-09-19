@@ -12,7 +12,6 @@ public class AnalysisEngine {
   private final ConfigModel configModel;
   private final Logging logging;
   private final MontoyaApi montoyaApi;
-  private volatile boolean isAnalyzing = false;
 
   public AnalysisEngine(ConfigModel configModel, Logging logging, MontoyaApi montoyaApi) {
     this.configModel = configModel;
@@ -28,13 +27,7 @@ public class AnalysisEngine {
    * @return Analysis result or error message
    */
   public String analyze(String request, String response) {
-    // Prevent concurrent analysis
-    if (isAnalyzing) {
-      return "Analysis already in progress. Please wait...";
-    }
-
     try {
-      isAnalyzing = true;
       logging.logToOutput("Starting AI analysis...");
 
       if (!configModel.isValid()) {
@@ -64,7 +57,7 @@ public class AnalysisEngine {
       logging.logToError("Analysis failed: " + e.getMessage());
       return "Analysis failed: " + e.getMessage();
     } finally {
-      this.isAnalyzing = false; // Reset analyzing flag
+      logging.logToOutput("Analysis ended.");
     }
   }
 
@@ -84,21 +77,11 @@ public class AnalysisEngine {
       case "openai":
         return new OpenAIClient(montoyaApi);
       case "anthropic":
-        // TODO: Implement Anthropic client with MontoyaApi
-        logging.logToError("Anthropic provider is not yet implemented");
         return new AnthropicClient(montoyaApi);
       default:
         logging.logToError("Unknown provider: " + provider);
-        return null;
+        throw new IllegalArgumentException("Unsupported provider: " + provider);
     }
   }
 
-  /**
-   * Get LLM analysis is already running
-   *
-   * @return true if analyzing, false otherwise
-   */
-  public boolean isAnalyzing() {
-    return isAnalyzing;
-  }
 }
