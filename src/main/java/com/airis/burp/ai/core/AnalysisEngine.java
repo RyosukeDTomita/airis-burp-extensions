@@ -27,37 +27,28 @@ public class AnalysisEngine {
    * @return Analysis result or error message
    */
   public String analyze(String request, String response) {
+    logging.logToOutput("Starting AI analysis...");
+    if (!configModel.isValid()) {
+      return "Configuration is incomplete. Please configure API settings.";
+    }
+    // Create a snapshot of the configuration to ensure thread safety
+    ConfigModel configSnapshot = new ConfigModel(configModel);
+
+    // Create LLM client based on provider
+    LLMClient llmClient;
     try {
-      logging.logToOutput("Starting AI analysis...");
-
-      if (!configModel.isValid()) {
-        return "Configuration is incomplete. Please configure API settings.";
-      }
-
-      // Create a snapshot of the configuration to ensure thread safety
-      ConfigModel configSnapshot = new ConfigModel(configModel);
-
-      // Create LLM client based on provider
-      LLMClient llmClient = createLLMClient(configSnapshot.getProvider());
-      if (llmClient == null) {
-        return "Unsupported AI provider: " + configSnapshot.getProvider();
-      }
-
-      // Execute analysis using the configuration snapshot
-      HttpHistoryItem requestResponse = HttpHistoryItem.fromHttpRequestResponse(request, response);
-      String result = llmClient.analyze(configSnapshot, requestResponse);
-      logging.logToOutput("Analysis completed successfully");
-      if (result == null) {
-        return "No analysis result returned from LLM client.";
-      } else {
-        return result;
-      }
-
-    } catch (Exception e) {
+      llmClient = createLLMClient(configSnapshot.getProvider());
+    } catch (IllegalArgumentException e) {
       logging.logToError("Analysis failed: " + e.getMessage());
-      return "Analysis failed: " + e.getMessage();
-    } finally {
-      logging.logToOutput("Analysis ended.");
+      throw new RuntimeException("Unsupported AI provider: " + e.getMessage(), e);
+    }
+    // Execute analysis using the configuration snapshot
+    HttpHistoryItem requestResponse = HttpHistoryItem.fromHttpRequestResponse(request, response);
+    String result = llmClient.analyze(configSnapshot, requestResponse);
+    if (result == null) {
+      return "No analysis result returned from LLM client.";
+    } else {
+      return result;
     }
   }
 
@@ -68,20 +59,13 @@ public class AnalysisEngine {
    * @return
    */
   private LLMClient createLLMClient(String provider) {
-    if (provider == null || provider.isEmpty()) {
-      logging.logToError("Provider is not configured");
-      return null;
-    }
-
     switch (provider) {
       case "openai":
         return new OpenAIClient(montoyaApi);
       case "anthropic":
         return new AnthropicClient(montoyaApi);
       default:
-        logging.logToError("Unknown provider: " + provider);
         throw new IllegalArgumentException("Unsupported provider: " + provider);
     }
   }
-
 }
