@@ -5,7 +5,7 @@
 /.tmp
 /build
 *.jar
-# Gradle Wrapper jar should be included
+# Exception: Gradle Wrapper jar must be included for CI
 !gradle/wrapper/gradle-wrapper.jar
 
 # https://github.com/github/gitignore/blob/main/Java.gitignore
@@ -22,7 +22,6 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
 *.war
 *.nar
 *.ear
