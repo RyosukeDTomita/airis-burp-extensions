@@ -77,6 +77,8 @@ cd airis
 ```shell
 cd airis
 ./gradlew test --tests <ClassName of Test.java>
+# print debug
+./gradlew test --tests <ClassName of Test.java> --info
 # all test
 ./gradlew test
 ```

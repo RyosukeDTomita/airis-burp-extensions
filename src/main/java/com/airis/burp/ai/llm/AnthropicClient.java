@@ -31,7 +31,7 @@ public class AnthropicClient extends AbstractLLMClient {
   }
 
   @Override
-  protected String sendHttpRequest(ConfigModel config, String jsonRequest) {
+  public String sendHttpRequest(ConfigModel config, String jsonRequest) {
     try {
       HttpRequest httpRequest =
           HttpRequest.httpRequestFromUrl(config.getEndpoint())
@@ -95,13 +95,13 @@ public class AnthropicClient extends AbstractLLMClient {
     json.append("    }\n");
     json.append("  ]\n");
     json.append("}");
-    montoyaApi.logging().logToOutput("[DEBUG]: Request JSON: " + json.toString());
+    // montoyaApi.logging().logToOutput("[DEBUG] Request JSON: " + json.toString());
     return json.toString();
   }
 
   @Override
   protected String parseResponseBody(String jsonResponse) {
-    montoyaApi.logging().logToOutput("[DEBUG]: Response JSON: " + jsonResponse);
+    // montoyaApi.logging().logToOutput("[DEBUG] Response JSON: " + jsonResponse);
     try {
       // Anthropic returns content in a different structure
       // Look for content array with text blocks

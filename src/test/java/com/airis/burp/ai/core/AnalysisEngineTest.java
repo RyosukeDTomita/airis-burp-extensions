@@ -5,16 +5,16 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import burp.api.montoya.MontoyaApi;
-import burp.api.montoya.http.message.HttpRequestResponse;
-import burp.api.montoya.http.message.requests.HttpRequest;
-import burp.api.montoya.http.message.responses.HttpResponse;
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
+import com.airis.burp.ai.llm.AnthropicClient;
+import com.airis.burp.ai.llm.OpenAIClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -129,24 +129,11 @@ public class AnalysisEngineTest {
 
   @Test
   void OpenAIAnalysisShouldReturnExpectedResult() {
-    // Setup configuration
     configModel.setProvider("openai");
     configModel.setApiKey("test-api-key");
     configModel.setEndpoint("https://api.openai.com/v1/chat/completions");
     configModel.setUserPrompt(
         "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, potential issues, and provide recommendations. Focus on common web application security issues like injection attacks, authentication bypasses, authorization issues, and data exposure.");
-
-    // Mock HTTP components
-    burp.api.montoya.http.Http httpMock = mock(burp.api.montoya.http.Http.class);
-    HttpRequestResponse httpRequestResponseMock = mock(HttpRequestResponse.class);
-    HttpResponse httpResponseMock = mock(HttpResponse.class);
-    when(montoyaApi.http()).thenReturn(httpMock);
-    when(httpMock.sendRequest(any(HttpRequest.class))).thenReturn(httpRequestResponseMock);
-    when(httpRequestResponseMock.response()).thenReturn(httpResponseMock);
-    when(httpResponseMock.statusCode()).thenReturn((short) 200);
-
-    // Mock logging
-    when(montoyaApi.logging()).thenReturn(logging);
 
     // Expected JSON response from OpenAI API
     String mockApiResponse =
@@ -186,13 +173,112 @@ public class AnalysisEngineTest {
             + "  \"service_tier\": \"default\",\n"
             + "  \"system_fingerprint\": \"fp_560af6e559\"\n"
             + "}";
-    when(httpResponseMock.bodyToString()).thenReturn(mockApiResponse);
 
-    // Execute the test
-    String result = sut.analyze(SAMPLE_REQUEST, SAMPLE_RESPONSE);
-    System.out.println(result);
+    // Create a spy of OpenAIClient and mock the sendHttpRequest method
+    OpenAIClient openAIClientSpy = spy(new OpenAIClient(montoyaApi));
+    doReturn(mockApiResponse)
+        .when(openAIClientSpy)
+        .sendHttpRequest(any(ConfigModel.class), anyString());
 
-    // Verify the result
-    assertNotNull(result);
+    // Mock the construction of OpenAIClient to return our spy
+    try (MockedConstruction<OpenAIClient> mockedConstruction =
+        mockConstruction(
+            OpenAIClient.class,
+            (mock, context) -> {
+              // Configure the mock to delegate to our spy
+              doAnswer(
+                      invocation ->
+                          openAIClientSpy.analyze(
+                              invocation.getArgument(0), invocation.getArgument(1)))
+                  .when(mock)
+                  .analyze(any(ConfigModel.class), any());
+              doAnswer(
+                      invocation ->
+                          openAIClientSpy.sendHttpRequest(
+                              invocation.getArgument(0), invocation.getArgument(1)))
+                  .when(mock)
+                  .sendHttpRequest(any(ConfigModel.class), anyString());
+            })) {
+
+      // Execute the test
+      String result = sut.analyze(SAMPLE_REQUEST, SAMPLE_RESPONSE);
+
+      // Verify the result starts with expected title
+      assertTrue(
+          result.startsWith("### Security Analysis of the Provided HTTP Request and Response"),
+          "Result should start with '### Security Analysis of the Provided HTTP Request and Response'");
+    }
+  }
+
+  @Test
+  void AnthropicAnalysisShouldReturnExpectedResult() {
+    configModel.setProvider("anthropic");
+    configModel.setApiKey("test-api-key");
+    configModel.setEndpoint("https://api.anthropic.com/v1/messages");
+    configModel.setUserPrompt(
+        "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, potential issues, and provide recommendations. Focus on common web application security issues like injection attacks, authentication bypasses, authorization issues, and data exposure.");
+
+    // Expected JSON response from Anthropic API
+    String mockApiResponse =
+        "{\n"
+            + "  \"id\": \"msg_01KCM4Q1hhtPK1HoK8rGXeNU\",\n"
+            + "  \"type\": \"message\",\n"
+            + "  \"role\": \"assistant\",\n"
+            + "  \"model\": \"claude-3-5-haiku-20241022\",\n"
+            + "  \"content\": [\n"
+            + "    {\n"
+            + "      \"type\": \"text\",\n"
+            + "      \"text\": \"Security Analysis of HTTP Request and Response\\n\\nOverall Assessment: Low Risk / Standard Example Domain Request\\n\\n1. Potential Vulnerabilities\\n- No direct injection vulnerabilities detected\\n- Request is a standard GET request to a static example domain\\n- Response is a static HTML page with no dynamic content\\n- No executable scripts or potentially malicious content observed\\n\\n2. Authentication and Authorization\\n- No authentication mechanism present\\n- Public/unauthenticated page\\n- No sensitive information exposed in the request/response\\n\\n3. Input Validation\\n- No user-controlled input in this request\\n- Static HTML response with no dynamic content generation\\n- No apparent input validation concerns\\n\\n4. Information Disclosure Risks\\nPotential Minor Risks:\\n- User-Agent reveals browser and platform details\\n- Sec-Ch-Ua headers provide browser version information\\n- Recommendation: Consider implementing User-Agent normalization if tracking is sensitive\\n\\n5. Additional Security Observations\\nPositive Security Aspects:\\n- Uses HTTPS (indicated by Upgrade-Insecure-Requests header)\\n- No sensitive data transmitted\\n- Standard, well-formed HTTP headers\\n- Responsive design with media queries\\n- No inline JavaScript detected\\n\\nRecommendations:\\n1. Ensure all production sites have similar security hygiene\\n2. Implement Content Security Policy (CSP) headers\\n3. Use strict User-Agent parsing if needed\\n4. Continue using HTTPS\\n\\nRisk Level: Negligible\\nThis is a standard, publicly accessible example domain with no significant security concerns.\"\n"
+            + "    }\n"
+            + "  ],\n"
+            + "  \"stop_reason\": \"end_turn\",\n"
+            + "  \"stop_sequence\": null,\n"
+            + "  \"usage\": {\n"
+            + "    \"input_tokens\": 950,\n"
+            + "    \"cache_creation_input_tokens\": 0,\n"
+            + "    \"cache_read_input_tokens\": 0,\n"
+            + "    \"cache_creation\": {\n"
+            + "      \"ephemeral_5m_input_tokens\": 0,\n"
+            + "      \"ephemeral_1h_input_tokens\": 0\n"
+            + "    },\n"
+            + "    \"output_tokens\": 328,\n"
+            + "    \"service_tier\": \"standard\"\n"
+            + "  }\n"
+            + "}";
+
+    // Create a spy of AnthropicClient and mock the sendHttpRequest method
+    AnthropicClient anthropicClientSpy = spy(new AnthropicClient(montoyaApi));
+    doReturn(mockApiResponse)
+        .when(anthropicClientSpy)
+        .sendHttpRequest(any(ConfigModel.class), anyString());
+
+    // Mock the construction of AnthropicClient to return our spy
+    try (MockedConstruction<AnthropicClient> mockedConstruction =
+        mockConstruction(
+            AnthropicClient.class,
+            (mock, context) -> {
+              // Configure the mock to delegate to our spy
+              doAnswer(
+                      invocation ->
+                          anthropicClientSpy.analyze(
+                              invocation.getArgument(0), invocation.getArgument(1)))
+                  .when(mock)
+                  .analyze(any(ConfigModel.class), any());
+              doAnswer(
+                      invocation ->
+                          anthropicClientSpy.sendHttpRequest(
+                              invocation.getArgument(0), invocation.getArgument(1)))
+                  .when(mock)
+                  .sendHttpRequest(any(ConfigModel.class), anyString());
+            })) {
+
+      // Execute the test
+      String result = sut.analyze(SAMPLE_REQUEST, SAMPLE_RESPONSE);
+
+      // Verify the result starts with expected title
+      assertTrue(
+          result.startsWith("Security Analysis of HTTP Request and Response"),
+          "Result should start with 'Security Analysis of HTTP Request and Response'");
+    }
   }
 }

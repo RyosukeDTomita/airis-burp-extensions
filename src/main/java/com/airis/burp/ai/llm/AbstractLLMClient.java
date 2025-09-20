@@ -79,11 +79,13 @@ public abstract class AbstractLLMClient implements LLMClient {
   /**
    * Send HTTP request to LLM API using Montoya API
    *
+   * <p>This method is public to mock in unit tests
+   *
    * @param config Configuration containing endpoint and API key
    * @param jsonRequest JSON request body
    * @return JSON response string
    */
-  protected String sendHttpRequest(ConfigModel config, String jsonRequest) {
+  public String sendHttpRequest(ConfigModel config, String jsonRequest) {
     try {
       HttpRequest httpRequest =
           HttpRequest.httpRequestFromUrl(config.getEndpoint())

@@ -52,13 +52,13 @@ public class OpenAIClient extends AbstractLLMClient {
     json.append("  \"max_tokens\": 1000,\n");
     json.append("  \"temperature\": 0.3\n");
     json.append("}");
-    montoyaApi.logging().logToOutput("Request JSON: " + json.toString());
+    // montoyaApi.logging().logToOutput("Request JSON: " + json.toString());
     return json.toString();
   }
 
   @Override
   protected String parseResponseBody(String jsonResponse) {
-    montoyaApi.logging().logToOutput("Response JSON: " + jsonResponse);
+    // montoyaApi.logging().logToOutput("Response JSON: " + jsonResponse);
     try {
       // Look for content field in choices array
       String searchKey = "\"content\":";
