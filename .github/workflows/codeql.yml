@@ -21,8 +21,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ ''java'' ]
-        # CodeQL supports [ ''c-cpp'', ''csharp'', ''go'', ''java-kotlin'', ''javascript-typescript'', ''python'', ''ruby'', ''swift'' ]
+        language: [ 'java' ]
+        # CodeQL supports [ 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'swift' ]
         # Use matrix.language to run analysis on each language separately
 
     steps:
