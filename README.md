@@ -7,7 +7,7 @@
 [![Scorecard supply-chain security](https://github.com/RyosukeDTomita/airis-burp-extensions/actions/workflows/scorecard.yml/badge.svg)](https://github.com/RyosukeDTomita/airis-burp-extensions/actions/workflows/scorecard.yml)
 [![CodeQL](https://github.com/RyosukeDTomita/airis-burp-extensions/actions/workflows/codeql.yml/badge.svg)](https://github.com/RyosukeDTomita/airis-burp-extensions/actions/workflows/codeql.yml)
 
-<img src="./assets/airis_icon_thunder.png" width="33%" height="33%" alt="AIris">
+<img src="./assets/airis_icon.png" width="33%" height="33%" alt="AIris">
 
 ## INDEX
 
