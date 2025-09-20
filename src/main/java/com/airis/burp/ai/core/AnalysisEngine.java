@@ -43,8 +43,8 @@ public class AnalysisEngine {
       throw new RuntimeException("Unsupported AI provider: " + e.getMessage(), e);
     }
     // Execute analysis using the configuration snapshot
-    HttpHistoryItem requestResponse = HttpHistoryItem.fromHttpRequestResponse(request, response);
-    String result = llmClient.analyze(configSnapshot, requestResponse);
+    HttpHistoryItem httpHistoryItem = HttpHistoryItem.fromHttpRequestResponse(request, response);
+    String result = llmClient.analyze(configSnapshot, httpHistoryItem);
     if (result == null) {
       return "No analysis result returned from LLM client.";
     } else {
