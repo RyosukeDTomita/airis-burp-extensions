@@ -25,23 +25,13 @@ public class AnthropicClient extends AbstractLLMClient {
   }
 
   @Override
-  protected String getDefaultModel() {
-    return DEFAULT_MODEL;
-  }
-
-  @Override
-  protected String getSystemPrompt() {
-    return SYSTEM_PROMPT;
-  }
-
-  @Override
   protected String getAuthorizationHeader(String apiKey) {
     // Anthropic uses x-api-key header instead of Authorization Bearer
     return apiKey;
   }
 
   @Override
-  protected String sendHttpRequest(ConfigModel config, String jsonRequest) {
+  public String sendHttpRequest(ConfigModel config, String jsonRequest) {
     try {
       HttpRequest httpRequest =
           HttpRequest.httpRequestFromUrl(config.getEndpoint())
@@ -80,34 +70,38 @@ public class AnthropicClient extends AbstractLLMClient {
 
     StringBuilder json = new StringBuilder();
     json.append("{\n");
-    json.append("  \"model\": \"").append(getDefaultModel()).append("\",\n");
+    json.append("  \"model\": \"").append(DEFAULT_MODEL).append("\",\n");
     json.append("  \"max_tokens\": 1024,\n");
     json.append("  \"temperature\": 0.3,\n");
 
     // System message
-    json.append("  \"system\": \"").append(escapeJson(getSystemPrompt())).append("\",\n");
+    json.append("  \"system\": \"").append(escapeJson(SYSTEM_PROMPT)).append("\",\n");
 
     // Messages array
     json.append("  \"messages\": [\n");
     json.append("    {\n");
     json.append("      \"role\": \"user\",\n");
 
+    // user prompt
     StringBuilder userContent = new StringBuilder();
     if (userPrompt != null && !userPrompt.isEmpty()) {
       userContent.append(userPrompt).append("\n\n");
     }
-    userContent.append(formatHttpData(requestAndResponse));
 
+    // Append formatted HTTP request/response
+    userContent.append(formatHttpData(requestAndResponse));
     json.append("      \"content\": \"").append(escapeJson(userContent.toString())).append("\"\n");
+
     json.append("    }\n");
     json.append("  ]\n");
     json.append("}");
-
+    // montoyaApi.logging().logToOutput("[DEBUG] Request JSON: " + json.toString());
     return json.toString();
   }
 
   @Override
   protected String parseResponseBody(String jsonResponse) {
+    // montoyaApi.logging().logToOutput("[DEBUG] Response JSON: " + jsonResponse);
     try {
       // Anthropic returns content in a different structure
       // Look for content array with text blocks

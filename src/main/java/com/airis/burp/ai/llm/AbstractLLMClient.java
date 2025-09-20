@@ -38,6 +38,7 @@ public abstract class AbstractLLMClient implements LLMClient {
       return "[ERROR] requestAndResponse is null";
     }
 
+    // TODO: そのうち、UserPromptはConfigModelから切り離して、リクエストごとに指定できるようにする
     String userPrompt = configModel.getUserPrompt();
     if (userPrompt == null || userPrompt.trim().isEmpty()) {
       return "[ERROR] userPrompt is null or empty";
@@ -71,26 +72,6 @@ public abstract class AbstractLLMClient implements LLMClient {
    */
   protected abstract String parseResponseBody(String jsonResponse);
 
-  /**
-   * Get the system prompt for the specific LLM provider.
-   *
-   * @return System prompt string
-   */
-  protected abstract String getSystemPrompt();
-
-  /**
-   * Get the default model name for the specific LLM provider.
-   *
-   * @return Model name string
-   */
-  protected abstract String getDefaultModel();
-
-  /**
-   * Get the authorization header value for the specific LLM provider.
-   *
-   * @param apiKey API key from configuration
-   * @return Authorization header value
-   */
   protected String getAuthorizationHeader(String apiKey) {
     return "Bearer " + apiKey;
   }
@@ -98,11 +79,13 @@ public abstract class AbstractLLMClient implements LLMClient {
   /**
    * Send HTTP request to LLM API using Montoya API
    *
+   * <p>This method is public to mock in unit tests
+   *
    * @param config Configuration containing endpoint and API key
    * @param jsonRequest JSON request body
    * @return JSON response string
    */
-  protected String sendHttpRequest(ConfigModel config, String jsonRequest) {
+  public String sendHttpRequest(ConfigModel config, String jsonRequest) {
     try {
       HttpRequest httpRequest =
           HttpRequest.httpRequestFromUrl(config.getEndpoint())
