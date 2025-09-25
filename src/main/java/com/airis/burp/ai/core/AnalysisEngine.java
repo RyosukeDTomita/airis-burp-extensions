@@ -6,15 +6,17 @@ import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.AnthropicClient;
 import com.airis.burp.ai.llm.LLMClient;
 import com.airis.burp.ai.llm.OpenAIClient;
+import java.util.function.Supplier;
 
 /** chose LLM provider and start analysis. */
 public class AnalysisEngine {
-  private final ConfigModel configModel;
+  private final Supplier<ConfigModel> configModelSupplier;
   private final Logging logging;
   private final MontoyaApi montoyaApi;
 
-  public AnalysisEngine(ConfigModel configModel, Logging logging, MontoyaApi montoyaApi) {
-    this.configModel = configModel;
+  public AnalysisEngine(
+      Supplier<ConfigModel> configModelSupplier, Logging logging, MontoyaApi montoyaApi) {
+    this.configModelSupplier = configModelSupplier;
     this.logging = logging;
     this.montoyaApi = montoyaApi;
   }
@@ -28,23 +30,19 @@ public class AnalysisEngine {
    */
   public String analyze(String request, String response) {
     logging.logToOutput("Starting AI analysis...");
-    if (!configModel.isValid()) {
-      return "Configuration is incomplete. Please configure API settings.";
-    }
-    // Create a snapshot of the configuration to ensure thread safety
-    ConfigModel configSnapshot = new ConfigModel(configModel);
+    ConfigModel configModel = configModelSupplier.get();
 
     // Create LLM client based on provider
     LLMClient llmClient;
     try {
-      llmClient = createLLMClient(configSnapshot.getProvider());
+      llmClient = createLLMClient(configModel.getProvider());
     } catch (IllegalArgumentException e) {
       logging.logToError("Analysis failed: " + e.getMessage());
       throw new RuntimeException("Unsupported AI provider: " + e.getMessage(), e);
     }
     // Execute analysis using the configuration snapshot
     HttpHistoryItem httpHistoryItem = HttpHistoryItem.fromHttpRequestResponse(request, response);
-    String result = llmClient.analyze(configSnapshot, httpHistoryItem);
+    String result = llmClient.analyze(configModel, httpHistoryItem);
     if (result == null) {
       return "No analysis result returned from LLM client.";
     } else {

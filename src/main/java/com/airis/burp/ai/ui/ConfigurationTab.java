@@ -6,6 +6,7 @@ import com.airis.burp.ai.llm.LLMProviderRegistry;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.function.Consumer;
 import javax.swing.*;
 
 /**
@@ -13,8 +14,9 @@ import javax.swing.*;
  * provider, endpoint, API key, and custom prompts.
  */
 public class ConfigurationTab {
-  private final ConfigModel configModel;
+  private final Consumer<ConfigModel> onSave;
   private final Logging logging;
+  private ConfigModel currentConfigModel;
   private JPanel mainPanel;
   private JComboBox<String> providerCombo;
   private JTextField endpointField;
@@ -24,14 +26,12 @@ public class ConfigurationTab {
   private JButton testButton;
   private JLabel statusLabel;
 
-  public ConfigurationTab(ConfigModel configModel, Logging logging) {
-    this.configModel = configModel;
-    // If not set a default endpoint, the endpoint for OpenAI will be empty in the initial state.
-    configModel.setEndpoint(LLMProviderRegistry.getDefaultEndpoint("openai"));
+  public ConfigurationTab(Logging logging, Consumer<ConfigModel> onSave) {
     this.logging = logging;
+    this.onSave = onSave;
 
     initializeUI();
-    loadConfiguration();
+    loadDefaultValues(); // Load default values into UI
   }
 
   /**
@@ -41,6 +41,24 @@ public class ConfigurationTab {
    */
   public Component getComponent() {
     return mainPanel;
+  }
+
+  /**
+   * Get the current configuration model
+   *
+   * @return Current ConfigModel instance, or null if no valid configuration has been saved
+   */
+  public ConfigModel getConfigModel() {
+    return currentConfigModel;
+  }
+
+  /**
+   * Check if a valid configuration exists
+   *
+   * @return true if a valid ConfigModel exists, false otherwise
+   */
+  public boolean hasValidConfiguration() {
+    return currentConfigModel != null;
   }
 
   /** Initialize the UI components */
@@ -141,15 +159,27 @@ public class ConfigurationTab {
     testButton.addActionListener(new TestAction());
   }
 
-  /** Load existing configuration into UI */
-  private void loadConfiguration() {
-    if (configModel == null) {
+  /**
+   * Load existing configuration into UI
+   *
+   * @param model The configuration model to load.
+   */
+  public void loadConfiguration(ConfigModel model) {
+    if (model == null) {
       return;
     }
-    providerCombo.setSelectedItem(configModel.getProvider());
-    endpointField.setText(configModel.getEndpoint());
-    apiKeyField.setText(configModel.getApiKey());
-    userPromptArea.setText(configModel.getUserPrompt());
+    providerCombo.setSelectedItem(model.getProvider());
+    endpointField.setText(model.getEndpoint());
+    apiKeyField.setText(model.getApiKey());
+    userPromptArea.setText(model.getUserPrompt());
+  }
+
+  /** Load default values into UI components */
+  private void loadDefaultValues() {
+    providerCombo.setSelectedItem("openai");
+    endpointField.setText("https://api.openai.com/v1/chat/completions");
+    apiKeyField.setText("");
+    userPromptArea.setText(ConfigModel.DEFAULT_USER_PROMPT);
   }
 
   /** Update the endpoint field when the provider is changed */
@@ -164,33 +194,22 @@ public class ConfigurationTab {
     @Override
     public void actionPerformed(ActionEvent e) {
       try {
-        // Update ConfigModel
-        configModel.setProvider((String) providerCombo.getSelectedItem());
-        configModel.setEndpoint(endpointField.getText());
-        configModel.setApiKey(new String(apiKeyField.getPassword()));
-        configModel.setUserPrompt(userPromptArea.getText());
-
-        // Validate
-        if (!configModel.isValid()) {
-          statusLabel.setText("Error: All fields are required");
-          statusLabel.setForeground(Color.RED);
-          return;
-        }
+        // Create new ConfigModel instance from UI values
+        currentConfigModel =
+            new ConfigModel(
+                (String) providerCombo.getSelectedItem(),
+                endpointField.getText(),
+                new String(apiKeyField.getPassword()),
+                userPromptArea.getText());
+        onSave.accept(currentConfigModel);
 
         statusLabel.setText("Configuration saved successfully");
         statusLabel.setForeground(Color.GREEN);
-
-        if (logging != null) {
-          logging.logToOutput("Configuration saved successfully");
-        }
-
-      } catch (Exception ex) {
-        statusLabel.setText("Error saving configuration: " + ex.getMessage());
+        logging.logToOutput("Configuration saved successfully");
+      } catch (IllegalArgumentException ex) {
+        statusLabel.setText("Error: " + ex.getMessage());
         statusLabel.setForeground(Color.RED);
-
-        if (logging != null) {
-          logging.logToError("Failed to save configuration: " + ex.getMessage());
-        }
+        logging.logToError("Failed to save configuration: " + ex.getMessage());
       }
     }
   }
@@ -199,18 +218,9 @@ public class ConfigurationTab {
   private class TestAction implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
-      statusLabel.setText("Testing connection...");
+      statusLabel.setText("Testing configuration...");
       statusLabel.setForeground(Color.BLUE);
-
-      // TODO: Implement actual connection test
-      // For now, just validate configuration
-      if (configModel.isValid()) {
-        statusLabel.setText("Configuration is valid");
-        statusLabel.setForeground(Color.GREEN);
-      } else {
-        statusLabel.setText("Configuration is incomplete");
-        statusLabel.setForeground(Color.RED);
-      }
+      // TODO: そのうちテスト処理を実装する
     }
   }
 

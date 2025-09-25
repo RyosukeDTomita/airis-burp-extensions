@@ -9,8 +9,6 @@ import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.AnthropicClient;
 import com.airis.burp.ai.llm.OpenAIClient;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -22,9 +20,6 @@ public class AnalysisEngineTest {
 
   @Mock private MontoyaApi montoyaApi;
   @Mock private Logging logging;
-
-  private AnalysisEngine sut;
-  private ConfigModel configModel;
 
   private static final String SAMPLE_REQUEST =
       "GET / HTTP/1.1\r\n"
@@ -104,36 +99,16 @@ public class AnalysisEngineTest {
           + "</body>\n"
           + "</html>";
 
-  @BeforeEach
-  void setUp() {
-    configModel = new ConfigModel();
-    sut = new AnalysisEngine(configModel, logging, montoyaApi);
-  }
-
-  @AfterEach
-  void tearDown() {
-    configModel = null;
-    sut = null;
-  }
-
-  @Test
-  void UnknownProviderShouldReturnsErrorMessage() {
-    configModel.setProvider("unknown_provider");
-    configModel.setApiKey("test-api-key");
-    configModel.setEndpoint("https://test.example.com/api");
-
-    String result = sut.analyze(SAMPLE_REQUEST, SAMPLE_RESPONSE);
-
-    assertEquals("Configuration is incomplete. Please configure API settings.", result);
-  }
-
   @Test
   void OpenAIAnalysisShouldReturnExpectedResult() {
-    configModel.setProvider("openai");
-    configModel.setApiKey("test-api-key");
-    configModel.setEndpoint("https://api.openai.com/v1/chat/completions");
-    configModel.setUserPrompt(
-        "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, potential issues, and provide recommendations. Focus on common web application security issues like injection attacks, authentication bypasses, authorization issues, and data exposure.");
+    // Arrange
+    ConfigModel openaiConfig =
+        new ConfigModel(
+            "openai",
+            "https://api.openai.com/v1/chat/completions",
+            "test-api-key",
+            "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, potential issues, and provide recommendations. Focus on common web application security issues like injection attacks, authentication bypasses, authorization issues, and data exposure.");
+    AnalysisEngine sut = new AnalysisEngine(() -> openaiConfig, logging, montoyaApi);
 
     // Expected JSON response from OpenAI API
     String mockApiResponse =
@@ -200,10 +175,10 @@ public class AnalysisEngineTest {
                   .sendHttpRequest(any(ConfigModel.class), anyString());
             })) {
 
-      // Execute the test
+      // Act
       String result = sut.analyze(SAMPLE_REQUEST, SAMPLE_RESPONSE);
 
-      // Verify the result starts with expected title
+      // Assert
       assertTrue(
           result.startsWith("### Security Analysis of the Provided HTTP Request and Response"),
           "Result should start with '### Security Analysis of the Provided HTTP Request and Response'");
@@ -212,11 +187,14 @@ public class AnalysisEngineTest {
 
   @Test
   void AnthropicAnalysisShouldReturnExpectedResult() {
-    configModel.setProvider("anthropic");
-    configModel.setApiKey("test-api-key");
-    configModel.setEndpoint("https://api.anthropic.com/v1/messages");
-    configModel.setUserPrompt(
-        "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, potential issues, and provide recommendations. Focus on common web application security issues like injection attacks, authentication bypasses, authorization issues, and data exposure.");
+    // Arrange
+    ConfigModel anthropicConfig =
+        new ConfigModel(
+            "anthropic",
+            "https://api.anthropic.com/v1/messages",
+            "test-api-key",
+            "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, potential issues, and provide recommendations. Focus on common web application security issues like injection attacks, authentication bypasses, authorization issues, and data exposure.");
+    AnalysisEngine sut = new AnalysisEngine(() -> anthropicConfig, logging, montoyaApi);
 
     // Expected JSON response from Anthropic API
     String mockApiResponse =
@@ -272,10 +250,10 @@ public class AnalysisEngineTest {
                   .sendHttpRequest(any(ConfigModel.class), anyString());
             })) {
 
-      // Execute the test
+      // Act
       String result = sut.analyze(SAMPLE_REQUEST, SAMPLE_RESPONSE);
 
-      // Verify the result starts with expected title
+      // Assert
       assertTrue(
           result.startsWith("Security Analysis of HTTP Request and Response"),
           "Result should start with 'Security Analysis of HTTP Request and Response'");
