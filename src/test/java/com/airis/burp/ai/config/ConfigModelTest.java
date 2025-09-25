@@ -3,18 +3,15 @@ package com.airis.burp.ai.config;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-public class ConfigModelTest {
-  private ConfigModel configModel;
 
-  @BeforeEach
-  public void setUp() {
-    configModel = new ConfigModel();
-  }
+
+public class ConfigModelTest {
+
+  private ConfigModel configModel;
 
   @AfterEach
   public void tearDown() {
@@ -23,90 +20,62 @@ public class ConfigModelTest {
 
   @Test
   public void shouldReturnInstanceInfoWhenToString() {
-    configModel.setProvider("openai");
-    configModel.setEndpoint("https://api.openai.com/v1/chat/completions");
-    configModel.setApiKey("sk-proj-xxxxxxxxxxxxxxxxxtest");
-    configModel.setUserPrompt("Analyze the request for vulnerabilities.");
+    configModel = new ConfigModel("openai", "https://api.openai.com/v1/chat/completions",
+        "sk-proj-xxxxxxxxxxxxxxxxxtest", "Analyze the request for vulnerabilities.");
 
     String result = configModel.toString();
 
-    assertNotNull(result);
     assertEquals(
         "ConfigModel(provider=openai, endpoint=https://api.openai.com/v1/chat/completions, apiKey=***test, userPrompt=Analyze the request for vulnerabilities.)",
         result);
   }
 
-  @Test
-  public void shouldCreateCopyWithCopyConstructor() {
-    configModel.setProvider("openai");
-    configModel.setEndpoint("https://api.openai.com/v1/chat/completions");
-    configModel.setApiKey("sk-proj-xxxxxxxxxxxxxxxxxtest");
-    configModel.setUserPrompt("Analyze the request for vulnerabilities.");
-
-    ConfigModel copyInstance = new ConfigModel(configModel);
-
-    assertEquals(copyInstance, configModel);
-  }
 
   @ParameterizedTest
   @ValueSource(strings = {"openai", "anthropic"})
-  public void shouldReturnTrueForValidProviders(String provider) {
-    configModel.setProvider(provider);
-    configModel.setEndpoint("https://api.example.com/v1/endpoint");
-    configModel.setApiKey("test-api-key");
-    configModel.setUserPrompt("Analyze the request for vulnerabilities.");
-
-    Boolean isValid = configModel.isValid();
-
-    assertTrue(isValid);
+  public void shouldConstructSuccessfullyForValidProviders(String provider) {
+    assertDoesNotThrow(() -> {
+      configModel = new ConfigModel(provider, "https://api.example.com/v1/endpoint", "test-api-key",
+          "Analyze the request for vulnerabilities.");
+    });
   }
 
   @Test
-  public void shouldReturnFalseForInvalidProvider() {
-    configModel.setProvider("invalid_provider");
-    configModel.setEndpoint("https://api.example.com/v1/chat");
-    configModel.setApiKey("sk-xxxxxxxxxxxxxxxxxtest");
-    configModel.setUserPrompt("Analyze the request for vulnerabilities.");
-
-    Boolean isValid = configModel.isValid();
-
-    assertFalse(isValid);
+  public void shouldThrowExceptionForInvalidProvider() {
+    assertThrows(IllegalArgumentException.class, () -> {
+      new ConfigModel("invalid_provider", "https://api.example.com/v1/chat",
+          "sk-xxxxxxxxxxxxxxxxxtest", "Analyze the request for vulnerabilities.");
+    });
   }
 
   @ParameterizedTest
   @ValueSource(strings = {"", "http://api.example.com/invalid", "api.example.com/invalid"})
-  public void shouldReturnFalseForInvalidEndpoint(String endpoint) {
-    configModel.setProvider("openai");
-    configModel.setEndpoint(endpoint);
-    configModel.setApiKey("sk-xxxxxxxxxxxxxxxxxtest");
-    configModel.setUserPrompt("Analyze the request for vulnerabilities.");
-
-    Boolean isValid = configModel.isValid();
-
-    assertFalse(isValid);
+  public void shouldThrowExceptionForInvalidEndpoint(String endpoint) {
+    assertThrows(IllegalArgumentException.class, () -> {
+      new ConfigModel("openai", endpoint, "sk-xxxxxxxxxxxxxxxxxtest",
+          "Analyze the request for vulnerabilities.");
+    });
   }
 
   @Test
-  public void shouldReturnFalseForEmptyApiKey() {
-    configModel.setProvider("openai");
-    configModel.setEndpoint("https://api.example.com/v1/chat");
-    configModel.setApiKey("");
-    configModel.setUserPrompt("Analyze the request for vulnerabilities.");
-
-    Boolean isValid = configModel.isValid();
-
-    assertFalse(isValid);
+  public void shouldThrowExceptionForEmptyApiKey() {
+    assertThrows(IllegalArgumentException.class, () -> {
+      new ConfigModel("openai", "https://api.example.com/v1/chat", "",
+          "Analyze the request for vulnerabilities.");
+    });
   }
 
   @Test
-  public void shouldReturnFalseForEmptyUserPrompt() {
-    configModel.setProvider("openai");
-    configModel.setEndpoint("https://api.example.com/v1/chat");
-    configModel.setApiKey("sk-xxxxxxxxxxxxxxxxxtest");
-    configModel.setUserPrompt("");
+  public void shouldThrowExceptionForEmptyUserPrompt() {
+    assertThrows(IllegalArgumentException.class, () -> {
+      new ConfigModel("openai", "https://api.example.com/v1/chat", "sk-xxxxxxxxxxxxxxxxxtest", "");
+    });
+  }
 
-    Boolean isValid = configModel.isValid();
-
-    assertFalse(isValid);
+  @Test
+  public void shouldThrowUnsupportedOperationExceptionForDefaultConstructor() {
+    assertThrows(UnsupportedOperationException.class, () -> {
+      new ConfigModel();
+    });
   }
 }

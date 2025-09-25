@@ -1,6 +1,8 @@
 package com.airis.burp.ai;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicReference;
 
 import burp.api.montoya.BurpExtension;
 import burp.api.montoya.MontoyaApi;
@@ -20,7 +22,7 @@ public class Extension implements BurpExtension {
   // Tab display name in Burp
   private static final String TAB_NAME = "AIris Config";
   private MontoyaApi api;
-  private ConfigModel configModel;
+  private final AtomicReference<ConfigModel> configModelRef = new AtomicReference<>(null);
   private AnalysisEngine analysisEngine;
 
   @Override
@@ -61,8 +63,7 @@ public class Extension implements BurpExtension {
     Logging logging = api.logging();
 
     try {
-      this.configModel = new ConfigModel();
-      this.analysisEngine = new AnalysisEngine(configModel, logging, api);
+      this.analysisEngine = new AnalysisEngine(configModelRef::get , logging, api);
 
       logging.logToOutput("Components initialized successfully");
     } catch (Exception e) {
@@ -78,11 +79,14 @@ public class Extension implements BurpExtension {
     try {
       // Register context menu
       AIAnalysisMenuProvider menuProvider =
-          new AIAnalysisMenuProvider(analysisEngine, configModel, api);
+          new AIAnalysisMenuProvider(analysisEngine, api);
       api.userInterface().registerContextMenuItemsProvider(menuProvider);
 
       // Register configuration tab
-      ConfigurationTab configTab = new ConfigurationTab(configModel, logging);
+      ConfigurationTab configTab = new ConfigurationTab(logging, newConfig -> {
+        configModelRef.set(newConfig);
+        logging.logToOutput("Configuration updated: " + newConfig);
+      });
       api.userInterface().registerSuiteTab(TAB_NAME, configTab.getMainPanel());
 
       logging.logToOutput("UI components registered successfully");

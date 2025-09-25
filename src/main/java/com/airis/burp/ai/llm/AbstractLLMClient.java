@@ -30,10 +30,6 @@ public abstract class AbstractLLMClient implements LLMClient {
    */
   @Override
   public String analyze(ConfigModel configModel, HttpHistoryItem requestAndResponse) {
-    if (!configModel.isValid()) {
-      return "[ERROR] Configuration is incomplete. Please configure API settings.";
-    }
-
     if (requestAndResponse == null) {
       return "[ERROR] requestAndResponse is null";
     }

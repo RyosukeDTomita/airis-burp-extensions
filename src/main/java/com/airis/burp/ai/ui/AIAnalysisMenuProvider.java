@@ -20,11 +20,10 @@ import javax.swing.*;
 public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
   /** Core analysis engine for processing requests */
   private final AnalysisEngine analysisEngine;
-
   private final MontoyaApi montoyaApi;
 
   public AIAnalysisMenuProvider(
-      AnalysisEngine analysisEngine, ConfigModel configModel, MontoyaApi montoyaApi) {
+      AnalysisEngine analysisEngine, MontoyaApi montoyaApi) {
     this.analysisEngine = analysisEngine;
     this.montoyaApi = montoyaApi;
   }
