@@ -4,7 +4,6 @@ import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
-import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.core.AnalysisEngine;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -20,10 +19,10 @@ import javax.swing.*;
 public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
   /** Core analysis engine for processing requests */
   private final AnalysisEngine analysisEngine;
+
   private final MontoyaApi montoyaApi;
 
-  public AIAnalysisMenuProvider(
-      AnalysisEngine analysisEngine, MontoyaApi montoyaApi) {
+  public AIAnalysisMenuProvider(AnalysisEngine analysisEngine, MontoyaApi montoyaApi) {
     this.analysisEngine = analysisEngine;
     this.montoyaApi = montoyaApi;
   }

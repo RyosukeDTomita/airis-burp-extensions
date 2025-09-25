@@ -21,7 +21,6 @@ public final class ConfigModel {
   // Initialized to 0 by default when the instance is created.
   private int hashCode;
 
-
   /** Do not use default constructor */
   public ConfigModel() {
     throw new UnsupportedOperationException("Default constructor is not supported.");
@@ -36,7 +35,8 @@ public final class ConfigModel {
    * @param userPrompt The user-defined prompt.
    * @throws IllegalArgumentException if any parameter is invalid.
    */
-  public ConfigModel(final String provider, final String endpoint, final String apiKey, final String userPrompt) {
+  public ConfigModel(
+      final String provider, final String endpoint, final String apiKey, final String userPrompt) {
     if (!isValidProvider(provider)) {
       throw new IllegalArgumentException("Invalid provider specified.");
     }
@@ -73,8 +73,8 @@ public final class ConfigModel {
   }
 
   /**
-   * Checks if the provider string is a valid LLM provider.
-   * NOTE: This method call when constructing the object, so it needs to get `provider` from argument.
+   * Checks if the provider string is a valid LLM provider. NOTE: This method call when constructing
+   * the object, so it needs to get `provider` from argument.
    *
    * @param providerString The provider string to check.
    * @return true if valid, false otherwise.
@@ -93,8 +93,8 @@ public final class ConfigModel {
   }
 
   /**
-   * Validates if the endpoint URL is properly formatted and uses an acceptable protocol.
-   * NOTE: This method call when constructing the object, so it needs to get `endpoint` from argument.
+   * Validates if the endpoint URL is properly formatted and uses an acceptable protocol. NOTE: This
+   * method call when constructing the object, so it needs to get `endpoint` from argument.
    *
    * @param endpoint The endpoint URL to validate.
    * @return true if the endpoint is valid, false otherwise.

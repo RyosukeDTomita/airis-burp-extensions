@@ -1,13 +1,12 @@
 package com.airis.burp.ai.ui;
 
-import java.util.function.Consumer;
-
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.LLMProviderRegistry;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.function.Consumer;
 import javax.swing.*;
 
 /**
@@ -175,9 +174,7 @@ public class ConfigurationTab {
     userPromptArea.setText(model.getUserPrompt());
   }
 
-  /**
-   * Load default values into UI components
-   */
+  /** Load default values into UI components */
   private void loadDefaultValues() {
     providerCombo.setSelectedItem("openai");
     endpointField.setText("https://api.openai.com/v1/chat/completions");
@@ -198,12 +195,12 @@ public class ConfigurationTab {
     public void actionPerformed(ActionEvent e) {
       try {
         // Create new ConfigModel instance from UI values
-        currentConfigModel = new ConfigModel(
-            (String) providerCombo.getSelectedItem(),
-            endpointField.getText(),
-            new String(apiKeyField.getPassword()),
-            userPromptArea.getText()
-        );
+        currentConfigModel =
+            new ConfigModel(
+                (String) providerCombo.getSelectedItem(),
+                endpointField.getText(),
+                new String(apiKeyField.getPassword()),
+                userPromptArea.getText());
         onSave.accept(currentConfigModel);
 
         statusLabel.setText("Configuration saved successfully");

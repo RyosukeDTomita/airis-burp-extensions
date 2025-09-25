@@ -1,13 +1,12 @@
 package com.airis.burp.ai.core;
 
-import java.util.function.Supplier;
-
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.AnthropicClient;
 import com.airis.burp.ai.llm.LLMClient;
 import com.airis.burp.ai.llm.OpenAIClient;
+import java.util.function.Supplier;
 
 /** chose LLM provider and start analysis. */
 public class AnalysisEngine {
@@ -15,7 +14,8 @@ public class AnalysisEngine {
   private final Logging logging;
   private final MontoyaApi montoyaApi;
 
-  public AnalysisEngine(Supplier<ConfigModel> configModelSupplier, Logging logging, MontoyaApi montoyaApi) {
+  public AnalysisEngine(
+      Supplier<ConfigModel> configModelSupplier, Logging logging, MontoyaApi montoyaApi) {
     this.configModelSupplier = configModelSupplier;
     this.logging = logging;
     this.montoyaApi = montoyaApi;
