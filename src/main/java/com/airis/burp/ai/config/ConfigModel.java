@@ -79,7 +79,7 @@ public final class ConfigModel {
    * @param providerString The provider string to check.
    * @return true if valid, false otherwise.
    */
-  public boolean isValidProvider(String provider) {
+  private static boolean isValidProvider(final String provider) {
     if (provider == null || provider.trim().isEmpty()) {
       return false;
     }
@@ -99,7 +99,7 @@ public final class ConfigModel {
    * @param endpoint The endpoint URL to validate.
    * @return true if the endpoint is valid, false otherwise.
    */
-  private boolean isValidEndpoint(String endpoint) {
+  private static boolean isValidEndpoint(final String endpoint) {
     if (endpoint == null || endpoint.trim().isEmpty()) {
       return false;
     }
