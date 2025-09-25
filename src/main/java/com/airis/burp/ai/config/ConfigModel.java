@@ -226,9 +226,11 @@ public final class ConfigModel {
     if (hashCode != 0) {
       return result;
     }
+    result = prime * result + ((provider == null) ? 0 : provider.hashCode());
     result = prime * result + ((endpoint == null) ? 0 : endpoint.hashCode());
     result = prime * result + ((apiKey == null) ? 0 : apiKey.hashCode());
     result = prime * result + ((userPrompt == null) ? 0 : userPrompt.hashCode());
+    hashCode = result;
     return result;
   }
 }
