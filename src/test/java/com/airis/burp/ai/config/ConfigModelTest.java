@@ -13,7 +13,18 @@ public class ConfigModelTest {
 
   @AfterEach
   public void tearDown() {
-    configModel = null;
+    if (configModel != null) {
+      configModel = null;
+    }
+  }
+
+  @Test
+  public void shouldThrowUnsupportedOperationExceptionForDefaultConstructor() {
+    assertThrows(
+        UnsupportedOperationException.class,
+        () -> {
+          new ConfigModel();
+        });
   }
 
   @Test
@@ -22,13 +33,33 @@ public class ConfigModelTest {
         new ConfigModel(
             "openai",
             "https://api.openai.com/v1/chat/completions",
-            "sk-proj-xxxxxxxxxxxxxxxxxtest",
+            "sk-xxxxxxxxxxtest",
             "Analyze the request for vulnerabilities.");
 
     String result = configModel.toString();
 
     assertEquals(
         "ConfigModel(provider=openai, endpoint=https://api.openai.com/v1/chat/completions, apiKey=***test, userPrompt=Analyze the request for vulnerabilities.)",
+        result);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "a", "ab", "abc",
+      })
+  public void shouldReturnInstanceInfo2WhenToString(String apiKey) {
+    configModel =
+        new ConfigModel(
+            "openai",
+            "https://api.openai.com/v1/chat/completions",
+            apiKey,
+            "Analyze the request for vulnerabilities.");
+
+    String result = configModel.toString();
+
+    assertEquals(
+        "ConfigModel(provider=openai, endpoint=https://api.openai.com/v1/chat/completions, apiKey=***, userPrompt=Analyze the request for vulnerabilities.)",
         result);
   }
 
@@ -97,11 +128,20 @@ public class ConfigModelTest {
   }
 
   @Test
-  public void shouldThrowUnsupportedOperationExceptionForDefaultConstructor() {
-    assertThrows(
-        UnsupportedOperationException.class,
-        () -> {
-          new ConfigModel();
-        });
+  public void getApiKeyshouldReturnApiKey() {
+    configModel =
+        new ConfigModel(
+            "openai", "https://api.openai.com/v1/chat/completions", "sk-xxxxxxxxxxxtest", "prompt");
+
+    assertEquals("sk-xxxxxxxxxxxtest", configModel.getApiKey());
+  }
+
+  @Test
+  public void getApiKeyshouldReturnApiKeyAsString() {
+    configModel =
+        new ConfigModel(
+            "openai", "https://api.openai.com/v1/chat/completions", "sk-xxxxxxxxxxxtest", "prompt");
+
+    assertEquals("sk-xxxxxxxxxxxtest", configModel.getApiKey());
   }
 }

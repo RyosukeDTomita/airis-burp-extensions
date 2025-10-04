@@ -6,9 +6,11 @@ import burp.api.montoya.BurpExtension;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
+import com.airis.burp.ai.config.SecureConfigStorage;
 import com.airis.burp.ai.core.AnalysisEngine;
 import com.airis.burp.ai.ui.AIAnalysisMenuProvider;
 import com.airis.burp.ai.ui.ConfigurationTab;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -23,6 +25,7 @@ public class Extension implements BurpExtension {
   private MontoyaApi api;
   private final AtomicReference<ConfigModel> configModelRef = new AtomicReference<>(null);
   private AnalysisEngine analysisEngine;
+  private SecureConfigStorage secureConfigStorage;
 
   @Override
   public void initialize(MontoyaApi api) {
@@ -33,11 +36,19 @@ public class Extension implements BurpExtension {
 
     ExecutorService executorService = newFixedThreadPool(3);
 
+    // Initialize secure storage and load existing configuration if present
+    secureConfigStorage = new SecureConfigStorage(api);
+    Optional<ConfigModel> existingConfig = secureConfigStorage.load();
+    if (existingConfig.isPresent()) {
+      configModelRef.set(existingConfig.get());
+      api.logging().logToOutput("Loaded configuration from secure storage.");
+    }
+
     // Initialize components
     initializeComponents();
 
     // Register UI components
-    registerUI();
+    registerUI(existingConfig);
 
     // NOTE: Java's garbage collector cleans up objects once there are no references.
     // However, threads, sockets, or file handles are not managed by GC.
@@ -50,6 +61,9 @@ public class Extension implements BurpExtension {
 
               // Shutdown executor service
               executorService.shutdownNow();
+
+              // Clear the configuration reference
+              configModelRef.set(null);
 
               api.logging().logToOutput("Extension unloaded successfully");
             });
@@ -72,7 +86,7 @@ public class Extension implements BurpExtension {
   }
 
   /** Register UI components including context menu and tabs */
-  private void registerUI() {
+  private void registerUI(Optional<ConfigModel> existingConfig) {
     Logging logging = api.logging();
 
     try {
@@ -86,9 +100,15 @@ public class Extension implements BurpExtension {
               logging,
               newConfig -> {
                 configModelRef.set(newConfig);
-                logging.logToOutput("Configuration updated: " + newConfig);
-              });
+                secureConfigStorage.save(newConfig);
+                logging.logToOutput("Configuration updated and stored securely: " + newConfig);
+              },
+              secureConfigStorage);
       api.userInterface().registerSuiteTab(TAB_NAME, configTab.getMainPanel());
+
+      if (existingConfig.isPresent()) {
+        configTab.loadConfiguration(existingConfig.get());
+      }
 
       logging.logToOutput("UI components registered successfully");
     } catch (Exception e) {

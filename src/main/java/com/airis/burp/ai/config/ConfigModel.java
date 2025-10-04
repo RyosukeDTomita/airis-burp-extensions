@@ -1,6 +1,7 @@
 package com.airis.burp.ai.config;
 
 import com.airis.burp.ai.llm.LLMProviderRegistry;
+import java.util.Objects;
 
 /**
  * DTO for AI Extension settings. Contains provider, endpoint, API key, and user prompt information.
@@ -27,13 +28,12 @@ public final class ConfigModel {
   }
 
   /**
-   * Fully parameterized constructor for creating an immutable ConfigModel.
+   * Fully parameterized constructor accepting API key as a character array.
    *
    * @param provider The LLM provider (e.g., "openai").
    * @param endpoint The API endpoint URL.
-   * @param apiKey The API key.
+   * @param apiKey The API key
    * @param userPrompt The user-defined prompt.
-   * @throws IllegalArgumentException if any parameter is invalid.
    */
   public ConfigModel(
       final String provider, final String endpoint, final String apiKey, final String userPrompt) {
@@ -84,7 +84,6 @@ public final class ConfigModel {
       return false;
     }
     try {
-      // TODO: 専用のメソッドを作って例外を挙げない
       LLMProviderRegistry.Provider.valueOf(provider.toUpperCase());
       return true;
     } catch (IllegalArgumentException e) {
@@ -104,7 +103,7 @@ public final class ConfigModel {
       return false;
     }
 
-    // TODO: 例外をあげずに検証できる方法がないか?
+    // Note: java.net.URI doesn't provide validation-only methods, so we use try-catch
     try {
       java.net.URI uri = new java.net.URI(endpoint.trim());
       String scheme = uri.getScheme();
@@ -130,7 +129,11 @@ public final class ConfigModel {
   }
 
   /**
-   * Returns a string representation of the ConfigModel with masked API key
+   * Returns a string representation of the ConfigModel with masked API key The string consists of
+   * all fields except the API key, which is masked for security. Format is
+   * "ConfigModel(provider=%s, endpoint=%s, apiKey=%s, userPrompt=%s)", where provider is openai or
+   * anthoropic, endpoint is LLM API endpoint URL, apiKey is masked API key, userPrompt is
+   * user-defined prompt.
    *
    * @return String representation of ConfigModel
    */
@@ -147,17 +150,15 @@ public final class ConfigModel {
    * @return masked API key
    */
   private String maskApiKey() {
-    if (this.apiKey == null || this.apiKey.isEmpty()) {
+    if (this.apiKey.length() <= 4) {
       return "***";
     }
-    if (this.apiKey.length() <= 4) {
-      return "***" + this.apiKey;
-    }
-    return "***" + this.apiKey.substring(this.apiKey.length() - 4);
+    String tail = this.apiKey.substring(this.apiKey.length() - 4);
+    return "***" + tail;
   }
 
   /**
-   * Checks equality based on all configuration fields
+   * TODO: 並列化する際に使わないなら消す Checks equality based on all configuration fields
    *
    * @param obj The object to compare with
    * @return true if all fields are equal
@@ -191,12 +192,7 @@ public final class ConfigModel {
       return false;
     }
 
-    // Compare apiKey
-    if (apiKey == null) {
-      if (other.apiKey != null) {
-        return false;
-      }
-    } else if (!apiKey.equals(other.apiKey)) {
+    if (!Objects.equals(apiKey, other.apiKey)) {
       return false;
     }
 
@@ -213,7 +209,8 @@ public final class ConfigModel {
   }
 
   /**
-   * Generates hash code based on all configuration fields using lazy initialization.
+   * TODO: 並列化する際に使わないなら消す Generates hash code based on all configuration fields using lazy
+   * initialization.
    *
    * @return hash code
    */

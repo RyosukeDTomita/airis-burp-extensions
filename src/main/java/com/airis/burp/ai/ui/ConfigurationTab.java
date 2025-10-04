@@ -2,6 +2,7 @@ package com.airis.burp.ai.ui;
 
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
+import com.airis.burp.ai.config.SecureConfigStorage;
 import com.airis.burp.ai.llm.LLMProviderRegistry;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -16,7 +17,7 @@ import javax.swing.*;
 public class ConfigurationTab {
   private final Consumer<ConfigModel> onSave;
   private final Logging logging;
-  private ConfigModel currentConfigModel;
+  private final SecureConfigStorage secureConfigStorage;
   private JPanel mainPanel;
   private JComboBox<String> providerCombo;
   private JTextField endpointField;
@@ -26,39 +27,14 @@ public class ConfigurationTab {
   private JButton testButton;
   private JLabel statusLabel;
 
-  public ConfigurationTab(Logging logging, Consumer<ConfigModel> onSave) {
+  public ConfigurationTab(
+      Logging logging, Consumer<ConfigModel> onSave, SecureConfigStorage secureConfigStorage) {
     this.logging = logging;
     this.onSave = onSave;
+    this.secureConfigStorage = secureConfigStorage;
 
     initializeUI();
     loadDefaultValues(); // Load default values into UI
-  }
-
-  /**
-   * Get the main component for Burp extension tab
-   *
-   * @return JComponent to be added to Burp's UI
-   */
-  public Component getComponent() {
-    return mainPanel;
-  }
-
-  /**
-   * Get the current configuration model
-   *
-   * @return Current ConfigModel instance, or null if no valid configuration has been saved
-   */
-  public ConfigModel getConfigModel() {
-    return currentConfigModel;
-  }
-
-  /**
-   * Check if a valid configuration exists
-   *
-   * @return true if a valid ConfigModel exists, false otherwise
-   */
-  public boolean hasValidConfiguration() {
-    return currentConfigModel != null;
   }
 
   /** Initialize the UI components */
@@ -129,15 +105,21 @@ public class ConfigurationTab {
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
     saveButton = new JButton("Save Configuration");
     testButton = new JButton("Test Connection");
-    JButton defaultPromptButton = new JButton("Reset to Default Prompt");
+    JButton resetButton = new JButton("Reset All to Default");
 
-    // Add action for default prompt button
-    defaultPromptButton.addActionListener(
-        e -> userPromptArea.setText(ConfigModel.DEFAULT_USER_PROMPT));
+    // Add action for reset button
+    resetButton.addActionListener(
+        e -> {
+          this.secureConfigStorage.reset();
+          this.loadDefaultValues();
+          this.statusLabel.setText("Reset to default configuration");
+          this.statusLabel.setForeground(Color.BLUE);
+          this.logging.logToOutput("Configuration reset to defaults");
+        });
 
     buttonPanel.add(saveButton);
     buttonPanel.add(testButton);
-    buttonPanel.add(defaultPromptButton);
+    buttonPanel.add(resetButton);
 
     // Status panel
     JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -159,21 +141,6 @@ public class ConfigurationTab {
     testButton.addActionListener(new TestAction());
   }
 
-  /**
-   * Load existing configuration into UI
-   *
-   * @param model The configuration model to load.
-   */
-  public void loadConfiguration(ConfigModel model) {
-    if (model == null) {
-      return;
-    }
-    providerCombo.setSelectedItem(model.getProvider());
-    endpointField.setText(model.getEndpoint());
-    apiKeyField.setText(model.getApiKey());
-    userPromptArea.setText(model.getUserPrompt());
-  }
-
   /** Load default values into UI components */
   private void loadDefaultValues() {
     providerCombo.setSelectedItem("openai");
@@ -182,7 +149,22 @@ public class ConfigurationTab {
     userPromptArea.setText(ConfigModel.DEFAULT_USER_PROMPT);
   }
 
-  /** Update the endpoint field when the provider is changed */
+  /**
+   * Load existing configuration into UI
+   *
+   * @param model The configuration model to load.
+   */
+  public void loadConfiguration(ConfigModel configModel) {
+    if (configModel == null) {
+      return;
+    }
+    this.providerCombo.setSelectedItem(configModel.getProvider());
+    this.endpointField.setText(configModel.getEndpoint());
+    this.apiKeyField.setText(configModel.getApiKey());
+    this.userPromptArea.setText(configModel.getUserPrompt());
+  }
+
+  /** Update the endpoint field when the drop down list (provider) is changed */
   private void updateEndpointForProvider() {
     String provider = (String) providerCombo.getSelectedItem();
     endpointField.setText(LLMProviderRegistry.getDefaultEndpoint(provider));
@@ -190,18 +172,25 @@ public class ConfigurationTab {
 
   /** Action handler for save button. */
   private class SaveAction implements ActionListener {
-    /** when the save button is clicked, validate and save the configuration ConfigModel. */
+    /**
+     * when the save button is clicked, validate and save the configuration ConfigModel.
+     *
+     * @param e The action event.
+     */
     @Override
     public void actionPerformed(ActionEvent e) {
       try {
-        // Create new ConfigModel instance from UI values
-        currentConfigModel =
+        char[] enteredApiKeyChars = apiKeyField.getPassword();
+        String enteredApiKey = new String(enteredApiKeyChars);
+
+        ConfigModel newConfig =
             new ConfigModel(
                 (String) providerCombo.getSelectedItem(),
                 endpointField.getText(),
-                new String(apiKeyField.getPassword()),
+                enteredApiKey,
                 userPromptArea.getText());
-        onSave.accept(currentConfigModel);
+        // Consumer callback to save the configuration
+        onSave.accept(newConfig);
 
         statusLabel.setText("Configuration saved successfully");
         statusLabel.setForeground(Color.GREEN);
