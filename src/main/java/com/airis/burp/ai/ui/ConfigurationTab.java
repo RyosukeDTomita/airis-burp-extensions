@@ -172,7 +172,9 @@ public class ConfigurationTab {
 
   /** Action handler for save button. */
   private class SaveAction implements ActionListener {
-    /** when the save button is clicked, validate and save the configuration ConfigModel.
+    /**
+     * when the save button is clicked, validate and save the configuration ConfigModel.
+     *
      * @param e The action event.
      */
     @Override

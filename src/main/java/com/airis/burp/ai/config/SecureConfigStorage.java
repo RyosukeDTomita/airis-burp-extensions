@@ -52,6 +52,7 @@ public final class SecureConfigStorage {
   /**
    * If no master key exists, generate and store a new one. If a key exists, it is loaded into
    * memory for encryption/decryption operations.
+   *
    * @throws IllegalStateException if key generation or loading fails.
    */
   private void initializeMasterKey() {
@@ -101,10 +102,12 @@ public final class SecureConfigStorage {
     }
   }
 
-  /** Saves the provided configuration to the Burp MontoyaApi.persistence().extensionData().
+  /**
+   * Saves the provided configuration to the Burp MontoyaApi.persistence().extensionData().
+   *
    * @param config The configuration model to save.
    * @throws IllegalStateException if encryption fails.
-  */
+   */
   public void save(ConfigModel config) {
     String apiKey = config.getApiKey();
     try {
@@ -122,17 +125,17 @@ public final class SecureConfigStorage {
     }
   }
 
-  /** Returns true if all configuration properties exist in storage.
+  /**
+   * Returns true if all configuration properties exist in storage.
    *
    * @return Boolean true if all configuration properties are present, false otherwise.
-   **/
+   */
   public boolean hasConfig() {
     return this.storage.getString(PROVIDER_SETTING) != null
         && this.storage.getString(ENDPOINT_SETTING) != null
         && this.storage.getString(API_KEY_SETTING) != null
         && this.storage.getString(USER_PROMPT_SETTING) != null;
   }
-
 
   /** Deletes the master key and configuration data, reinitializing a fresh key. */
   public void reset() {
@@ -147,6 +150,7 @@ public final class SecureConfigStorage {
 
   /**
    * Encrypts a plaintext string using AES-GCM with the master key.
+   *
    * @param plaintext
    * @return
    * @throws GeneralSecurityException
