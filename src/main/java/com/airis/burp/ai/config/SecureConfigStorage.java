@@ -151,9 +151,9 @@ public final class SecureConfigStorage {
   /**
    * Encrypts a plaintext string using AES-GCM with the master key.
    *
-   * @param plaintext
-   * @return
-   * @throws GeneralSecurityException
+   * @param plaintext The string to be encrypted.
+   * @return The encrypted string, encoded in Base64.
+   * @throws GeneralSecurityException If encryption fails.
    */
   private String encryptString(String plaintext) throws GeneralSecurityException {
     if (plaintext == null || plaintext.isEmpty()) {
