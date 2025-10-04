@@ -175,8 +175,6 @@ public final class SecureConfigStorage {
       System.arraycopy(ciphertext, 0, combined, iv.length, ciphertext.length);
 
       return Base64.getEncoder().encodeToString(combined);
-    } catch (GeneralSecurityException e) {
-      throw e;
     } finally {
       Arrays.fill(plainBytes, (byte) 0);
     }
