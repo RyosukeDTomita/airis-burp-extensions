@@ -41,7 +41,7 @@ public final class SecureConfigStorage {
   /**
    * Initializes secure storage, generating or loading the master encryption key.
    *
-   * @param api
+   * @param api The Montoya API instance for accessing Burp's persistence and logging services.
    */
   public SecureConfigStorage(MontoyaApi api) {
     this.logger = api.logging();
