@@ -97,7 +97,8 @@ tasks.jacocoTestReport {
         fileTree(it) {
             exclude(
                 "**/ui/**",
-                "**/Extension.class"
+                "**/Extension.class",
+                "**/SecureConfigStorage.class"
             )
         }
     }))
