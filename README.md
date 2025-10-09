@@ -41,6 +41,21 @@ This is an [Burp Suite](https://portswigger.net/burp) extension that allows you 
 4. Result
     ![response](./assets/example2.png)
 
+### Using Azure Open AI
+
+Replacing the endpoint will make it work.
+Include the model name and version as shown below.
+
+```
+https://<your-resource-name>.openai.azure.com/openai/deployments/<deployment-name>/chat/completions?api-version=<api-version>
+e.g. https://sigma-oai-westus.openai.azure.com/openai/deployments/gpt-40-mini/chat/completions?api-version=2024-02-15-preview
+```
+
+### Using Amazon Bedrock(Claude)
+
+I'll test it soon.
+Looking for volunteers to help verify functionality.
+
 ---
 
 ## ENVIRONMENT
