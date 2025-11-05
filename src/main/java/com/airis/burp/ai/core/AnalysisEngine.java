@@ -13,12 +13,14 @@ public class AnalysisEngine {
   private final Supplier<ConfigModel> configModelSupplier;
   private final Logging logging;
   private final MontoyaApi montoyaApi;
+  private final java.util.concurrent.ExecutorService executorService;
 
   public AnalysisEngine(
-      Supplier<ConfigModel> configModelSupplier, Logging logging, MontoyaApi montoyaApi) {
+      Supplier<ConfigModel> configModelSupplier, Logging logging, MontoyaApi montoyaApi, java.util.concurrent.ExecutorService executorService) {
     this.configModelSupplier = configModelSupplier;
     this.logging = logging;
     this.montoyaApi = montoyaApi;
+    this.executorService = executorService;
   }
 
   /**
@@ -48,6 +50,25 @@ public class AnalysisEngine {
     } else {
       return result;
     }
+  }
+
+  /**
+   * Analyze request/response asynchronously
+   *
+   * @param request The HTTP request to analyze
+   * @param response The HTTP response to analyze (nullable)
+   * @param callback Callback to handle the result
+   */
+  public void analyzeAsync(String request, String response, java.util.function.Consumer<String> callback) {
+    executorService.submit(() -> {
+      try {
+        String result = analyze(request, response);
+        javax.swing.SwingUtilities.invokeLater(() -> callback.accept(result));
+      } catch (Exception e) {
+        logging.logToError("Async analysis failed: " + e.getMessage());
+        javax.swing.SwingUtilities.invokeLater(() -> callback.accept("Analysis failed: " + e.getMessage()));
+      }
+    });
   }
 
   /**
