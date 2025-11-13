@@ -26,6 +26,7 @@ public class Extension implements BurpExtension {
   private final AtomicReference<ConfigModel> configModelRef = new AtomicReference<>(null);
   private AnalysisEngine analysisEngine;
   private SecureConfigStorage secureConfigStorage;
+  private ExecutorService executorService;
 
   @Override
   public void initialize(MontoyaApi api) {
@@ -34,7 +35,8 @@ public class Extension implements BurpExtension {
     // Set extension name
     api.extension().setName(EXTENSION_NAME);
 
-    ExecutorService executorService = newFixedThreadPool(3);
+    // Initialize executor service for background processing
+    executorService = newFixedThreadPool(3);
 
     // Initialize secure storage and load existing configuration if present
     secureConfigStorage = new SecureConfigStorage(api);
@@ -76,7 +78,7 @@ public class Extension implements BurpExtension {
     Logging logging = api.logging();
 
     try {
-      this.analysisEngine = new AnalysisEngine(configModelRef::get, logging, api);
+      this.analysisEngine = new AnalysisEngine(configModelRef::get, logging, api, executorService);
 
       logging.logToOutput("Components initialized successfully");
     } catch (Exception e) {
@@ -91,7 +93,7 @@ public class Extension implements BurpExtension {
 
     try {
       // Register context menu
-      AIAnalysisMenuProvider menuProvider = new AIAnalysisMenuProvider(analysisEngine, api);
+      AIAnalysisMenuProvider menuProvider = new AIAnalysisMenuProvider(analysisEngine, api, executorService);
       api.userInterface().registerContextMenuItemsProvider(menuProvider);
 
       // Register configuration tab
@@ -103,7 +105,8 @@ public class Extension implements BurpExtension {
                 secureConfigStorage.save(newConfig);
                 logging.logToOutput("Configuration updated and stored securely: " + newConfig);
               },
-              secureConfigStorage);
+              secureConfigStorage,
+              api);
       api.userInterface().registerSuiteTab(TAB_NAME, configTab.getMainPanel());
 
       if (existingConfig.isPresent()) {

@@ -108,7 +108,8 @@ public class AnalysisEngineTest {
             "https://api.openai.com/v1/chat/completions",
             "test-api-key",
             "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, potential issues, and provide recommendations. Focus on common web application security issues like injection attacks, authentication bypasses, authorization issues, and data exposure.");
-    AnalysisEngine sut = new AnalysisEngine(() -> openaiConfig, logging, montoyaApi);
+    java.util.concurrent.ExecutorService executorService = java.util.concurrent.Executors.newFixedThreadPool(1);
+    AnalysisEngine sut = new AnalysisEngine(() -> openaiConfig, logging, montoyaApi, executorService);
 
     // Expected JSON response from OpenAI API
     String mockApiResponse =
@@ -194,7 +195,8 @@ public class AnalysisEngineTest {
             "https://api.anthropic.com/v1/messages",
             "test-api-key",
             "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, potential issues, and provide recommendations. Focus on common web application security issues like injection attacks, authentication bypasses, authorization issues, and data exposure.");
-    AnalysisEngine sut = new AnalysisEngine(() -> anthropicConfig, logging, montoyaApi);
+    java.util.concurrent.ExecutorService executorService2 = java.util.concurrent.Executors.newFixedThreadPool(1);
+    AnalysisEngine sut = new AnalysisEngine(() -> anthropicConfig, logging, montoyaApi, executorService2);
 
     // Expected JSON response from Anthropic API
     String mockApiResponse =

@@ -21,10 +21,13 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
   private final AnalysisEngine analysisEngine;
 
   private final MontoyaApi montoyaApi;
+  
+  private final java.util.concurrent.ExecutorService executorService;
 
-  public AIAnalysisMenuProvider(AnalysisEngine analysisEngine, MontoyaApi montoyaApi) {
+  public AIAnalysisMenuProvider(AnalysisEngine analysisEngine, MontoyaApi montoyaApi, java.util.concurrent.ExecutorService executorService) {
     this.analysisEngine = analysisEngine;
     this.montoyaApi = montoyaApi;
+    this.executorService = executorService;
   }
 
   /**
@@ -61,7 +64,6 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
    * @param requestResponse The HTTP request and response to analyze
    */
   private void analyzeWithMontoya(HttpRequestResponse requestResponse) {
-
     try {
       // Extract request as string
       String request = requestResponse.request().toString();
@@ -73,47 +75,54 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
       } else {
         response = "";
       }
-      // montoyaApi.logging().logToOutput(String.format("[DEBUG]: request=%s, response=%s", request,
-      // response));
 
-      // Perform analysis in background thread
-      SwingUtilities.invokeLater(
-          () -> {
-            try {
-              // Show loading dialog
-              JDialog loadingDialog = new JDialog();
-              loadingDialog.setTitle("AI Analysis");
-              loadingDialog.setModal(false);
-              loadingDialog.setSize(300, 100);
-              loadingDialog.setLocationRelativeTo(null);
-              JPanel panel = new JPanel(new BorderLayout());
-              panel.add(new JLabel("Analyzing... Please wait.", SwingConstants.CENTER));
-              loadingDialog.add(panel);
-              loadingDialog.setVisible(true);
+      // Show loading dialog immediately on EDT
+      JDialog loadingDialog = createLoadingDialog();
+      loadingDialog.setVisible(true);
 
-              // Perform analysis
-              new Thread(
-                      () -> {
-                        String result = analysisEngine.analyze(request, response);
-
-                        SwingUtilities.invokeLater(
-                            () -> {
-                              loadingDialog.dispose();
-                              showAnalysisResultMontoya(result);
-                            });
-                      })
-                  .start();
-
-            } catch (Exception ex) {
-              montoyaApi.logging().logToError("Analysis failed: " + ex.getMessage());
-              JOptionPane.showMessageDialog(
-                  null, "Analysis failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
-          });
+      // Perform analysis asynchronously
+      analysisEngine.analyzeAsync(request, response, result -> {
+        // This callback runs on EDT thanks to SwingUtilities.invokeLater in analyzeAsync
+        loadingDialog.dispose();
+        if (result.startsWith("Analysis failed:")) {
+          JOptionPane.showMessageDialog(
+              null, result, "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+          showAnalysisResultMontoya(result);
+        }
+      });
 
     } catch (Exception e) {
       montoyaApi.logging().logToError("Failed to analyze request: " + e.getMessage());
+      JOptionPane.showMessageDialog(
+          null, "Failed to analyze request: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
+  }
+
+  /**
+   * Creates a non-modal loading dialog
+   */
+  private JDialog createLoadingDialog() {
+    JDialog loadingDialog = new JDialog();
+    loadingDialog.setTitle("AI Analysis");
+    loadingDialog.setModal(false); // Non-modal to prevent blocking
+    loadingDialog.setSize(300, 100);
+    loadingDialog.setLocationRelativeTo(null);
+    loadingDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+    
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(new JLabel("Analyzing... Please wait.", SwingConstants.CENTER), BorderLayout.CENTER);
+    
+    // Add a cancel button
+    JButton cancelButton = new JButton("Cancel");
+    cancelButton.addActionListener(e -> {
+      loadingDialog.dispose();
+      montoyaApi.logging().logToOutput("Analysis cancelled by user");
+    });
+    panel.add(cancelButton, BorderLayout.SOUTH);
+    
+    loadingDialog.add(panel);
+    return loadingDialog;
   }
 
   /**
