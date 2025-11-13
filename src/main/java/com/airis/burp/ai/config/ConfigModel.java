@@ -4,19 +4,13 @@ import com.airis.burp.ai.llm.LLMProviderRegistry;
 import java.util.Objects;
 
 /**
- * DTO for AI Extension settings. Contains provider, endpoint, API key, and user prompt information.
+ * DTO for AI Extension settings. Contains provider, endpoint, and API key information.
  */
 public final class ConfigModel {
-
-  public static final String DEFAULT_USER_PROMPT =
-      "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, "
-          + "potential issues, and provide recommendations. Focus on common web application security issues like "
-          + "injection attacks, authentication bypasses, authorization issues, and data exposure.";
 
   private final String provider;
   private final String endpoint;
   private final String apiKey;
-  private final String userPrompt;
 
   // Lazy initialized hash code for performance optimization.
   // Initialized to 0 by default when the instance is created.
@@ -33,10 +27,9 @@ public final class ConfigModel {
    * @param provider The LLM provider (e.g., "openai").
    * @param endpoint The API endpoint URL.
    * @param apiKey The API key
-   * @param userPrompt The user-defined prompt.
    */
   public ConfigModel(
-      final String provider, final String endpoint, final String apiKey, final String userPrompt) {
+      final String provider, final String endpoint, final String apiKey) {
     if (!isValidProvider(provider)) {
       throw new IllegalArgumentException("Invalid provider specified.");
     }
@@ -46,14 +39,10 @@ public final class ConfigModel {
     if (apiKey == null || apiKey.trim().isEmpty()) {
       throw new IllegalArgumentException("API key cannot be null or empty.");
     }
-    if (userPrompt == null || userPrompt.trim().isEmpty()) {
-      throw new IllegalArgumentException("User prompt cannot be null or empty.");
-    }
 
     this.provider = provider;
     this.endpoint = endpoint;
     this.apiKey = apiKey;
-    this.userPrompt = userPrompt;
   }
 
   public String getProvider() {
@@ -66,10 +55,6 @@ public final class ConfigModel {
 
   public String getApiKey() {
     return apiKey;
-  }
-
-  public String getUserPrompt() {
-    return userPrompt;
   }
 
   /**
@@ -131,16 +116,15 @@ public final class ConfigModel {
   /**
    * Returns a string representation of the ConfigModel with masked API key The string consists of
    * all fields except the API key, which is masked for security. Format is
-   * "ConfigModel(provider=%s, endpoint=%s, apiKey=%s, userPrompt=%s)", where provider is openai or
-   * anthoropic, endpoint is LLM API endpoint URL, apiKey is masked API key, userPrompt is
-   * user-defined prompt.
+   * "ConfigModel(provider=%s, endpoint=%s, apiKey=%s)", where provider is openai or
+   * anthoropic, endpoint is LLM API endpoint URL, apiKey is masked API key.
    *
    * @return String representation of ConfigModel
    */
   @Override
   public String toString() {
-    String FORMAT = "ConfigModel(provider=%s, endpoint=%s, apiKey=%s, userPrompt=%s)";
-    return String.format(FORMAT, provider, endpoint, maskApiKey(), userPrompt);
+    String FORMAT = "ConfigModel(provider=%s, endpoint=%s, apiKey=%s)";
+    return String.format(FORMAT, provider, endpoint, maskApiKey());
   }
 
   /**
@@ -194,15 +178,6 @@ public final class ConfigModel {
       return false;
     }
 
-    // Compare userPrompt
-    if (userPrompt == null) {
-      if (other.userPrompt != null) {
-        return false;
-      }
-    } else if (!userPrompt.equals(other.userPrompt)) {
-      return false;
-    }
-
     return true;
   }
 
@@ -224,7 +199,6 @@ public final class ConfigModel {
     result = prime * result + ((provider == null) ? 0 : provider.hashCode());
     result = prime * result + ((endpoint == null) ? 0 : endpoint.hashCode());
     result = prime * result + ((apiKey == null) ? 0 : apiKey.hashCode());
-    result = prime * result + ((userPrompt == null) ? 0 : userPrompt.hashCode());
     hashCode = result;
     return result;
   }

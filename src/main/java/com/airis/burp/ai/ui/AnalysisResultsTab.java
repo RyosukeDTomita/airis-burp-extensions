@@ -286,10 +286,10 @@ public class AnalysisResultsTab extends JPanel {
       try {
         String request = result.getHttpHistoryItem().getRequest();
         String response = result.getHttpHistoryItem().getResponse();
+        String customPrompt = result.getPrompt();
         
         // Perform analysis with the custom prompt
-        // Note: This would need modification in AnalysisEngine to accept custom prompts
-        String analysisResult = analysisEngine.analyze(request, response);
+        String analysisResult = analysisEngine.analyze(request, response, customPrompt);
         
         SwingUtilities.invokeLater(() -> {
           result.setResult(analysisResult);

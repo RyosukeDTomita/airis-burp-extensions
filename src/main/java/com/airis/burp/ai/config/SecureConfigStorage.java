@@ -87,15 +87,14 @@ public final class SecureConfigStorage {
     final String provider = this.storage.getString(PROVIDER_SETTING);
     final String endpoint = this.storage.getString(ENDPOINT_SETTING);
     final String encryptedApiKey = this.storage.getString(API_KEY_SETTING);
-    final String userPrompt = this.storage.getString(USER_PROMPT_SETTING);
 
-    if (provider == null || endpoint == null || encryptedApiKey == null || userPrompt == null) {
+    if (provider == null || endpoint == null || encryptedApiKey == null) {
       return Optional.empty();
     }
 
     try {
       String apiKey = this.decryptToString(encryptedApiKey);
-      return Optional.of(new ConfigModel(provider, endpoint, apiKey, userPrompt));
+      return Optional.of(new ConfigModel(provider, endpoint, apiKey));
     } catch (GeneralSecurityException e) {
       this.logger.logToError("Failed to decrypt stored configuration: " + e.getMessage());
       return Optional.empty();
@@ -115,7 +114,6 @@ public final class SecureConfigStorage {
 
       this.storage.setString(PROVIDER_SETTING, config.getProvider());
       this.storage.setString(ENDPOINT_SETTING, config.getEndpoint());
-      this.storage.setString(USER_PROMPT_SETTING, config.getUserPrompt());
       this.storage.setString(API_KEY_SETTING, encryptedKey);
 
       this.logger.logToOutput("Configuration stored securely.");

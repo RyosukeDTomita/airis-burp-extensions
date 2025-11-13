@@ -12,6 +12,12 @@ import java.util.Map;
 public abstract class AbstractLLMClient implements LLMClient {
   protected final MontoyaApi montoyaApi;
 
+  /** Default system prompt for security analysis */
+  protected static final String DEFAULT_SYSTEM_PROMPT =
+      "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, "
+          + "potential issues, and provide recommendations. Focus on common web application security issues like "
+          + "injection attacks, authentication bypasses, authorization issues, and data exposure.";
+
   /**
    * Constructor
    *
@@ -22,7 +28,7 @@ public abstract class AbstractLLMClient implements LLMClient {
   }
 
   /**
-   * Analyze an HTTP request/response pair using the AI model.
+   * Analyze an HTTP request/response pair using the AI model with default prompt.
    *
    * @param configModel Configuration model containing API settings
    * @param requestAndResponse HTTP request and response data
@@ -30,18 +36,29 @@ public abstract class AbstractLLMClient implements LLMClient {
    */
   @Override
   public String analyze(ConfigModel configModel, HttpHistoryItem requestAndResponse) {
+    return analyze(configModel, requestAndResponse, DEFAULT_SYSTEM_PROMPT);
+  }
+
+  /**
+   * Analyze an HTTP request/response pair using the AI model with custom prompt.
+   *
+   * @param configModel Configuration model containing API settings
+   * @param requestAndResponse HTTP request and response data
+   * @param customPrompt Custom user prompt for analysis
+   * @return Analysis response from the AI model
+   */
+  @Override
+  public String analyze(ConfigModel configModel, HttpHistoryItem requestAndResponse, String customPrompt) {
     if (requestAndResponse == null) {
       return "[ERROR] requestAndResponse is null";
     }
 
-    // TODO: そのうち、UserPromptはConfigModelから切り離して、リクエストごとに指定できるようにする
-    String userPrompt = configModel.getUserPrompt();
-    if (userPrompt == null || userPrompt.trim().isEmpty()) {
-      return "[ERROR] userPrompt is null or empty";
+    if (customPrompt == null || customPrompt.trim().isEmpty()) {
+      customPrompt = DEFAULT_SYSTEM_PROMPT;
     }
 
     try {
-      String jsonRequest = formatRequestBody(configModel, requestAndResponse, userPrompt);
+      String jsonRequest = formatRequestBody(configModel, requestAndResponse, customPrompt);
       String jsonResponse = sendHttpRequest(configModel, jsonRequest);
       return parseResponseBody(jsonResponse);
     } catch (Exception e) {

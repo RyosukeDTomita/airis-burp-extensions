@@ -22,7 +22,7 @@ public class AnalysisEngine {
   }
 
   /**
-   * Performs AI analysis on HTTP request/response.
+   * Performs AI analysis on HTTP request/response with default prompt.
    * Public for use by UI components.
    *
    * @param request The HTTP request to analyze
@@ -30,6 +30,19 @@ public class AnalysisEngine {
    * @return Analysis result or error message
    */
   public String analyze(String request, String response) {
+    return analyze(request, response, null);
+  }
+
+  /**
+   * Performs AI analysis on HTTP request/response with custom prompt.
+   * Public for use by UI components.
+   *
+   * @param request The HTTP request to analyze
+   * @param response The HTTP response to analyze (nullable)
+   * @param customPrompt Custom user prompt (null uses default)
+   * @return Analysis result or error message
+   */
+  public String analyze(String request, String response, String customPrompt) {
     logging.logToOutput("Starting AI analysis...");
     ConfigModel configModel = configModelSupplier.get();
 
@@ -43,7 +56,12 @@ public class AnalysisEngine {
     }
     // Execute analysis using the configuration snapshot
     HttpHistoryItem httpHistoryItem = HttpHistoryItem.fromHttpRequestResponse(request, response);
-    String result = llmClient.analyze(configModel, httpHistoryItem);
+    String result;
+    if (customPrompt != null && !customPrompt.trim().isEmpty()) {
+      result = llmClient.analyze(configModel, httpHistoryItem, customPrompt);
+    } else {
+      result = llmClient.analyze(configModel, httpHistoryItem);
+    }
     if (result == null) {
       return "No analysis result returned from LLM client.";
     } else {

@@ -31,7 +31,6 @@ public class ConfigurationTab {
   private JComboBox<String> providerCombo;
   private JTextField endpointField;
   private JPasswordField apiKeyField;
-  private JTextArea userPromptArea;
   private JButton saveButton;
   private JButton testButton;
   private JLabel statusLabel;
@@ -94,23 +93,13 @@ public class ConfigurationTab {
     apiKeyField = new JPasswordField();
     formPanel.add(apiKeyField, gbc);
 
-    // User Prompt
+    // Add a filler component to push everything to the top
     gbc.gridx = 0;
     gbc.gridy = 3;
-    gbc.weightx = 0;
-    gbc.anchor = GridBagConstraints.NORTH;
-    formPanel.add(new JLabel("Analysis Prompt:"), gbc);
-
-    // User prompt text area
-    gbc.gridx = 1;
-    gbc.weightx = 1.0;
+    gbc.gridwidth = 2;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
-    userPromptArea = new JTextArea(10, 50);
-    userPromptArea.setLineWrap(true);
-    userPromptArea.setWrapStyleWord(true);
-    JScrollPane scrollPane = new JScrollPane(userPromptArea);
-    formPanel.add(scrollPane, gbc);
+    formPanel.add(new JLabel(), gbc);
 
     // Button panel
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -139,8 +128,12 @@ public class ConfigurationTab {
     statusPanel.add(new JLabel("Status:"));
     statusPanel.add(statusLabel);
 
+    // Wrap form panel to align it to the top-left
+    JPanel formWrapper = new JPanel(new BorderLayout());
+    formWrapper.add(formPanel, BorderLayout.NORTH);
+    
     // Add components to main panel
-    mainPanel.add(formPanel, BorderLayout.CENTER);
+    mainPanel.add(formWrapper, BorderLayout.CENTER);
 
     JPanel bottomPanel = new JPanel(new BorderLayout());
     bottomPanel.add(buttonPanel, BorderLayout.NORTH);
@@ -157,7 +150,6 @@ public class ConfigurationTab {
     providerCombo.setSelectedItem("openai");
     endpointField.setText("https://api.openai.com/v1/chat/completions");
     apiKeyField.setText("");
-    userPromptArea.setText(ConfigModel.DEFAULT_USER_PROMPT);
   }
 
   /**
@@ -172,7 +164,6 @@ public class ConfigurationTab {
     this.providerCombo.setSelectedItem(configModel.getProvider());
     this.endpointField.setText(configModel.getEndpoint());
     this.apiKeyField.setText(configModel.getApiKey());
-    this.userPromptArea.setText(configModel.getUserPrompt());
   }
 
   /** Update the endpoint field when the drop down list (provider) is changed */
@@ -198,8 +189,7 @@ public class ConfigurationTab {
             new ConfigModel(
                 (String) providerCombo.getSelectedItem(),
                 endpointField.getText(),
-                enteredApiKey,
-                userPromptArea.getText());
+                enteredApiKey);
         // Consumer callback to save the configuration
         onSave.accept(newConfig);
 
@@ -227,7 +217,6 @@ public class ConfigurationTab {
       String endpoint = endpointField.getText();
       char[] apiKeyChars = apiKeyField.getPassword();
       String apiKey = new String(apiKeyChars);
-      String userPrompt = userPromptArea.getText();
       
       // Validate configuration
       if (apiKey.isEmpty()) {
@@ -240,7 +229,7 @@ public class ConfigurationTab {
       // Test connection asynchronously
       executorService.submit(() -> {
         try {
-          ConfigModel testConfig = new ConfigModel(provider, endpoint, apiKey, userPrompt);
+          ConfigModel testConfig = new ConfigModel(provider, endpoint, apiKey);
           
           // Create LLM client based on provider
           LLMClient llmClient;
