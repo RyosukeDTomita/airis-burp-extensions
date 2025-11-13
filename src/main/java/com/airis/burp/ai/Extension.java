@@ -35,7 +35,7 @@ public class Extension implements BurpExtension {
     // Set extension name
     api.extension().setName(EXTENSION_NAME);
 
-    // Initialize executor service for background processing TODO: ちゃんと理解する
+    // Initialize executor service for background processing
     executorService = newFixedThreadPool(3);
 
     // Initialize secure storage and load existing configuration if present
@@ -105,7 +105,8 @@ public class Extension implements BurpExtension {
                 secureConfigStorage.save(newConfig);
                 logging.logToOutput("Configuration updated and stored securely: " + newConfig);
               },
-              secureConfigStorage);
+              secureConfigStorage,
+              api);
       api.userInterface().registerSuiteTab(TAB_NAME, configTab.getMainPanel());
 
       if (existingConfig.isPresent()) {

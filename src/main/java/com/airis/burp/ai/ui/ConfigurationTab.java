@@ -1,12 +1,19 @@
 package com.airis.burp.ai.ui;
 
+import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.config.SecureConfigStorage;
+import com.airis.burp.ai.core.HttpHistoryItem;
+import com.airis.burp.ai.llm.AnthropicClient;
+import com.airis.burp.ai.llm.LLMClient;
 import com.airis.burp.ai.llm.LLMProviderRegistry;
+import com.airis.burp.ai.llm.OpenAIClient;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import javax.swing.*;
 
@@ -18,6 +25,8 @@ public class ConfigurationTab {
   private final Consumer<ConfigModel> onSave;
   private final Logging logging;
   private final SecureConfigStorage secureConfigStorage;
+  private final MontoyaApi montoyaApi;
+  private final ExecutorService executorService;
   private JPanel mainPanel;
   private JComboBox<String> providerCombo;
   private JTextField endpointField;
@@ -28,10 +37,12 @@ public class ConfigurationTab {
   private JLabel statusLabel;
 
   public ConfigurationTab(
-      Logging logging, Consumer<ConfigModel> onSave, SecureConfigStorage secureConfigStorage) {
+      Logging logging, Consumer<ConfigModel> onSave, SecureConfigStorage secureConfigStorage, MontoyaApi montoyaApi) {
     this.logging = logging;
     this.onSave = onSave;
     this.secureConfigStorage = secureConfigStorage;
+    this.montoyaApi = montoyaApi;
+    this.executorService = Executors.newSingleThreadExecutor();
 
     initializeUI();
     loadDefaultValues(); // Load default values into UI
@@ -209,7 +220,74 @@ public class ConfigurationTab {
     public void actionPerformed(ActionEvent e) {
       statusLabel.setText("Testing configuration...");
       statusLabel.setForeground(Color.BLUE);
-      // TODO: そのうちテスト処理を実装する
+      testButton.setEnabled(false);
+      
+      // Get current configuration from UI
+      String provider = (String) providerCombo.getSelectedItem();
+      String endpoint = endpointField.getText();
+      char[] apiKeyChars = apiKeyField.getPassword();
+      String apiKey = new String(apiKeyChars);
+      String userPrompt = userPromptArea.getText();
+      
+      // Validate configuration
+      if (apiKey.isEmpty()) {
+        statusLabel.setText("Error: API Key is required");
+        statusLabel.setForeground(Color.RED);
+        testButton.setEnabled(true);
+        return;
+      }
+      
+      // Test connection asynchronously
+      executorService.submit(() -> {
+        try {
+          ConfigModel testConfig = new ConfigModel(provider, endpoint, apiKey, userPrompt);
+          
+          // Create LLM client based on provider
+          LLMClient llmClient;
+          switch (provider) {
+            case "openai":
+              llmClient = new OpenAIClient(montoyaApi);
+              break;
+            case "anthropic":
+              llmClient = new AnthropicClient(montoyaApi);
+              break;
+            default:
+              throw new IllegalArgumentException("Unsupported provider: " + provider);
+          }
+          
+          // Create a simple test request
+          HttpHistoryItem testItem = HttpHistoryItem.fromHttpRequestResponse(
+              "GET / HTTP/1.1\r\nHost: example.com\r\n\r\n",
+              "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body>Test</body></html>"
+          );
+          
+          // Perform test analysis
+          String result = llmClient.analyze(testConfig, testItem);
+          
+          // Update UI on success
+          SwingUtilities.invokeLater(() -> {
+            if (result != null && !result.isEmpty()) {
+              statusLabel.setText("Connection successful!");
+              statusLabel.setForeground(Color.GREEN);
+              logging.logToOutput("LLM connection test successful");
+            } else {
+              statusLabel.setText("Connection failed: Empty response");
+              statusLabel.setForeground(Color.RED);
+              logging.logToError("LLM connection test failed: Empty response");
+            }
+            testButton.setEnabled(true);
+          });
+          
+        } catch (Exception ex) {
+          // Update UI on failure
+          SwingUtilities.invokeLater(() -> {
+            statusLabel.setText("Connection failed: " + ex.getMessage());
+            statusLabel.setForeground(Color.RED);
+            logging.logToError("LLM connection test failed: " + ex.getMessage());
+            testButton.setEnabled(true);
+          });
+        }
+      });
     }
   }
 

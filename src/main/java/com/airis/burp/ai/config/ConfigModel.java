@@ -158,8 +158,6 @@ public final class ConfigModel {
   }
 
   /**
-   * TODO: 並列化する際に使わないなら消す Checks equality based on all configuration fields
-   *
    * @param obj The object to compare with
    * @return true if all fields are equal
    */
@@ -209,7 +207,7 @@ public final class ConfigModel {
   }
 
   /**
-   * TODO: 並列化する際に使わないなら消す Generates hash code based on all configuration fields using lazy
+   * Generates hash code based on all configuration fields using lazy
    * initialization.
    *
    * @return hash code
