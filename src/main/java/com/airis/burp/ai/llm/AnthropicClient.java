@@ -10,9 +10,6 @@ import com.airis.burp.ai.core.HttpHistoryItem;
 /** Anthropic Claude Client to send requests to the Anthropic API */
 public class AnthropicClient extends AbstractLLMClient {
   private static final String DEFAULT_MODEL = "claude-3-5-haiku-20241022";
-  private static final String SYSTEM_PROMPT =
-      "You are an expert security analyst specializing in web application security."
-          + "Following the user's prompt, analyze the provided HTTP request and response.\n";
   private static final String API_VERSION = "2023-06-01";
 
   /**
@@ -36,7 +33,7 @@ public class AnthropicClient extends AbstractLLMClient {
       HttpRequest httpRequest =
           HttpRequest.httpRequestFromUrl(config.getEndpoint())
               .withMethod("POST")
-              .withHeader("Content-Type", "application/json")
+              .withHeader("Content-Type", "application/json; charset=UTF-8")
               .withHeader("x-api-key", config.getApiKey())
               .withHeader("anthropic-version", API_VERSION)
               .withBody(jsonRequest);
@@ -74,29 +71,29 @@ public class AnthropicClient extends AbstractLLMClient {
     json.append("  \"max_tokens\": 1024,\n");
     json.append("  \"temperature\": 0.3,\n");
 
-    // System message
-    json.append("  \"system\": \"").append(escapeJson(SYSTEM_PROMPT)).append("\",\n");
+    // System message - defines AI's role
+    json.append("  \"system\": \"").append(escapeJson(DEFAULT_SYSTEM_PROMPT)).append("\",\n");
 
     // Messages array
     json.append("  \"messages\": [\n");
     json.append("    {\n");
     json.append("      \"role\": \"user\",\n");
 
-    // user prompt
+    // User content with custom prompt + HTTP data
     StringBuilder userContent = new StringBuilder();
-    if (userPrompt != null && !userPrompt.isEmpty()) {
-      userContent.append(userPrompt).append("\n\n");
-    }
-
-    // Append formatted HTTP request/response
+    userContent.append(userPrompt).append("\\n\\n");
     userContent.append(formatHttpData(requestAndResponse));
     json.append("      \"content\": \"").append(escapeJson(userContent.toString())).append("\"\n");
 
     json.append("    }\n");
     json.append("  ]\n");
     json.append("}");
-    // montoyaApi.logging().logToOutput("[DEBUG] Request JSON: " + json.toString());
-    return json.toString();
+    
+    String jsonString = json.toString();
+    montoyaApi.logging().logToOutput("[DEBUG] JSON length: " + jsonString.length() + " bytes");
+    montoyaApi.logging().logToOutput("[DEBUG] JSON is valid: " + jsonString.endsWith("}"));
+    montoyaApi.logging().logToOutput("[DEBUG] Request JSON: " + jsonString);
+    return jsonString;
   }
 
   @Override

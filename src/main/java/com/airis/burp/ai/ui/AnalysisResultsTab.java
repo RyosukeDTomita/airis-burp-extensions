@@ -288,6 +288,9 @@ public class AnalysisResultsTab extends JPanel {
         String response = result.getHttpHistoryItem().getResponse();
         String customPrompt = result.getPrompt();
         
+        // Log the custom prompt for debugging
+        api.logging().logToOutput("Using custom prompt: " + customPrompt);
+        
         // Perform analysis with the custom prompt
         String analysisResult = analysisEngine.analyze(request, response, customPrompt);
         

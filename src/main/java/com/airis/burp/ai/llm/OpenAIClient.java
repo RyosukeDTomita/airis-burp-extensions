@@ -7,9 +7,6 @@ import com.airis.burp.ai.core.HttpHistoryItem;
 /** OpenAI Client to send requests to the OpenAI API */
 public class OpenAIClient extends AbstractLLMClient {
   private static final String DEFAULT_MODEL = "gpt-4o-mini";
-  private static final String SYSTEM_PROMPT =
-      "You are an expert security analyst specializing in web application security."
-          + "Following the user's prompt, analyze the provided HTTP request and response.\n";
 
   /**
    * Constructor
@@ -29,21 +26,17 @@ public class OpenAIClient extends AbstractLLMClient {
     json.append("  \"model\": \"").append(DEFAULT_MODEL).append("\",\n");
     json.append("  \"messages\": [\n");
 
-    // System prompt
+    // System prompt - defines AI's role
     json.append("    {\n");
     json.append("      \"role\": \"system\",\n");
-    json.append("      \"content\": \"").append(escapeJson(SYSTEM_PROMPT)).append("\"\n");
+    json.append("      \"content\": \"").append(escapeJson(DEFAULT_SYSTEM_PROMPT)).append("\"\n");
     json.append("    },\n");
 
-    // User prompt with HTTP data
+    // User message with custom prompt + HTTP data
     json.append("    {\n");
     json.append("      \"role\": \"user\",\n");
     StringBuilder userContent = new StringBuilder();
-    if (userPrompt != null && !userPrompt.isEmpty()) {
-      userContent.append(userPrompt).append("\n\n");
-    }
-
-    // Append formatted HTTP request/response
+    userContent.append(userPrompt).append("\\n\\n");
     userContent.append(formatHttpData(requestAndResponse));
     json.append("      \"content\": \"").append(escapeJson(userContent.toString())).append("\"\n");
 
@@ -52,8 +45,12 @@ public class OpenAIClient extends AbstractLLMClient {
     json.append("  \"max_tokens\": 1000,\n");
     json.append("  \"temperature\": 0.3\n");
     json.append("}");
-    // montoyaApi.logging().logToOutput("Request JSON: " + json.toString());
-    return json.toString();
+    
+    String jsonString = json.toString();
+    montoyaApi.logging().logToOutput("[DEBUG] JSON length: " + jsonString.length() + " bytes");
+    montoyaApi.logging().logToOutput("[DEBUG] JSON is valid: " + jsonString.endsWith("}"));
+    montoyaApi.logging().logToOutput("Request JSON: " + jsonString);
+    return jsonString;
   }
 
   @Override

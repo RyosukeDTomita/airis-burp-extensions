@@ -44,6 +44,7 @@ public class AnalysisEngine {
    */
   public String analyze(String request, String response, String customPrompt) {
     logging.logToOutput("Starting AI analysis...");
+    logging.logToOutput("Custom prompt received: " + (customPrompt != null ? customPrompt : "null"));
     ConfigModel configModel = configModelSupplier.get();
 
     // Create LLM client based on provider
@@ -58,8 +59,10 @@ public class AnalysisEngine {
     HttpHistoryItem httpHistoryItem = HttpHistoryItem.fromHttpRequestResponse(request, response);
     String result;
     if (customPrompt != null && !customPrompt.trim().isEmpty()) {
+      logging.logToOutput("Using custom prompt for analysis");
       result = llmClient.analyze(configModel, httpHistoryItem, customPrompt);
     } else {
+      logging.logToOutput("Using default prompt for analysis");
       result = llmClient.analyze(configModel, httpHistoryItem);
     }
     if (result == null) {

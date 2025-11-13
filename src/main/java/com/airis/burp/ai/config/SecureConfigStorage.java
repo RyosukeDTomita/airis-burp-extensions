@@ -30,7 +30,6 @@ public final class SecureConfigStorage {
   private static final String PROVIDER_SETTING = "airis.config.provider";
   private static final String ENDPOINT_SETTING = "airis.config.endpoint";
   private static final String API_KEY_SETTING = "airis.config.apiKey";
-  private static final String USER_PROMPT_SETTING = "airis.config.userPrompt";
 
   private final Logging logger;
   private final PersistedObject storage;
@@ -131,8 +130,7 @@ public final class SecureConfigStorage {
   public boolean hasConfig() {
     return this.storage.getString(PROVIDER_SETTING) != null
         && this.storage.getString(ENDPOINT_SETTING) != null
-        && this.storage.getString(API_KEY_SETTING) != null
-        && this.storage.getString(USER_PROMPT_SETTING) != null;
+        && this.storage.getString(API_KEY_SETTING) != null;
   }
 
   /** Deletes the master key and configuration data, reinitializing a fresh key. */
@@ -141,7 +139,6 @@ public final class SecureConfigStorage {
     this.storage.deleteString(PROVIDER_SETTING);
     this.storage.deleteString(ENDPOINT_SETTING);
     this.storage.deleteString(API_KEY_SETTING);
-    this.storage.deleteString(USER_PROMPT_SETTING);
     this.initializeMasterKey();
     this.logger.logToOutput("Configuration cleared from storage.");
   }

@@ -54,7 +54,10 @@ public abstract class AbstractLLMClient implements LLMClient {
     }
 
     if (customPrompt == null || customPrompt.trim().isEmpty()) {
+      montoyaApi.logging().logToOutput("Custom prompt is empty, using default");
       customPrompt = DEFAULT_SYSTEM_PROMPT;
+    } else {
+      montoyaApi.logging().logToOutput("Using custom prompt in LLM client: " + customPrompt.substring(0, Math.min(50, customPrompt.length())) + "...");
     }
 
     try {
@@ -100,10 +103,12 @@ public abstract class AbstractLLMClient implements LLMClient {
    */
   public String sendHttpRequest(ConfigModel config, String jsonRequest) {
     try {
+      montoyaApi.logging().logToOutput("[DEBUG] Sending HTTP request, body size: " + jsonRequest.length() + " bytes");
+      
       HttpRequest httpRequest =
           HttpRequest.httpRequestFromUrl(config.getEndpoint())
               .withMethod("POST")
-              .withHeader("Content-Type", "application/json")
+              .withHeader("Content-Type", "application/json; charset=UTF-8")
               .withHeader("Authorization", getAuthorizationHeader(config.getApiKey()))
               .withBody(jsonRequest);
 
@@ -118,11 +123,16 @@ public abstract class AbstractLLMClient implements LLMClient {
       int statusCode = httpResponse.statusCode();
       String responseBody = httpResponse.bodyToString();
 
+      montoyaApi.logging().logToOutput("[DEBUG] HTTP Status: " + statusCode);
+      montoyaApi.logging().logToOutput("[DEBUG] Response length: " + (responseBody != null ? responseBody.length() : 0) + " bytes");
+
       if (statusCode >= 400) {
+        montoyaApi.logging().logToError("[ERROR] HTTP " + statusCode + " Error: " + responseBody);
         String errorMsg = "HTTP " + statusCode + " Error: " + responseBody;
         throw new RuntimeException(errorMsg);
       }
 
+      montoyaApi.logging().logToOutput("[DEBUG] Request successful");
       return responseBody;
 
     } catch (Exception e) {
