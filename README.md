@@ -39,7 +39,7 @@ This is an [Burp Suite](https://portswigger.net/burp) extension that allows you 
 
 ## HOW TO USE
 
-1. Open Burp Suite and add .jar file.
+1. Open Burp Suite and add .jar file. You can download from [latet releases](https://github.com/RyosukeDTomita/airis-burp-extensions/releases) or build for yourself.
     ![extensions](./assets/add_extensions.png)
 2. Move to `AIris Config` tab and put your API key and endpoint. Don't forget to push Save button.
     ![api-key](./assets/settings.png)
@@ -79,16 +79,14 @@ I'm improveing it little by little.
 
 ---
 
-## PREPARING
+## For Developers
+
+### BUILD
 
 ```shell
 cd airis
 ./build.sh
 ```
-
----
-
-## For Developers
 
 ### Format code
 
