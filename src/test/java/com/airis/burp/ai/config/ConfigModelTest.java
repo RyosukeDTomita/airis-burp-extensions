@@ -31,9 +31,7 @@ public class ConfigModelTest {
   public void shouldReturnInstanceInfoWhenToString() {
     configModel =
         new ConfigModel(
-            "openai",
-            "https://api.openai.com/v1/chat/completions",
-            "sk-xxxxxxxxxxtest");
+            "openai", "https://api.openai.com/v1/chat/completions", "sk-xxxxxxxxxxtest");
 
     String result = configModel.toString();
 
@@ -48,11 +46,7 @@ public class ConfigModelTest {
         "a", "ab", "abc",
       })
   public void shouldReturnInstanceInfo2WhenToString(String apiKey) {
-    configModel =
-        new ConfigModel(
-            "openai",
-            "https://api.openai.com/v1/chat/completions",
-            apiKey);
+    configModel = new ConfigModel("openai", "https://api.openai.com/v1/chat/completions", apiKey);
 
     String result = configModel.toString();
 
@@ -67,10 +61,7 @@ public class ConfigModelTest {
     assertDoesNotThrow(
         () -> {
           configModel =
-              new ConfigModel(
-                  provider,
-                  "https://api.example.com/v1/endpoint",
-                  "test-api-key");
+              new ConfigModel(provider, "https://api.example.com/v1/endpoint", "test-api-key");
         });
   }
 
@@ -80,9 +71,7 @@ public class ConfigModelTest {
         IllegalArgumentException.class,
         () -> {
           new ConfigModel(
-              "invalid_provider",
-              "https://api.example.com/v1/chat",
-              "sk-xxxxxxxxxxxxxxxxxtest");
+              "invalid_provider", "https://api.example.com/v1/chat", "sk-xxxxxxxxxxxxxxxxxtest");
         });
   }
 
@@ -92,10 +81,7 @@ public class ConfigModelTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> {
-          new ConfigModel(
-              "openai",
-              endpoint,
-              "sk-xxxxxxxxxxxxxxxxxtest");
+          new ConfigModel("openai", endpoint, "sk-xxxxxxxxxxxxxxxxxtest");
         });
   }
 
@@ -104,10 +90,7 @@ public class ConfigModelTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> {
-          new ConfigModel(
-              "openai",
-              "https://api.example.com/v1/chat",
-              "");
+          new ConfigModel("openai", "https://api.example.com/v1/chat", "");
         });
   }
 
@@ -117,8 +100,7 @@ public class ConfigModelTest {
     // Testing that we can create ConfigModel without userPrompt
     assertDoesNotThrow(
         () -> {
-          new ConfigModel(
-              "openai", "https://api.example.com/v1/chat", "sk-xxxxxxxxxxxxxxxxxtest");
+          new ConfigModel("openai", "https://api.example.com/v1/chat", "sk-xxxxxxxxxxxxxxxxxtest");
         });
   }
 

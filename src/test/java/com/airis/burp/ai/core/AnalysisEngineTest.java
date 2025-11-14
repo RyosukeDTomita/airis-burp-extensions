@@ -104,14 +104,10 @@ public class AnalysisEngineTest {
     // Arrange
     // Setup montoyaApi mock
     when(montoyaApi.logging()).thenReturn(logging);
-    
+
     ConfigModel openaiConfig =
-        new ConfigModel(
-            "openai",
-            "https://api.openai.com/v1/chat/completions",
-            "test-api-key");
-    AnalysisEngine sut =
-        new AnalysisEngine(() -> openaiConfig, logging, montoyaApi);
+        new ConfigModel("openai", "https://api.openai.com/v1/chat/completions", "test-api-key");
+    AnalysisEngine sut = new AnalysisEngine(() -> openaiConfig, logging, montoyaApi);
 
     // Expected JSON response from OpenAI API
     String mockApiResponse =
@@ -184,7 +180,9 @@ public class AnalysisEngineTest {
             })) {
 
       // Act
-      String result = sut.analyze(SAMPLE_REQUEST, SAMPLE_RESPONSE, "Summary this request and response about security.");
+      String result =
+          sut.analyze(
+              SAMPLE_REQUEST, SAMPLE_RESPONSE, "Summary this request and response about security.");
 
       // Assert
       assertTrue(
@@ -198,14 +196,10 @@ public class AnalysisEngineTest {
     // Arrange
     // Setup montoyaApi mock
     when(montoyaApi.logging()).thenReturn(logging);
-    
+
     ConfigModel anthropicConfig =
-        new ConfigModel(
-            "anthropic",
-            "https://api.anthropic.com/v1/messages",
-            "test-api-key");
-    AnalysisEngine sut =
-        new AnalysisEngine(() -> anthropicConfig, logging, montoyaApi);
+        new ConfigModel("anthropic", "https://api.anthropic.com/v1/messages", "test-api-key");
+    AnalysisEngine sut = new AnalysisEngine(() -> anthropicConfig, logging, montoyaApi);
 
     // Expected JSON response from Anthropic API
     String mockApiResponse =
@@ -269,7 +263,9 @@ public class AnalysisEngineTest {
       // Act
 
       // Act
-      String result = sut.analyze(SAMPLE_REQUEST, SAMPLE_RESPONSE, "Summary this request and response about security.");
+      String result =
+          sut.analyze(
+              SAMPLE_REQUEST, SAMPLE_RESPONSE, "Summary this request and response about security.");
 
       // Assert
       assertTrue(

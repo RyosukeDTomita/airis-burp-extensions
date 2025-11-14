@@ -253,8 +253,11 @@ public class ConfigurationTab {
                       "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body>Test</body></html>");
 
               // Perform test analysis
-              String result = llmClient.analyze(testConfig, testItem,
-                  "Provide a brief analysis of the following HTTP request and response.");
+              String result =
+                  llmClient.analyze(
+                      testConfig,
+                      testItem,
+                      "Provide a brief analysis of the following HTTP request and response.");
 
               // Update UI on success
               SwingUtilities.invokeLater(
