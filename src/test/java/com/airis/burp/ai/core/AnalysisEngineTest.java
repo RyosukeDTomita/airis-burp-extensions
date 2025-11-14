@@ -102,16 +102,16 @@ public class AnalysisEngineTest {
   @Test
   void OpenAIAnalysisShouldReturnExpectedResult() {
     // Arrange
+    // Setup montoyaApi mock
+    when(montoyaApi.logging()).thenReturn(logging);
+    
     ConfigModel openaiConfig =
         new ConfigModel(
             "openai",
             "https://api.openai.com/v1/chat/completions",
-            "test-api-key",
-            "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, potential issues, and provide recommendations. Focus on common web application security issues like injection attacks, authentication bypasses, authorization issues, and data exposure.");
-    java.util.concurrent.ExecutorService executorService =
-        java.util.concurrent.Executors.newFixedThreadPool(1);
+            "test-api-key");
     AnalysisEngine sut =
-        new AnalysisEngine(() -> openaiConfig, logging, montoyaApi, executorService);
+        new AnalysisEngine(() -> openaiConfig, logging, montoyaApi);
 
     // Expected JSON response from OpenAI API
     String mockApiResponse =
@@ -165,21 +165,26 @@ public class AnalysisEngineTest {
             (mock, context) -> {
               // Configure the mock to delegate to our spy
               doAnswer(
-                      invocation ->
-                          openAIClientSpy.analyze(
-                              invocation.getArgument(0), invocation.getArgument(1)))
+                      invocation -> {
+                        ConfigModel config = invocation.getArgument(0);
+                        HttpHistoryItem item = invocation.getArgument(1);
+                        String prompt = invocation.getArgument(2);
+                        return openAIClientSpy.analyze(config, item, prompt);
+                      })
                   .when(mock)
-                  .analyze(any(ConfigModel.class), any());
+                  .analyze(any(ConfigModel.class), any(HttpHistoryItem.class), anyString());
               doAnswer(
-                      invocation ->
-                          openAIClientSpy.sendHttpRequest(
-                              invocation.getArgument(0), invocation.getArgument(1)))
+                      invocation -> {
+                        ConfigModel config = invocation.getArgument(0);
+                        String json = invocation.getArgument(1);
+                        return openAIClientSpy.sendHttpRequest(config, json);
+                      })
                   .when(mock)
                   .sendHttpRequest(any(ConfigModel.class), anyString());
             })) {
 
       // Act
-      String result = sut.analyze(SAMPLE_REQUEST, SAMPLE_RESPONSE);
+      String result = sut.analyze(SAMPLE_REQUEST, SAMPLE_RESPONSE, "Summary this request and response about security.");
 
       // Assert
       assertTrue(
@@ -191,16 +196,16 @@ public class AnalysisEngineTest {
   @Test
   void AnthropicAnalysisShouldReturnExpectedResult() {
     // Arrange
+    // Setup montoyaApi mock
+    when(montoyaApi.logging()).thenReturn(logging);
+    
     ConfigModel anthropicConfig =
         new ConfigModel(
             "anthropic",
             "https://api.anthropic.com/v1/messages",
-            "test-api-key",
-            "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, potential issues, and provide recommendations. Focus on common web application security issues like injection attacks, authentication bypasses, authorization issues, and data exposure.");
-    java.util.concurrent.ExecutorService executorService2 =
-        java.util.concurrent.Executors.newFixedThreadPool(1);
+            "test-api-key");
     AnalysisEngine sut =
-        new AnalysisEngine(() -> anthropicConfig, logging, montoyaApi, executorService2);
+        new AnalysisEngine(() -> anthropicConfig, logging, montoyaApi);
 
     // Expected JSON response from Anthropic API
     String mockApiResponse =
@@ -243,21 +248,28 @@ public class AnalysisEngineTest {
             (mock, context) -> {
               // Configure the mock to delegate to our spy
               doAnswer(
-                      invocation ->
-                          anthropicClientSpy.analyze(
-                              invocation.getArgument(0), invocation.getArgument(1)))
+                      invocation -> {
+                        ConfigModel config = invocation.getArgument(0);
+                        HttpHistoryItem item = invocation.getArgument(1);
+                        String prompt = invocation.getArgument(2);
+                        return anthropicClientSpy.analyze(config, item, prompt);
+                      })
                   .when(mock)
-                  .analyze(any(ConfigModel.class), any());
+                  .analyze(any(ConfigModel.class), any(HttpHistoryItem.class), anyString());
               doAnswer(
-                      invocation ->
-                          anthropicClientSpy.sendHttpRequest(
-                              invocation.getArgument(0), invocation.getArgument(1)))
+                      invocation -> {
+                        ConfigModel config = invocation.getArgument(0);
+                        String json = invocation.getArgument(1);
+                        return anthropicClientSpy.sendHttpRequest(config, json);
+                      })
                   .when(mock)
                   .sendHttpRequest(any(ConfigModel.class), anyString());
             })) {
 
       // Act
-      String result = sut.analyze(SAMPLE_REQUEST, SAMPLE_RESPONSE);
+
+      // Act
+      String result = sut.analyze(SAMPLE_REQUEST, SAMPLE_RESPONSE, "Summary this request and response about security.");
 
       // Assert
       assertTrue(
