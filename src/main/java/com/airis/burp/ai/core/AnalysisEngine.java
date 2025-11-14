@@ -22,32 +22,23 @@ public class AnalysisEngine {
   }
 
   /**
-   * Performs AI analysis on HTTP request/response with default prompt.
-   * Public for use by UI components.
-   *
-   * @param request The HTTP request to analyze
-   * @param response The HTTP response to analyze (nullable)
-   * @return Analysis result or error message
-   */
-  public String analyze(String request, String response) {
-    return analyze(request, response, null);
-  }
-
-  /**
    * Performs AI analysis on HTTP request/response with custom prompt.
    * Public for use by UI components.
    *
-   * @param request The HTTP request to analyze
-   * @param response The HTTP response to analyze (nullable)
-   * @param customPrompt Custom user prompt (null uses default)
+   * @param request The HTTP request to analyze (required)
+   * @param response The HTTP response to analyze (nullable) TODO: Optionalに書き換える?
+   * @param customPrompt Custom user prompt (required)
    * @return Analysis result or error message
    */
   public String analyze(String request, String response, String customPrompt) {
     logging.logToOutput("Starting AI analysis...");
-    logging.logToOutput("Custom prompt received: " + (customPrompt != null ? customPrompt : "null"));
-    ConfigModel configModel = configModelSupplier.get();
+    if (customPrompt == null || customPrompt.trim().isEmpty()) {
+      logging.logToOutput("No custom prompt provided, using default prompt.");
+      return "Error: Custom prompt is empty.";
+    }
 
-    // Create LLM client based on provider
+    // create llm client based on provider
+    ConfigModel configModel = configModelSupplier.get();
     LLMClient llmClient;
     try {
       llmClient = createLLMClient(configModel.getProvider());
@@ -58,13 +49,7 @@ public class AnalysisEngine {
     // Execute analysis using the configuration snapshot
     HttpHistoryItem httpHistoryItem = HttpHistoryItem.fromHttpRequestResponse(request, response);
     String result;
-    if (customPrompt != null && !customPrompt.trim().isEmpty()) {
-      logging.logToOutput("Using custom prompt for analysis");
-      result = llmClient.analyze(configModel, httpHistoryItem, customPrompt);
-    } else {
-      logging.logToOutput("Using default prompt for analysis");
-      result = llmClient.analyze(configModel, httpHistoryItem);
-    }
+    result = llmClient.analyze(configModel, httpHistoryItem, customPrompt);
     if (result == null) {
       return "No analysis result returned from LLM client.";
     } else {

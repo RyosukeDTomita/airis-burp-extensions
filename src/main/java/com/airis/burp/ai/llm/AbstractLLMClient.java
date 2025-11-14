@@ -12,12 +12,6 @@ import java.util.Map;
 public abstract class AbstractLLMClient implements LLMClient {
   protected final MontoyaApi montoyaApi;
 
-  /** Default system prompt for security analysis */
-  protected static final String DEFAULT_SYSTEM_PROMPT =
-      "You are a security analyst. Analyze the following HTTP request and response for security vulnerabilities, "
-          + "potential issues, and provide recommendations. Focus on common web application security issues like "
-          + "injection attacks, authentication bypasses, authorization issues, and data exposure.";
-
   /**
    * Constructor
    *
@@ -27,17 +21,6 @@ public abstract class AbstractLLMClient implements LLMClient {
     this.montoyaApi = montoyaApi;
   }
 
-  /**
-   * Analyze an HTTP request/response pair using the AI model with default prompt.
-   *
-   * @param configModel Configuration model containing API settings
-   * @param requestAndResponse HTTP request and response data
-   * @return Analysis response from the AI model
-   */
-  @Override
-  public String analyze(ConfigModel configModel, HttpHistoryItem requestAndResponse) {
-    return analyze(configModel, requestAndResponse, DEFAULT_SYSTEM_PROMPT);
-  }
 
   /**
    * Analyze an HTTP request/response pair using the AI model with custom prompt.
@@ -53,12 +36,7 @@ public abstract class AbstractLLMClient implements LLMClient {
       return "[ERROR] requestAndResponse is null";
     }
 
-    if (customPrompt == null || customPrompt.trim().isEmpty()) {
-      montoyaApi.logging().logToOutput("Custom prompt is empty, using default");
-      customPrompt = DEFAULT_SYSTEM_PROMPT;
-    } else {
-      montoyaApi.logging().logToOutput("Using custom prompt in LLM client: " + customPrompt.substring(0, Math.min(50, customPrompt.length())) + "...");
-    }
+    montoyaApi.logging().logToOutput("Using custom prompt in LLM client: " + customPrompt.substring(0, Math.min(50, customPrompt.length())) + "...");
 
     try {
       String jsonRequest = formatRequestBody(configModel, requestAndResponse, customPrompt);
