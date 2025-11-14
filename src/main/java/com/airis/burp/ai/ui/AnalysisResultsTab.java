@@ -3,6 +3,7 @@ package com.airis.burp.ai.ui;
 import burp.api.montoya.MontoyaApi;
 import com.airis.burp.ai.core.AnalysisEngine;
 import com.airis.burp.ai.core.AnalysisResult;
+import com.airis.burp.ai.core.HttpHistoryItem;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -241,13 +242,29 @@ public class AnalysisResultsTab extends JPanel {
 
     String newPrompt = JOptionPane.showInputDialog(this, "Edit prompt:", result.getPrompt());
 
-    if (newPrompt != null && !newPrompt.trim().isEmpty()) {
-      result.setPrompt(newPrompt);
-      result.setStatus(AnalysisResult.STATUS_PENDING);
-      result.setResult("");
-      tableModel.updateResult(selectedRow);
-      api.logging().logToOutput("Prompt updated for: " + result.getUrl());
+    if (newPrompt == null) {
+      return; // user cancelled the dialog
     }
+
+    newPrompt = newPrompt.trim();
+    if (newPrompt.isEmpty()) {
+      JOptionPane.showMessageDialog(
+          this,
+          "Prompt cannot be empty when creating a cloned analysis.",
+          "Invalid Prompt",
+          JOptionPane.WARNING_MESSAGE);
+      return;
+    }
+
+    HttpHistoryItem clonedItem = result.getHttpHistoryItem().copy();
+    AnalysisResult clonedResult = new AnalysisResult(result.getUrl(), newPrompt, clonedItem);
+
+    tableModel.addResult(clonedResult);
+    int newRowIndex = tableModel.getRowCount() - 1;
+    resultsTable.setRowSelectionInterval(newRowIndex, newRowIndex);
+    resultsTable.scrollRectToVisible(resultsTable.getCellRect(newRowIndex, 0, true));
+
+    api.logging().logToOutput("Created cloned analysis entry for: " + result.getUrl());
   }
 
   private void sendRequest() {

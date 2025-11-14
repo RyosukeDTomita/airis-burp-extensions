@@ -198,6 +198,23 @@ public class HttpHistoryItem {
   }
 
   /**
+   * Creates a deep copy of this history item so edits can safely operate on cloned requests.
+   *
+   * @return Newly duplicated history item containing the same request and response data
+   */
+  public HttpHistoryItem copy() {
+    HttpHistoryItem duplicate = new HttpHistoryItem();
+    duplicate.method = this.method;
+    duplicate.url = this.url;
+    duplicate.headers = new HashMap<>(this.headers);
+    duplicate.body = this.body;
+    duplicate.statusCode = this.statusCode;
+    duplicate.responseBody = this.responseBody;
+    duplicate.responseHeaders = new HashMap<>(this.responseHeaders);
+    return duplicate;
+  }
+
+  /**
    * Gets the original HTTP request string This is a reconstructed version of the original request
    *
    * @return The HTTP request as a string
