@@ -23,7 +23,7 @@ public class Extension implements BurpExtension {
   private static final String EXTENSION_NAME = "AIris: request insight system";
   // Tab display name in Burp
   private static final String CONFIG_TAB_NAME = "AIris Config";
-  private static final String RESULTS_TAB_NAME = "AI Analysis Results";
+  private static final String RESULTS_TAB_NAME = "Airis Analysis";
   private MontoyaApi api;
   private final AtomicReference<ConfigModel> configModelRef = new AtomicReference<>(null);
   private AnalysisEngine analysisEngine;
