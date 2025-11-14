@@ -31,15 +31,12 @@ public class ConfigModelTest {
   public void shouldReturnInstanceInfoWhenToString() {
     configModel =
         new ConfigModel(
-            "openai",
-            "https://api.openai.com/v1/chat/completions",
-            "sk-xxxxxxxxxxtest",
-            "Analyze the request for vulnerabilities.");
+            "openai", "https://api.openai.com/v1/chat/completions", "sk-xxxxxxxxxxtest");
 
     String result = configModel.toString();
 
     assertEquals(
-        "ConfigModel(provider=openai, endpoint=https://api.openai.com/v1/chat/completions, apiKey=***test, userPrompt=Analyze the request for vulnerabilities.)",
+        "ConfigModel(provider=openai, endpoint=https://api.openai.com/v1/chat/completions, apiKey=***test)",
         result);
   }
 
@@ -49,17 +46,12 @@ public class ConfigModelTest {
         "a", "ab", "abc",
       })
   public void shouldReturnInstanceInfo2WhenToString(String apiKey) {
-    configModel =
-        new ConfigModel(
-            "openai",
-            "https://api.openai.com/v1/chat/completions",
-            apiKey,
-            "Analyze the request for vulnerabilities.");
+    configModel = new ConfigModel("openai", "https://api.openai.com/v1/chat/completions", apiKey);
 
     String result = configModel.toString();
 
     assertEquals(
-        "ConfigModel(provider=openai, endpoint=https://api.openai.com/v1/chat/completions, apiKey=***, userPrompt=Analyze the request for vulnerabilities.)",
+        "ConfigModel(provider=openai, endpoint=https://api.openai.com/v1/chat/completions, apiKey=***)",
         result);
   }
 
@@ -69,11 +61,7 @@ public class ConfigModelTest {
     assertDoesNotThrow(
         () -> {
           configModel =
-              new ConfigModel(
-                  provider,
-                  "https://api.example.com/v1/endpoint",
-                  "test-api-key",
-                  "Analyze the request for vulnerabilities.");
+              new ConfigModel(provider, "https://api.example.com/v1/endpoint", "test-api-key");
         });
   }
 
@@ -83,10 +71,7 @@ public class ConfigModelTest {
         IllegalArgumentException.class,
         () -> {
           new ConfigModel(
-              "invalid_provider",
-              "https://api.example.com/v1/chat",
-              "sk-xxxxxxxxxxxxxxxxxtest",
-              "Analyze the request for vulnerabilities.");
+              "invalid_provider", "https://api.example.com/v1/chat", "sk-xxxxxxxxxxxxxxxxxtest");
         });
   }
 
@@ -96,11 +81,7 @@ public class ConfigModelTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> {
-          new ConfigModel(
-              "openai",
-              endpoint,
-              "sk-xxxxxxxxxxxxxxxxxtest",
-              "Analyze the request for vulnerabilities.");
+          new ConfigModel("openai", endpoint, "sk-xxxxxxxxxxxxxxxxxtest");
         });
   }
 
@@ -109,21 +90,17 @@ public class ConfigModelTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> {
-          new ConfigModel(
-              "openai",
-              "https://api.example.com/v1/chat",
-              "",
-              "Analyze the request for vulnerabilities.");
+          new ConfigModel("openai", "https://api.example.com/v1/chat", "");
         });
   }
 
   @Test
   public void shouldThrowExceptionForEmptyUserPrompt() {
-    assertThrows(
-        IllegalArgumentException.class,
+    // This test is no longer relevant since userPrompt was removed
+    // Testing that we can create ConfigModel without userPrompt
+    assertDoesNotThrow(
         () -> {
-          new ConfigModel(
-              "openai", "https://api.example.com/v1/chat", "sk-xxxxxxxxxxxxxxxxxtest", "");
+          new ConfigModel("openai", "https://api.example.com/v1/chat", "sk-xxxxxxxxxxxxxxxxxtest");
         });
   }
 
@@ -131,7 +108,7 @@ public class ConfigModelTest {
   public void getApiKeyshouldReturnApiKey() {
     configModel =
         new ConfigModel(
-            "openai", "https://api.openai.com/v1/chat/completions", "sk-xxxxxxxxxxxtest", "prompt");
+            "openai", "https://api.openai.com/v1/chat/completions", "sk-xxxxxxxxxxxtest");
 
     assertEquals("sk-xxxxxxxxxxxtest", configModel.getApiKey());
   }
@@ -140,7 +117,7 @@ public class ConfigModelTest {
   public void getApiKeyshouldReturnApiKeyAsString() {
     configModel =
         new ConfigModel(
-            "openai", "https://api.openai.com/v1/chat/completions", "sk-xxxxxxxxxxxtest", "prompt");
+            "openai", "https://api.openai.com/v1/chat/completions", "sk-xxxxxxxxxxxtest");
 
     assertEquals("sk-xxxxxxxxxxxtest", configModel.getApiKey());
   }

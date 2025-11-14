@@ -1,19 +1,32 @@
 package com.airis.burp.ai.llm;
 
 import burp.api.montoya.MontoyaApi;
-import burp.api.montoya.http.message.HttpRequestResponse;
-import burp.api.montoya.http.message.requests.HttpRequest;
-import burp.api.montoya.http.message.responses.HttpResponse;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.core.HttpHistoryItem;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /** Anthropic Claude Client to send requests to the Anthropic API */
 public class AnthropicClient extends AbstractLLMClient {
   private static final String DEFAULT_MODEL = "claude-3-5-haiku-20241022";
-  private static final String SYSTEM_PROMPT =
-      "You are an expert security analyst specializing in web application security."
-          + "Following the user's prompt, analyze the provided HTTP request and response.\n";
   private static final String API_VERSION = "2023-06-01";
+  private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
+  private static final OkHttpClient HTTP_CLIENT =
+      new OkHttpClient.Builder()
+          .connectTimeout(20, TimeUnit.SECONDS)
+          .writeTimeout(20, TimeUnit.SECONDS)
+          .readTimeout(20, TimeUnit.SECONDS)
+          .build();
+  private static final MediaType JSON_MEDIA_TYPE = MediaType.get("application/json; charset=utf-8");
 
   /**
    * Constructor
@@ -32,34 +45,31 @@ public class AnthropicClient extends AbstractLLMClient {
 
   @Override
   public String sendHttpRequest(ConfigModel config, String jsonRequest) {
-    try {
-      HttpRequest httpRequest =
-          HttpRequest.httpRequestFromUrl(config.getEndpoint())
-              .withMethod("POST")
-              .withHeader("Content-Type", "application/json")
-              .withHeader("x-api-key", config.getApiKey())
-              .withHeader("anthropic-version", API_VERSION)
-              .withBody(jsonRequest);
+    RequestBody requestBody = RequestBody.create(jsonRequest, JSON_MEDIA_TYPE);
 
-      HttpRequestResponse requestResponse = montoyaApi.http().sendRequest(httpRequest);
+    Request request =
+        new Request.Builder()
+            .url(config.getEndpoint())
+            .post(requestBody)
+            .addHeader("x-api-key", config.getApiKey())
+            .addHeader("anthropic-version", API_VERSION)
+            .addHeader("Content-Type", "application/json; charset=utf-8")
+            .build();
 
-      HttpResponse httpResponse = requestResponse.response();
-
-      if (httpResponse == null) {
+    try (Response response = HTTP_CLIENT.newCall(request).execute()) {
+      if (response.body() == null) {
         throw new RuntimeException("No response received from API");
       }
 
-      int statusCode = httpResponse.statusCode();
-      String responseBody = httpResponse.bodyToString();
+      String responseBody = response.body().string();
 
-      if (statusCode >= 400) {
-        String errorMsg = "HTTP " + statusCode + " Error: " + responseBody;
-        throw new RuntimeException(errorMsg);
+      if (!response.isSuccessful()) {
+        montoyaApi.logging().logToError("[ERROR] HTTP " + response.code() + " Error: " + responseBody);
+        throw new RuntimeException("HTTP " + response.code() + " Error: " + responseBody);
       }
 
       return responseBody;
-
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new RuntimeException("Failed to make HTTP request: " + e.getMessage(), e);
     }
   }
@@ -68,35 +78,31 @@ public class AnthropicClient extends AbstractLLMClient {
   protected String formatRequestBody(
       ConfigModel configModel, HttpHistoryItem requestAndResponse, String userPrompt) {
 
-    StringBuilder json = new StringBuilder();
-    json.append("{\n");
-    json.append("  \"model\": \"").append(DEFAULT_MODEL).append("\",\n");
-    json.append("  \"max_tokens\": 1024,\n");
-    json.append("  \"temperature\": 0.3,\n");
+    JsonObject payload = new JsonObject();
+    payload.addProperty("model", DEFAULT_MODEL);
+    payload.addProperty("system", DEFAULT_SYSTEM_PROMPT);
+    payload.addProperty("max_tokens", 1024);
+    payload.addProperty("temperature", 0.3);
 
-    // System message
-    json.append("  \"system\": \"").append(escapeJson(SYSTEM_PROMPT)).append("\",\n");
+    JsonArray messages = new JsonArray();
+    JsonObject userMessage = new JsonObject();
+    userMessage.addProperty("role", "user");
 
-    // Messages array
-    json.append("  \"messages\": [\n");
-    json.append("    {\n");
-    json.append("      \"role\": \"user\",\n");
+    JsonArray contentBlocks = new JsonArray();
+    JsonObject textBlock = new JsonObject();
+    textBlock.addProperty("type", "text");
+    textBlock.addProperty("text", userPrompt + "\n\n" + formatHttpData(requestAndResponse));
+    contentBlocks.add(textBlock);
 
-    // user prompt
-    StringBuilder userContent = new StringBuilder();
-    if (userPrompt != null && !userPrompt.isEmpty()) {
-      userContent.append(userPrompt).append("\n\n");
-    }
+    userMessage.add("content", contentBlocks);
+    messages.add(userMessage);
+    payload.add("messages", messages);
 
-    // Append formatted HTTP request/response
-    userContent.append(formatHttpData(requestAndResponse));
-    json.append("      \"content\": \"").append(escapeJson(userContent.toString())).append("\"\n");
-
-    json.append("    }\n");
-    json.append("  ]\n");
-    json.append("}");
-    // montoyaApi.logging().logToOutput("[DEBUG] Request JSON: " + json.toString());
-    return json.toString();
+    String jsonString = GSON.toJson(payload);
+    montoyaApi.logging().logToOutput("[DEBUG] JSON length: " + jsonString.length() + " bytes");
+    montoyaApi.logging().logToOutput("[DEBUG] JSON is valid: " + jsonString.endsWith("}"));
+    montoyaApi.logging().logToOutput("[DEBUG] Request JSON: " + jsonString);
+    return jsonString;
   }
 
   @Override

@@ -9,6 +9,7 @@ import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.config.SecureConfigStorage;
 import com.airis.burp.ai.core.AnalysisEngine;
 import com.airis.burp.ai.ui.AIAnalysisMenuProvider;
+import com.airis.burp.ai.ui.AnalysisResultsTab;
 import com.airis.burp.ai.ui.ConfigurationTab;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -21,7 +22,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Extension implements BurpExtension {
   private static final String EXTENSION_NAME = "AIris: request insight system";
   // Tab display name in Burp
-  private static final String TAB_NAME = "AIris Config";
+  private static final String CONFIG_TAB_NAME = "AIris Config";
+  private static final String RESULTS_TAB_NAME = "Airis Analysis";
   private MontoyaApi api;
   private final AtomicReference<ConfigModel> configModelRef = new AtomicReference<>(null);
   private AnalysisEngine analysisEngine;
@@ -78,7 +80,7 @@ public class Extension implements BurpExtension {
     Logging logging = api.logging();
 
     try {
-      this.analysisEngine = new AnalysisEngine(configModelRef::get, logging, api, executorService);
+      this.analysisEngine = new AnalysisEngine(configModelRef::get, logging, api);
 
       logging.logToOutput("Components initialized successfully");
     } catch (Exception e) {
@@ -92,8 +94,13 @@ public class Extension implements BurpExtension {
     Logging logging = api.logging();
 
     try {
-      // Register context menu
-      AIAnalysisMenuProvider menuProvider = new AIAnalysisMenuProvider(analysisEngine, api, executorService);
+      // Register analysis results tab
+      AnalysisResultsTab resultsTab = new AnalysisResultsTab(analysisEngine, api, executorService);
+      api.userInterface().registerSuiteTab(RESULTS_TAB_NAME, resultsTab.getMainPanel());
+
+      // Register context menu with results tab reference
+      AIAnalysisMenuProvider menuProvider = new AIAnalysisMenuProvider(api);
+      menuProvider.setAnalysisResultsTab(resultsTab);
       api.userInterface().registerContextMenuItemsProvider(menuProvider);
 
       // Register configuration tab
@@ -107,7 +114,7 @@ public class Extension implements BurpExtension {
               },
               secureConfigStorage,
               api);
-      api.userInterface().registerSuiteTab(TAB_NAME, configTab.getMainPanel());
+      api.userInterface().registerSuiteTab(CONFIG_TAB_NAME, configTab.getMainPanel());
 
       if (existingConfig.isPresent()) {
         configTab.loadConfiguration(existingConfig.get());

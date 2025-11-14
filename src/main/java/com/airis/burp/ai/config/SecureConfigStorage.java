@@ -30,7 +30,6 @@ public final class SecureConfigStorage {
   private static final String PROVIDER_SETTING = "airis.config.provider";
   private static final String ENDPOINT_SETTING = "airis.config.endpoint";
   private static final String API_KEY_SETTING = "airis.config.apiKey";
-  private static final String USER_PROMPT_SETTING = "airis.config.userPrompt";
 
   private final Logging logger;
   private final PersistedObject storage;
@@ -87,15 +86,14 @@ public final class SecureConfigStorage {
     final String provider = this.storage.getString(PROVIDER_SETTING);
     final String endpoint = this.storage.getString(ENDPOINT_SETTING);
     final String encryptedApiKey = this.storage.getString(API_KEY_SETTING);
-    final String userPrompt = this.storage.getString(USER_PROMPT_SETTING);
 
-    if (provider == null || endpoint == null || encryptedApiKey == null || userPrompt == null) {
+    if (provider == null || endpoint == null || encryptedApiKey == null) {
       return Optional.empty();
     }
 
     try {
       String apiKey = this.decryptToString(encryptedApiKey);
-      return Optional.of(new ConfigModel(provider, endpoint, apiKey, userPrompt));
+      return Optional.of(new ConfigModel(provider, endpoint, apiKey));
     } catch (GeneralSecurityException e) {
       this.logger.logToError("Failed to decrypt stored configuration: " + e.getMessage());
       return Optional.empty();
@@ -115,7 +113,6 @@ public final class SecureConfigStorage {
 
       this.storage.setString(PROVIDER_SETTING, config.getProvider());
       this.storage.setString(ENDPOINT_SETTING, config.getEndpoint());
-      this.storage.setString(USER_PROMPT_SETTING, config.getUserPrompt());
       this.storage.setString(API_KEY_SETTING, encryptedKey);
 
       this.logger.logToOutput("Configuration stored securely.");
@@ -133,8 +130,7 @@ public final class SecureConfigStorage {
   public boolean hasConfig() {
     return this.storage.getString(PROVIDER_SETTING) != null
         && this.storage.getString(ENDPOINT_SETTING) != null
-        && this.storage.getString(API_KEY_SETTING) != null
-        && this.storage.getString(USER_PROMPT_SETTING) != null;
+        && this.storage.getString(API_KEY_SETTING) != null;
   }
 
   /** Deletes the master key and configuration data, reinitializing a fresh key. */
@@ -143,7 +139,6 @@ public final class SecureConfigStorage {
     this.storage.deleteString(PROVIDER_SETTING);
     this.storage.deleteString(ENDPOINT_SETTING);
     this.storage.deleteString(API_KEY_SETTING);
-    this.storage.deleteString(USER_PROMPT_SETTING);
     this.initializeMasterKey();
     this.logger.logToOutput("Configuration cleared from storage.");
   }

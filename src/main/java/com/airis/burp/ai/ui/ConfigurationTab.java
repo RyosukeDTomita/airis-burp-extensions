@@ -31,13 +31,15 @@ public class ConfigurationTab {
   private JComboBox<String> providerCombo;
   private JTextField endpointField;
   private JPasswordField apiKeyField;
-  private JTextArea userPromptArea;
   private JButton saveButton;
   private JButton testButton;
   private JLabel statusLabel;
 
   public ConfigurationTab(
-      Logging logging, Consumer<ConfigModel> onSave, SecureConfigStorage secureConfigStorage, MontoyaApi montoyaApi) {
+      Logging logging,
+      Consumer<ConfigModel> onSave,
+      SecureConfigStorage secureConfigStorage,
+      MontoyaApi montoyaApi) {
     this.logging = logging;
     this.onSave = onSave;
     this.secureConfigStorage = secureConfigStorage;
@@ -94,23 +96,13 @@ public class ConfigurationTab {
     apiKeyField = new JPasswordField();
     formPanel.add(apiKeyField, gbc);
 
-    // User Prompt
+    // Add a filler component to push everything to the top
     gbc.gridx = 0;
     gbc.gridy = 3;
-    gbc.weightx = 0;
-    gbc.anchor = GridBagConstraints.NORTH;
-    formPanel.add(new JLabel("Analysis Prompt:"), gbc);
-
-    // User prompt text area
-    gbc.gridx = 1;
-    gbc.weightx = 1.0;
+    gbc.gridwidth = 2;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
-    userPromptArea = new JTextArea(10, 50);
-    userPromptArea.setLineWrap(true);
-    userPromptArea.setWrapStyleWord(true);
-    JScrollPane scrollPane = new JScrollPane(userPromptArea);
-    formPanel.add(scrollPane, gbc);
+    formPanel.add(new JLabel(), gbc);
 
     // Button panel
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -139,8 +131,12 @@ public class ConfigurationTab {
     statusPanel.add(new JLabel("Status:"));
     statusPanel.add(statusLabel);
 
+    // Wrap form panel to align it to the top-left
+    JPanel formWrapper = new JPanel(new BorderLayout());
+    formWrapper.add(formPanel, BorderLayout.NORTH);
+
     // Add components to main panel
-    mainPanel.add(formPanel, BorderLayout.CENTER);
+    mainPanel.add(formWrapper, BorderLayout.CENTER);
 
     JPanel bottomPanel = new JPanel(new BorderLayout());
     bottomPanel.add(buttonPanel, BorderLayout.NORTH);
@@ -157,7 +153,6 @@ public class ConfigurationTab {
     providerCombo.setSelectedItem("openai");
     endpointField.setText("https://api.openai.com/v1/chat/completions");
     apiKeyField.setText("");
-    userPromptArea.setText(ConfigModel.DEFAULT_USER_PROMPT);
   }
 
   /**
@@ -172,7 +167,6 @@ public class ConfigurationTab {
     this.providerCombo.setSelectedItem(configModel.getProvider());
     this.endpointField.setText(configModel.getEndpoint());
     this.apiKeyField.setText(configModel.getApiKey());
-    this.userPromptArea.setText(configModel.getUserPrompt());
   }
 
   /** Update the endpoint field when the drop down list (provider) is changed */
@@ -196,10 +190,7 @@ public class ConfigurationTab {
 
         ConfigModel newConfig =
             new ConfigModel(
-                (String) providerCombo.getSelectedItem(),
-                endpointField.getText(),
-                enteredApiKey,
-                userPromptArea.getText());
+                (String) providerCombo.getSelectedItem(), endpointField.getText(), enteredApiKey);
         // Consumer callback to save the configuration
         onSave.accept(newConfig);
 
@@ -221,14 +212,13 @@ public class ConfigurationTab {
       statusLabel.setText("Testing configuration...");
       statusLabel.setForeground(Color.BLUE);
       testButton.setEnabled(false);
-      
+
       // Get current configuration from UI
       String provider = (String) providerCombo.getSelectedItem();
       String endpoint = endpointField.getText();
       char[] apiKeyChars = apiKeyField.getPassword();
       String apiKey = new String(apiKeyChars);
-      String userPrompt = userPromptArea.getText();
-      
+
       // Validate configuration
       if (apiKey.isEmpty()) {
         statusLabel.setText("Error: API Key is required");
@@ -236,58 +226,65 @@ public class ConfigurationTab {
         testButton.setEnabled(true);
         return;
       }
-      
+
       // Test connection asynchronously
-      executorService.submit(() -> {
-        try {
-          ConfigModel testConfig = new ConfigModel(provider, endpoint, apiKey, userPrompt);
-          
-          // Create LLM client based on provider
-          LLMClient llmClient;
-          switch (provider) {
-            case "openai":
-              llmClient = new OpenAIClient(montoyaApi);
-              break;
-            case "anthropic":
-              llmClient = new AnthropicClient(montoyaApi);
-              break;
-            default:
-              throw new IllegalArgumentException("Unsupported provider: " + provider);
-          }
-          
-          // Create a simple test request
-          HttpHistoryItem testItem = HttpHistoryItem.fromHttpRequestResponse(
-              "GET / HTTP/1.1\r\nHost: example.com\r\n\r\n",
-              "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body>Test</body></html>"
-          );
-          
-          // Perform test analysis
-          String result = llmClient.analyze(testConfig, testItem);
-          
-          // Update UI on success
-          SwingUtilities.invokeLater(() -> {
-            if (result != null && !result.isEmpty()) {
-              statusLabel.setText("Connection successful!");
-              statusLabel.setForeground(Color.GREEN);
-              logging.logToOutput("LLM connection test successful");
-            } else {
-              statusLabel.setText("Connection failed: Empty response");
-              statusLabel.setForeground(Color.RED);
-              logging.logToError("LLM connection test failed: Empty response");
+      executorService.submit(
+          () -> {
+            try {
+              ConfigModel testConfig = new ConfigModel(provider, endpoint, apiKey);
+
+              // Create LLM client based on provider
+              LLMClient llmClient;
+              switch (provider) {
+                case "openai":
+                  llmClient = new OpenAIClient(montoyaApi);
+                  break;
+                case "anthropic":
+                  llmClient = new AnthropicClient(montoyaApi);
+                  break;
+                default:
+                  throw new IllegalArgumentException("Unsupported provider: " + provider);
+              }
+
+              // Create a simple test request
+              HttpHistoryItem testItem =
+                  HttpHistoryItem.fromHttpRequestResponse(
+                      "GET / HTTP/1.1\r\nHost: example.com\r\n\r\n",
+                      "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body>Test</body></html>");
+
+              // Perform test analysis
+              String result =
+                  llmClient.analyze(
+                      testConfig,
+                      testItem,
+                      "Provide a brief analysis of the following HTTP request and response.");
+
+              // Update UI on success
+              SwingUtilities.invokeLater(
+                  () -> {
+                    if (result != null && !result.isEmpty()) {
+                      statusLabel.setText("Connection successful!");
+                      statusLabel.setForeground(Color.GREEN);
+                      logging.logToOutput("LLM connection test successful");
+                    } else {
+                      statusLabel.setText("Connection failed: Empty response");
+                      statusLabel.setForeground(Color.RED);
+                      logging.logToError("LLM connection test failed: Empty response");
+                    }
+                    testButton.setEnabled(true);
+                  });
+
+            } catch (Exception ex) {
+              // Update UI on failure
+              SwingUtilities.invokeLater(
+                  () -> {
+                    statusLabel.setText("Connection failed: " + ex.getMessage());
+                    statusLabel.setForeground(Color.RED);
+                    logging.logToError("LLM connection test failed: " + ex.getMessage());
+                    testButton.setEnabled(true);
+                  });
             }
-            testButton.setEnabled(true);
           });
-          
-        } catch (Exception ex) {
-          // Update UI on failure
-          SwingUtilities.invokeLater(() -> {
-            statusLabel.setText("Connection failed: " + ex.getMessage());
-            statusLabel.setForeground(Color.RED);
-            logging.logToError("LLM connection test failed: " + ex.getMessage());
-            testButton.setEnabled(true);
-          });
-        }
-      });
     }
   }
 

@@ -196,4 +196,60 @@ public class HttpHistoryItem {
   public void setResponseHeaders(Map<String, String> responseHeaders) {
     this.responseHeaders = responseHeaders != null ? responseHeaders : new HashMap<>();
   }
+
+  /**
+   * Creates a deep copy of this history item so edits can safely operate on cloned requests.
+   *
+   * @return Newly duplicated history item containing the same request and response data
+   */
+  public HttpHistoryItem copy() {
+    HttpHistoryItem duplicate = new HttpHistoryItem();
+    duplicate.method = this.method;
+    duplicate.url = this.url;
+    duplicate.headers = new HashMap<>(this.headers);
+    duplicate.body = this.body;
+    duplicate.statusCode = this.statusCode;
+    duplicate.responseBody = this.responseBody;
+    duplicate.responseHeaders = new HashMap<>(this.responseHeaders);
+    return duplicate;
+  }
+
+  /**
+   * Gets the original HTTP request string This is a reconstructed version of the original request
+   *
+   * @return The HTTP request as a string
+   */
+  public String getRequest() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(method).append(" ").append(url).append(" HTTP/1.1\r\n");
+    for (Map.Entry<String, String> header : headers.entrySet()) {
+      sb.append(header.getKey()).append(": ").append(header.getValue()).append("\r\n");
+    }
+    sb.append("\r\n");
+    if (body != null && !body.isEmpty()) {
+      sb.append(body);
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Gets the original HTTP response string This is a reconstructed version of the original response
+   *
+   * @return The HTTP response as a string
+   */
+  public String getResponse() {
+    if (statusCode == 0) {
+      return "";
+    }
+    StringBuilder sb = new StringBuilder();
+    sb.append("HTTP/1.1 ").append(statusCode).append("\r\n");
+    for (Map.Entry<String, String> header : responseHeaders.entrySet()) {
+      sb.append(header.getKey()).append(": ").append(header.getValue()).append("\r\n");
+    }
+    sb.append("\r\n");
+    if (responseBody != null && !responseBody.isEmpty()) {
+      sb.append(responseBody);
+    }
+    return sb.toString();
+  }
 }

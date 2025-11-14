@@ -6,8 +6,6 @@ import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.AnthropicClient;
 import com.airis.burp.ai.llm.LLMClient;
 import com.airis.burp.ai.llm.OpenAIClient;
-import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /** chose LLM provider and start analysis. */
@@ -15,29 +13,32 @@ public class AnalysisEngine {
   private final Supplier<ConfigModel> configModelSupplier;
   private final Logging logging;
   private final MontoyaApi montoyaApi;
-  private final ExecutorService executorService;
 
   public AnalysisEngine(
-      Supplier<ConfigModel> configModelSupplier, Logging logging, MontoyaApi montoyaApi, ExecutorService executorService) {
+      Supplier<ConfigModel> configModelSupplier, Logging logging, MontoyaApi montoyaApi) {
     this.configModelSupplier = configModelSupplier;
     this.logging = logging;
     this.montoyaApi = montoyaApi;
-    this.executorService = executorService;
   }
 
   /**
-   * Internal method for AI analysis. Use analyzeAsync() for public API.
-   * Package-private for testing purposes.
+   * Performs AI analysis on HTTP request/response with custom prompt. Public for use by UI
+   * components.
    *
-   * @param request The HTTP request to analyze
-   * @param response The HTTP response to analyze (nullable)
+   * @param request The HTTP request to analyze (required)
+   * @param response The HTTP response to analyze (nullable) TODO: Optionalに書き換える?
+   * @param customPrompt Custom user prompt (required)
    * @return Analysis result or error message
    */
-  String analyze(String request, String response) {
+  public String analyze(String request, String response, String customPrompt) {
     logging.logToOutput("Starting AI analysis...");
-    ConfigModel configModel = configModelSupplier.get();
+    if (customPrompt == null || customPrompt.trim().isEmpty()) {
+      logging.logToOutput("No custom prompt provided, using default prompt.");
+      return "Error: Custom prompt is empty.";
+    }
 
-    // Create LLM client based on provider
+    // create llm client based on provider
+    ConfigModel configModel = configModelSupplier.get();
     LLMClient llmClient;
     try {
       llmClient = createLLMClient(configModel.getProvider());
@@ -47,31 +48,13 @@ public class AnalysisEngine {
     }
     // Execute analysis using the configuration snapshot
     HttpHistoryItem httpHistoryItem = HttpHistoryItem.fromHttpRequestResponse(request, response);
-    String result = llmClient.analyze(configModel, httpHistoryItem);
+    String result;
+    result = llmClient.analyze(configModel, httpHistoryItem, customPrompt);
     if (result == null) {
       return "No analysis result returned from LLM client.";
     } else {
       return result;
     }
-  }
-
-  /**
-   * Analyze request/response asynchronously
-   *
-   * @param request The HTTP request to analyze
-   * @param response The HTTP response to analyze (nullable)
-   * @param callback Callback to handle the result
-   */
-  public void analyzeAsync(String request, String response, Consumer<String> callback) {
-    executorService.submit(() -> {
-      try {
-        String result = analyze(request, response);
-        javax.swing.SwingUtilities.invokeLater(() -> callback.accept(result));
-      } catch (Exception e) {
-        logging.logToError("Async analysis failed: " + e.getMessage());
-        javax.swing.SwingUtilities.invokeLater(() -> callback.accept("Analysis failed: " + e.getMessage()));
-      }
-    });
   }
 
   /**

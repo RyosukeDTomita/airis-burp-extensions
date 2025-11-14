@@ -6,11 +6,12 @@ import com.airis.burp.ai.core.HttpHistoryItem;
 /** Interface for LLM client implementations. */
 public interface LLMClient {
   /**
-   * Analyze an HTTP request/response pair using the AI model.
+   * Analyze an HTTP request/response pair using the AI model with custom prompt.
    *
-   * @param request The HTTP request/response data
-   * @param userPrompt The user prompt for analysis
+   * @param configModel Configuration model containing API settings
+   * @param requestResponse The HTTP request/response data
+   * @param customPrompt Custom user prompt for analysis
    * @return Analysis response from the AI model
    */
-  String analyze(ConfigModel configModel, HttpHistoryItem requestResponse);
+  String analyze(ConfigModel configModel, HttpHistoryItem requestResponse, String customPrompt);
 }

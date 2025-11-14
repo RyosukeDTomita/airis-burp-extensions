@@ -11,6 +11,8 @@ import java.util.Map;
 /** Abstract base class for LLM client implementations. */
 public abstract class AbstractLLMClient implements LLMClient {
   protected final MontoyaApi montoyaApi;
+  public static final String DEFAULT_SYSTEM_PROMPT =
+      "You are an AI assistant specialized in cybersecurity. Answer the user's questions related to HTTP requests and responses.";
 
   /**
    * Constructor
@@ -22,26 +24,29 @@ public abstract class AbstractLLMClient implements LLMClient {
   }
 
   /**
-   * Analyze an HTTP request/response pair using the AI model.
+   * Analyze an HTTP request/response pair using the AI model with custom prompt.
    *
    * @param configModel Configuration model containing API settings
    * @param requestAndResponse HTTP request and response data
+   * @param customPrompt Custom user prompt for analysis
    * @return Analysis response from the AI model
    */
   @Override
-  public String analyze(ConfigModel configModel, HttpHistoryItem requestAndResponse) {
+  public String analyze(
+      ConfigModel configModel, HttpHistoryItem requestAndResponse, String customPrompt) {
     if (requestAndResponse == null) {
       return "[ERROR] requestAndResponse is null";
     }
 
-    // TODO: そのうち、UserPromptはConfigModelから切り離して、リクエストごとに指定できるようにする
-    String userPrompt = configModel.getUserPrompt();
-    if (userPrompt == null || userPrompt.trim().isEmpty()) {
-      return "[ERROR] userPrompt is null or empty";
-    }
+    montoyaApi
+        .logging()
+        .logToOutput(
+            "Using custom prompt in LLM client: "
+                + customPrompt.substring(0, Math.min(50, customPrompt.length()))
+                + "...");
 
     try {
-      String jsonRequest = formatRequestBody(configModel, requestAndResponse, userPrompt);
+      String jsonRequest = formatRequestBody(configModel, requestAndResponse, customPrompt);
       String jsonResponse = sendHttpRequest(configModel, jsonRequest);
       return parseResponseBody(jsonResponse);
     } catch (Exception e) {
@@ -86,7 +91,7 @@ public abstract class AbstractLLMClient implements LLMClient {
       HttpRequest httpRequest =
           HttpRequest.httpRequestFromUrl(config.getEndpoint())
               .withMethod("POST")
-              .withHeader("Content-Type", "application/json")
+              .withHeader("Content-Type", "application/json; charset=UTF-8")
               .withHeader("Authorization", getAuthorizationHeader(config.getApiKey()))
               .withBody(jsonRequest);
 
@@ -102,10 +107,10 @@ public abstract class AbstractLLMClient implements LLMClient {
       String responseBody = httpResponse.bodyToString();
 
       if (statusCode >= 400) {
+        montoyaApi.logging().logToError("[ERROR] HTTP " + statusCode + " Error: " + responseBody);
         String errorMsg = "HTTP " + statusCode + " Error: " + responseBody;
         throw new RuntimeException(errorMsg);
       }
-
       return responseBody;
 
     } catch (Exception e) {
@@ -122,40 +127,25 @@ public abstract class AbstractLLMClient implements LLMClient {
   protected String formatHttpData(HttpHistoryItem request) {
     StringBuilder data = new StringBuilder();
 
-    data.append(
-        "Please analyze this HTTP request and response for security vulnerabilities and potential issues:\\n\\n");
-
-    data.append("=== HTTP REQUEST ===\\n");
-    data.append(request.getMethod()).append(" ").append(request.getUrl()).append("\\n");
-
+    data.append("=== HTTP REQUEST ===\n");
+    data.append(request.getMethod()).append(" ").append(request.getUrl()).append("\n");
     if (!request.getHeaders().isEmpty()) {
-      data.append("\\nHeaders:\\n");
+      data.append("\nHeaders:\n");
       for (Map.Entry<String, String> header : request.getHeaders().entrySet()) {
-        data.append(header.getKey()).append(": ").append(header.getValue()).append("\\n");
+        data.append(header.getKey()).append(": ").append(header.getValue()).append("\n");
       }
     }
-
     if (!request.getBody().isEmpty()) {
-      data.append("\\nRequest Body:\\n");
-      data.append(request.getBody()).append("\\n");
+      data.append("\nRequest Body:\n");
+      data.append(request.getBody()).append("\n");
     }
 
-    data.append("\\n=== HTTP RESPONSE ===\\n");
-    data.append("Status Code: ").append(request.getStatusCode()).append("\\n");
-
+    data.append("\n=== HTTP RESPONSE ===\n");
+    data.append("Status Code: ").append(request.getStatusCode()).append("\n");
     if (!request.getResponseBody().isEmpty()) {
-      data.append("\\nResponse Body:\\n");
-      data.append(request.getResponseBody()).append("\\n");
+      data.append("\nResponse Body:\n");
+      data.append(request.getResponseBody()).append("\n");
     }
-
-    data.append("\\n=== ANALYSIS REQUEST ===\\n");
-    data.append("Please provide a detailed security analysis covering:\\n");
-    data.append("1. Potential vulnerabilities (SQL injection, XSS, etc.)\\n");
-    data.append("2. Authentication and authorization issues\\n");
-    data.append("3. Input validation problems\\n");
-    data.append("4. Information disclosure risks\\n");
-    data.append("5. Any other security concerns\\n");
-
     return data.toString();
   }
 
