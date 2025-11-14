@@ -8,6 +8,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -19,7 +20,12 @@ public class AnthropicClient extends AbstractLLMClient {
   private static final String DEFAULT_MODEL = "claude-3-5-haiku-20241022";
   private static final String API_VERSION = "2023-06-01";
   private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
-  private static final OkHttpClient HTTP_CLIENT = new OkHttpClient();
+  private static final OkHttpClient HTTP_CLIENT =
+      new OkHttpClient.Builder()
+          .connectTimeout(20, TimeUnit.SECONDS)
+          .writeTimeout(20, TimeUnit.SECONDS)
+          .readTimeout(20, TimeUnit.SECONDS)
+          .build();
   private static final MediaType JSON_MEDIA_TYPE = MediaType.get("application/json; charset=utf-8");
 
   /**
