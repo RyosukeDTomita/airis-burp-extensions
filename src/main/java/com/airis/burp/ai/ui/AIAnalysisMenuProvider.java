@@ -13,9 +13,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
-/**
- * Context menu provider for Burp Suite that allows adding HTTP requests to the analysis tab.
- */
+/** Context menu provider for Burp Suite that allows adding HTTP requests to the analysis tab. */
 public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
   private final MontoyaApi montoyaApi;
   private AnalysisResultsTab analysisResultsTab;
@@ -26,7 +24,7 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
 
   /**
    * Sets the analysis results tab reference for adding results
-   * 
+   *
    * @param analysisResultsTab The results tab
    */
   public void setAnalysisResultsTab(AnalysisResultsTab analysisResultsTab) {
@@ -72,10 +70,7 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
   private void addToAnalysisTab(HttpRequestResponse requestResponse) {
     if (analysisResultsTab == null) {
       JOptionPane.showMessageDialog(
-          null,
-          "Analysis Results tab is not available.",
-          "Error",
-          JOptionPane.ERROR_MESSAGE);
+          null, "Analysis Results tab is not available.", "Error", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -96,11 +91,12 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
       HttpHistoryItem httpHistoryItem = HttpHistoryItem.fromHttpRequestResponse(request, response);
 
       // Prompt user for custom prompt
-      String prompt = JOptionPane.showInputDialog(
-          null,
-          "Enter analysis prompt (optional):",
-          "Add to Analysis Tab",
-          JOptionPane.QUESTION_MESSAGE);
+      String prompt =
+          JOptionPane.showInputDialog(
+              null,
+              "Enter analysis prompt (optional):",
+              "Add to Analysis Tab",
+              JOptionPane.QUESTION_MESSAGE);
 
       // Use default prompt if empty
       if (prompt == null) {

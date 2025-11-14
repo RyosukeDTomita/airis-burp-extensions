@@ -37,7 +37,7 @@ public class OpenAIClient extends AbstractLLMClient {
     json.append("      \"role\": \"user\",\n");
     StringBuilder userContent = new StringBuilder();
     userContent.append(userPrompt).append("\\n\\n");
-    userContent.append(formatHttpData(requestAndResponse));
+    userContent.append(this.formatHttpData(requestAndResponse));
     json.append("      \"content\": \"").append(escapeJson(userContent.toString())).append("\"\n");
 
     json.append("    }\n");
@@ -45,11 +45,8 @@ public class OpenAIClient extends AbstractLLMClient {
     json.append("  \"max_tokens\": 1000,\n");
     json.append("  \"temperature\": 0.3\n");
     json.append("}");
-    
+
     String jsonString = json.toString();
-    montoyaApi.logging().logToOutput("[DEBUG] JSON length: " + jsonString.length() + " bytes");
-    montoyaApi.logging().logToOutput("[DEBUG] JSON is valid: " + jsonString.endsWith("}"));
-    montoyaApi.logging().logToOutput("Request JSON: " + jsonString);
     return jsonString;
   }
 

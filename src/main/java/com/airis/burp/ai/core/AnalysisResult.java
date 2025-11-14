@@ -4,12 +4,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Represents a single analysis result entry in the results table.
- * Contains all information about an analyzed HTTP request.
+ * Represents a single analysis result entry in the results table. Contains all information about an
+ * analyzed HTTP request.
  */
 public class AnalysisResult {
   private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
-  
+
   private final String url;
   private final LocalDateTime timestamp;
   private String status;
@@ -17,17 +17,16 @@ public class AnalysisResult {
   private String result;
   private final HttpHistoryItem httpHistoryItem;
 
-  /**
-   * Status constants for analysis progress
-   */
+  /** Status constants for analysis progress */
   public static final String STATUS_PENDING = "Pending";
+
   public static final String STATUS_RUNNING = "Running";
   public static final String STATUS_COMPLETE = "Complete";
   public static final String STATUS_ERROR = "Error";
 
   /**
    * Creates a new analysis result entry
-   * 
+   *
    * @param url The URL being analyzed
    * @param prompt The prompt to send to AI
    * @param httpHistoryItem The HTTP request/response data

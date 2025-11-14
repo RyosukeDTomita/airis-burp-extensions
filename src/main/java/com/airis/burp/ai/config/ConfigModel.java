@@ -3,9 +3,7 @@ package com.airis.burp.ai.config;
 import com.airis.burp.ai.llm.LLMProviderRegistry;
 import java.util.Objects;
 
-/**
- * DTO for AI Extension settings. Contains provider, endpoint, and API key information.
- */
+/** DTO for AI Extension settings. Contains provider, endpoint, and API key information. */
 public final class ConfigModel {
 
   private final String provider;
@@ -28,8 +26,7 @@ public final class ConfigModel {
    * @param endpoint The API endpoint URL.
    * @param apiKey The API key
    */
-  public ConfigModel(
-      final String provider, final String endpoint, final String apiKey) {
+  public ConfigModel(final String provider, final String endpoint, final String apiKey) {
     if (!isValidProvider(provider)) {
       throw new IllegalArgumentException("Invalid provider specified.");
     }
@@ -116,8 +113,8 @@ public final class ConfigModel {
   /**
    * Returns a string representation of the ConfigModel with masked API key The string consists of
    * all fields except the API key, which is masked for security. Format is
-   * "ConfigModel(provider=%s, endpoint=%s, apiKey=%s)", where provider is openai or
-   * anthoropic, endpoint is LLM API endpoint URL, apiKey is masked API key.
+   * "ConfigModel(provider=%s, endpoint=%s, apiKey=%s)", where provider is openai or anthoropic,
+   * endpoint is LLM API endpoint URL, apiKey is masked API key.
    *
    * @return String representation of ConfigModel
    */
@@ -182,8 +179,7 @@ public final class ConfigModel {
   }
 
   /**
-   * Generates hash code based on all configuration fields using lazy
-   * initialization.
+   * Generates hash code based on all configuration fields using lazy initialization.
    *
    * @return hash code
    */

@@ -198,9 +198,8 @@ public class HttpHistoryItem {
   }
 
   /**
-   * Gets the original HTTP request string
-   * This is a reconstructed version of the original request
-   * 
+   * Gets the original HTTP request string This is a reconstructed version of the original request
+   *
    * @return The HTTP request as a string
    */
   public String getRequest() {
@@ -217,9 +216,8 @@ public class HttpHistoryItem {
   }
 
   /**
-   * Gets the original HTTP response string
-   * This is a reconstructed version of the original response
-   * 
+   * Gets the original HTTP response string This is a reconstructed version of the original response
+   *
    * @return The HTTP response as a string
    */
   public String getResponse() {

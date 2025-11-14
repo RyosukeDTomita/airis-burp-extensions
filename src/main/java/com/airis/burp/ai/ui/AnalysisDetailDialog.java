@@ -7,15 +7,15 @@ import java.awt.datatransfer.StringSelection;
 import javax.swing.*;
 
 /**
- * Dialog for displaying detailed information about an analysis result.
- * Shows the full prompt and result with copy functionality.
+ * Dialog for displaying detailed information about an analysis result. Shows the full prompt and
+ * result with copy functionality.
  */
 public class AnalysisDetailDialog extends JDialog {
   private final AnalysisResult analysisResult;
 
   /**
    * Creates a new detail dialog
-   * 
+   *
    * @param parent Parent frame
    * @param analysisResult The result to display
    */
@@ -110,14 +110,25 @@ public class AnalysisDetailDialog extends JDialog {
 
     // Copy All button
     JButton copyAllButton = new JButton("Copy All");
-    copyAllButton.addActionListener(e -> {
-      String all = "URL: " + analysisResult.getUrl() + "\n"
-          + "Timestamp: " + analysisResult.getTimestamp() + "\n"
-          + "Status: " + analysisResult.getStatus() + "\n\n"
-          + "Prompt:\n" + analysisResult.getPrompt() + "\n\n"
-          + "Result:\n" + analysisResult.getResult();
-      copyToClipboard(all, "All information");
-    });
+    copyAllButton.addActionListener(
+        e -> {
+          String all =
+              "URL: "
+                  + analysisResult.getUrl()
+                  + "\n"
+                  + "Timestamp: "
+                  + analysisResult.getTimestamp()
+                  + "\n"
+                  + "Status: "
+                  + analysisResult.getStatus()
+                  + "\n\n"
+                  + "Prompt:\n"
+                  + analysisResult.getPrompt()
+                  + "\n\n"
+                  + "Result:\n"
+                  + analysisResult.getResult();
+          copyToClipboard(all, "All information");
+        });
 
     // Close button
     JButton closeButton = new JButton("Close");
@@ -136,10 +147,7 @@ public class AnalysisDetailDialog extends JDialog {
     Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     clipboard.setContents(selection, null);
     JOptionPane.showMessageDialog(
-        this,
-        contentName + " copied to clipboard!",
-        "Success",
-        JOptionPane.INFORMATION_MESSAGE);
+        this, contentName + " copied to clipboard!", "Success", JOptionPane.INFORMATION_MESSAGE);
   }
 
   private Color getStatusColor(String status) {

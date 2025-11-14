@@ -88,7 +88,7 @@ public class AnthropicClient extends AbstractLLMClient {
     json.append("    }\n");
     json.append("  ]\n");
     json.append("}");
-    
+
     String jsonString = json.toString();
     montoyaApi.logging().logToOutput("[DEBUG] JSON length: " + jsonString.length() + " bytes");
     montoyaApi.logging().logToOutput("[DEBUG] JSON is valid: " + jsonString.endsWith("}"));

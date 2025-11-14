@@ -6,8 +6,8 @@ import java.util.List;
 import javax.swing.table.AbstractTableModel;
 
 /**
- * Table model for managing analysis results in the results tab.
- * Provides data for the JTable displaying analysis entries.
+ * Table model for managing analysis results in the results tab. Provides data for the JTable
+ * displaying analysis entries.
  */
 public class AnalysisResultTableModel extends AbstractTableModel {
   private static final String[] COLUMN_NAMES = {"URL", "Timestamp", "Status", "Prompt"};
@@ -51,7 +51,7 @@ public class AnalysisResultTableModel extends AbstractTableModel {
 
   /**
    * Adds a new analysis result to the table
-   * 
+   *
    * @param result The analysis result to add
    */
   public void addResult(AnalysisResult result) {
@@ -62,7 +62,7 @@ public class AnalysisResultTableModel extends AbstractTableModel {
 
   /**
    * Updates an existing result in the table
-   * 
+   *
    * @param rowIndex The row to update
    */
   public void updateResult(int rowIndex) {
@@ -73,7 +73,7 @@ public class AnalysisResultTableModel extends AbstractTableModel {
 
   /**
    * Gets the result at the specified row
-   * 
+   *
    * @param rowIndex The row index
    * @return The analysis result
    */
@@ -86,7 +86,7 @@ public class AnalysisResultTableModel extends AbstractTableModel {
 
   /**
    * Removes a result from the table
-   * 
+   *
    * @param rowIndex The row to remove
    */
   public void removeResult(int rowIndex) {
@@ -96,9 +96,7 @@ public class AnalysisResultTableModel extends AbstractTableModel {
     }
   }
 
-  /**
-   * Clears all results from the table
-   */
+  /** Clears all results from the table */
   public void clearAll() {
     int rowCount = results.size();
     if (rowCount > 0) {
@@ -109,7 +107,7 @@ public class AnalysisResultTableModel extends AbstractTableModel {
 
   /**
    * Gets all results
-   * 
+   *
    * @return List of all analysis results
    */
   public List<AnalysisResult> getAllResults() {

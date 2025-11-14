@@ -22,8 +22,8 @@ public class AnalysisEngine {
   }
 
   /**
-   * Performs AI analysis on HTTP request/response with custom prompt.
-   * Public for use by UI components.
+   * Performs AI analysis on HTTP request/response with custom prompt. Public for use by UI
+   * components.
    *
    * @param request The HTTP request to analyze (required)
    * @param response The HTTP response to analyze (nullable) TODO: Optionalに書き換える?

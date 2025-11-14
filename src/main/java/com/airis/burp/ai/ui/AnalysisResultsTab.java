@@ -14,8 +14,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 
 /**
- * Main tab for displaying and managing analysis results.
- * Provides a table view with operation buttons.
+ * Main tab for displaying and managing analysis results. Provides a table view with operation
+ * buttons.
  */
 public class AnalysisResultsTab extends JPanel {
   private final AnalysisResultTableModel tableModel;
@@ -26,12 +26,13 @@ public class AnalysisResultsTab extends JPanel {
 
   /**
    * Creates a new analysis results tab
-   * 
+   *
    * @param analysisEngine The analysis engine for running analyses
    * @param api Montoya API instance
    * @param executorService Executor for background tasks
    */
-  public AnalysisResultsTab(AnalysisEngine analysisEngine, MontoyaApi api, ExecutorService executorService) {
+  public AnalysisResultsTab(
+      AnalysisEngine analysisEngine, MontoyaApi api, ExecutorService executorService) {
     this.analysisEngine = analysisEngine;
     this.api = api;
     this.executorService = executorService;
@@ -76,40 +77,41 @@ public class AnalysisResultsTab extends JPanel {
     resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
     // Add mouse listener for double-click and right-click
-    resultsTable.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() == 2) {
-          int row = resultsTable.getSelectedRow();
-          if (row >= 0) {
-            showDetails(row);
+    resultsTable.addMouseListener(
+        new MouseAdapter() {
+          @Override
+          public void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() == 2) {
+              int row = resultsTable.getSelectedRow();
+              if (row >= 0) {
+                showDetails(row);
+              }
+            }
           }
-        }
-      }
 
-      @Override
-      public void mousePressed(MouseEvent e) {
-        if (e.isPopupTrigger()) {
-          showContextMenu(e);
-        }
-      }
+          @Override
+          public void mousePressed(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+              showContextMenu(e);
+            }
+          }
 
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        if (e.isPopupTrigger()) {
-          showContextMenu(e);
-        }
-      }
+          @Override
+          public void mouseReleased(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+              showContextMenu(e);
+            }
+          }
 
-      private void showContextMenu(MouseEvent e) {
-        int row = resultsTable.rowAtPoint(e.getPoint());
-        if (row >= 0) {
-          resultsTable.setRowSelectionInterval(row, row);
-          JPopupMenu contextMenu = createContextMenu(row);
-          contextMenu.show(e.getComponent(), e.getX(), e.getY());
-        }
-      }
-    });
+          private void showContextMenu(MouseEvent e) {
+            int row = resultsTable.rowAtPoint(e.getPoint());
+            if (row >= 0) {
+              resultsTable.setRowSelectionInterval(row, row);
+              JPopupMenu contextMenu = createContextMenu(row);
+              contextMenu.show(e.getComponent(), e.getX(), e.getY());
+            }
+          }
+        });
   }
 
   private JPanel createButtonPanel() {
@@ -117,18 +119,19 @@ public class AnalysisResultsTab extends JPanel {
 
     // View Details button
     JButton viewDetailsButton = new JButton("View Details");
-    viewDetailsButton.addActionListener(e -> {
-      int selectedRow = resultsTable.getSelectedRow();
-      if (selectedRow >= 0) {
-        showDetails(selectedRow);
-      } else {
-        JOptionPane.showMessageDialog(
-            this,
-            "Please select a row first.",
-            "No Selection",
-            JOptionPane.INFORMATION_MESSAGE);
-      }
-    });
+    viewDetailsButton.addActionListener(
+        e -> {
+          int selectedRow = resultsTable.getSelectedRow();
+          if (selectedRow >= 0) {
+            showDetails(selectedRow);
+          } else {
+            JOptionPane.showMessageDialog(
+                this,
+                "Please select a row first.",
+                "No Selection",
+                JOptionPane.INFORMATION_MESSAGE);
+          }
+        });
 
     // Edit Prompt button
     JButton editPromptButton = new JButton("Edit Prompt");
@@ -167,7 +170,7 @@ public class AnalysisResultsTab extends JPanel {
 
   /**
    * Creates a context menu for a table row
-   * 
+   *
    * @param row The row index
    * @return The context menu
    */
@@ -201,22 +204,24 @@ public class AnalysisResultsTab extends JPanel {
 
   /**
    * Adds a new result to the table
-   * 
+   *
    * @param result The analysis result to add
    */
   public void addResult(AnalysisResult result) {
-    SwingUtilities.invokeLater(() -> {
-      tableModel.addResult(result);
-      // Scroll to the new row
-      int newRow = tableModel.getRowCount() - 1;
-      resultsTable.scrollRectToVisible(resultsTable.getCellRect(newRow, 0, true));
-    });
+    SwingUtilities.invokeLater(
+        () -> {
+          tableModel.addResult(result);
+          // Scroll to the new row
+          int newRow = tableModel.getRowCount() - 1;
+          resultsTable.scrollRectToVisible(resultsTable.getCellRect(newRow, 0, true));
+        });
   }
 
   private void showDetails(int row) {
     AnalysisResult result = tableModel.getResultAt(row);
     if (result != null) {
-      AnalysisDetailDialog dialog = new AnalysisDetailDialog((Frame) SwingUtilities.getWindowAncestor(this), result);
+      AnalysisDetailDialog dialog =
+          new AnalysisDetailDialog((Frame) SwingUtilities.getWindowAncestor(this), result);
       dialog.setVisible(true);
     }
   }
@@ -225,10 +230,7 @@ public class AnalysisResultsTab extends JPanel {
     int selectedRow = resultsTable.getSelectedRow();
     if (selectedRow < 0) {
       JOptionPane.showMessageDialog(
-          this,
-          "Please select a row first.",
-          "No Selection",
-          JOptionPane.INFORMATION_MESSAGE);
+          this, "Please select a row first.", "No Selection", JOptionPane.INFORMATION_MESSAGE);
       return;
     }
 
@@ -237,10 +239,7 @@ public class AnalysisResultsTab extends JPanel {
       return;
     }
 
-    String newPrompt = JOptionPane.showInputDialog(
-        this,
-        "Edit prompt:",
-        result.getPrompt());
+    String newPrompt = JOptionPane.showInputDialog(this, "Edit prompt:", result.getPrompt());
 
     if (newPrompt != null && !newPrompt.trim().isEmpty()) {
       result.setPrompt(newPrompt);
@@ -255,10 +254,7 @@ public class AnalysisResultsTab extends JPanel {
     int selectedRow = resultsTable.getSelectedRow();
     if (selectedRow < 0) {
       JOptionPane.showMessageDialog(
-          this,
-          "Please select a row first.",
-          "No Selection",
-          JOptionPane.INFORMATION_MESSAGE);
+          this, "Please select a row first.", "No Selection", JOptionPane.INFORMATION_MESSAGE);
       return;
     }
 
@@ -282,61 +278,69 @@ public class AnalysisResultsTab extends JPanel {
     tableModel.updateResult(selectedRow);
 
     // Execute analysis asynchronously
-    executorService.submit(() -> {
-      try {
-        String request = result.getHttpHistoryItem().getRequest();
-        String response = result.getHttpHistoryItem().getResponse();
-        String customPrompt = result.getPrompt();
-        
-        // Log the custom prompt for debugging
-        api.logging().logToOutput("Using custom prompt: " + customPrompt);
-        
-        // Perform analysis with the custom prompt
-        String analysisResult = analysisEngine.analyze(request, response, customPrompt);
-        
-        SwingUtilities.invokeLater(() -> {
-          result.setResult(analysisResult);
-          result.setStatus(AnalysisResult.STATUS_COMPLETE);
-          tableModel.updateResult(selectedRow);
+    executorService.submit(
+        () -> {
+          try {
+            String request = result.getHttpHistoryItem().getRequest();
+            String response = result.getHttpHistoryItem().getResponse();
+            String customPrompt = result.getPrompt();
+
+            // Log the custom prompt for debugging
+            api.logging().logToOutput("Using custom prompt: " + customPrompt);
+
+            // Perform analysis with the custom prompt
+            String analysisResult = analysisEngine.analyze(request, response, customPrompt);
+
+            SwingUtilities.invokeLater(
+                () -> {
+                  result.setResult(analysisResult);
+                  result.setStatus(AnalysisResult.STATUS_COMPLETE);
+                  tableModel.updateResult(selectedRow);
+                });
+          } catch (Exception e) {
+            SwingUtilities.invokeLater(
+                () -> {
+                  result.setResult("Error: " + e.getMessage());
+                  result.setStatus(AnalysisResult.STATUS_ERROR);
+                  tableModel.updateResult(selectedRow);
+                });
+            api.logging().logToError("Analysis failed: " + e.getMessage());
+          }
         });
-      } catch (Exception e) {
-        SwingUtilities.invokeLater(() -> {
-          result.setResult("Error: " + e.getMessage());
-          result.setStatus(AnalysisResult.STATUS_ERROR);
-          tableModel.updateResult(selectedRow);
-        });
-        api.logging().logToError("Analysis failed: " + e.getMessage());
-      }
-    });
   }
 
   private void copySelectedResult() {
     int selectedRow = resultsTable.getSelectedRow();
     if (selectedRow < 0) {
       JOptionPane.showMessageDialog(
-          this,
-          "Please select a row first.",
-          "No Selection",
-          JOptionPane.INFORMATION_MESSAGE);
+          this, "Please select a row first.", "No Selection", JOptionPane.INFORMATION_MESSAGE);
       return;
     }
 
     AnalysisResult result = tableModel.getResultAt(selectedRow);
     if (result != null) {
-      String text = "URL: " + result.getUrl() + "\n"
-          + "Timestamp: " + result.getTimestamp() + "\n"
-          + "Status: " + result.getStatus() + "\n"
-          + "Prompt: " + result.getPrompt() + "\n"
-          + "Result: " + result.getResult();
+      String text =
+          "URL: "
+              + result.getUrl()
+              + "\n"
+              + "Timestamp: "
+              + result.getTimestamp()
+              + "\n"
+              + "Status: "
+              + result.getStatus()
+              + "\n"
+              + "Prompt: "
+              + result.getPrompt()
+              + "\n"
+              + "Result: "
+              + result.getResult();
 
-      java.awt.datatransfer.StringSelection selection = new java.awt.datatransfer.StringSelection(text);
+      java.awt.datatransfer.StringSelection selection =
+          new java.awt.datatransfer.StringSelection(text);
       java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
 
       JOptionPane.showMessageDialog(
-          this,
-          "Result copied to clipboard!",
-          "Success",
-          JOptionPane.INFORMATION_MESSAGE);
+          this, "Result copied to clipboard!", "Success", JOptionPane.INFORMATION_MESSAGE);
     }
   }
 
@@ -344,10 +348,7 @@ public class AnalysisResultsTab extends JPanel {
     List<AnalysisResult> results = tableModel.getAllResults();
     if (results.isEmpty()) {
       JOptionPane.showMessageDialog(
-          this,
-          "No results to export.",
-          "Empty Results",
-          JOptionPane.INFORMATION_MESSAGE);
+          this, "No results to export.", "Empty Results", JOptionPane.INFORMATION_MESSAGE);
       return;
     }
 
@@ -368,17 +369,11 @@ public class AnalysisResultsTab extends JPanel {
           writer.write("=====================================\n\n");
         }
         JOptionPane.showMessageDialog(
-            this,
-            "Results exported successfully!",
-            "Success",
-            JOptionPane.INFORMATION_MESSAGE);
+            this, "Results exported successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
       } catch (IOException e) {
         api.logging().logToError("Export failed: " + e.getMessage());
         JOptionPane.showMessageDialog(
-            this,
-            "Export failed: " + e.getMessage(),
-            "Error",
-            JOptionPane.ERROR_MESSAGE);
+            this, "Export failed: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
       }
     }
   }
@@ -387,18 +382,16 @@ public class AnalysisResultsTab extends JPanel {
     int selectedRow = resultsTable.getSelectedRow();
     if (selectedRow < 0) {
       JOptionPane.showMessageDialog(
-          this,
-          "Please select a row first.",
-          "No Selection",
-          JOptionPane.INFORMATION_MESSAGE);
+          this, "Please select a row first.", "No Selection", JOptionPane.INFORMATION_MESSAGE);
       return;
     }
 
-    int confirm = JOptionPane.showConfirmDialog(
-        this,
-        "Are you sure you want to delete this result?",
-        "Confirm Delete",
-        JOptionPane.YES_NO_OPTION);
+    int confirm =
+        JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to delete this result?",
+            "Confirm Delete",
+            JOptionPane.YES_NO_OPTION);
 
     if (confirm == JOptionPane.YES_OPTION) {
       tableModel.removeResult(selectedRow);
@@ -411,11 +404,12 @@ public class AnalysisResultsTab extends JPanel {
       return;
     }
 
-    int confirm = JOptionPane.showConfirmDialog(
-        this,
-        "Are you sure you want to clear all results?",
-        "Confirm Clear All",
-        JOptionPane.YES_NO_OPTION);
+    int confirm =
+        JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to clear all results?",
+            "Confirm Clear All",
+            JOptionPane.YES_NO_OPTION);
 
     if (confirm == JOptionPane.YES_OPTION) {
       tableModel.clearAll();
@@ -425,7 +419,7 @@ public class AnalysisResultsTab extends JPanel {
 
   /**
    * Gets the main panel component
-   * 
+   *
    * @return The main panel
    */
   public JPanel getMainPanel() {
