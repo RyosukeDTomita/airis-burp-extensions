@@ -127,24 +127,24 @@ public abstract class AbstractLLMClient implements LLMClient {
   protected String formatHttpData(HttpHistoryItem request) {
     StringBuilder data = new StringBuilder();
 
-    data.append("=== HTTP REQUEST ===\\n");
-    data.append(request.getMethod()).append(" ").append(request.getUrl()).append("\\n");
+    data.append("=== HTTP REQUEST ===\n");
+    data.append(request.getMethod()).append(" ").append(request.getUrl()).append("\n");
     if (!request.getHeaders().isEmpty()) {
-      data.append("\\nHeaders:\\n");
+      data.append("\nHeaders:\n");
       for (Map.Entry<String, String> header : request.getHeaders().entrySet()) {
-        data.append(header.getKey()).append(": ").append(header.getValue()).append("\\n");
+        data.append(header.getKey()).append(": ").append(header.getValue()).append("\n");
       }
     }
     if (!request.getBody().isEmpty()) {
-      data.append("\\nRequest Body:\\n");
-      data.append(request.getBody()).append("\\n");
+      data.append("\nRequest Body:\n");
+      data.append(request.getBody()).append("\n");
     }
 
-    data.append("\\n=== HTTP RESPONSE ===\\n");
-    data.append("Status Code: ").append(request.getStatusCode()).append("\\n");
+    data.append("\n=== HTTP RESPONSE ===\n");
+    data.append("Status Code: ").append(request.getStatusCode()).append("\n");
     if (!request.getResponseBody().isEmpty()) {
-      data.append("\\nResponse Body:\\n");
-      data.append(request.getResponseBody()).append("\\n");
+      data.append("\nResponse Body:\n");
+      data.append(request.getResponseBody()).append("\n");
     }
     return data.toString();
   }
