@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 
@@ -222,7 +223,10 @@ public class AnalysisResultsTab extends JPanel {
     AnalysisResult result = tableModel.getResultAt(row);
     if (result != null) {
       AnalysisDetailDialog dialog =
-          new AnalysisDetailDialog((Frame) SwingUtilities.getWindowAncestor(this), result);
+          new AnalysisDetailDialog(
+              (Frame) SwingUtilities.getWindowAncestor(this),
+              result,
+              (res, callback) -> sendRequestFromDetails(res, callback));
       dialog.setVisible(true);
     }
   }
@@ -275,26 +279,45 @@ public class AnalysisResultsTab extends JPanel {
       return;
     }
 
-    AnalysisResult result = tableModel.getResultAt(selectedRow);
+    sendRequestForRow(selectedRow, null, true);
+  }
+
+  private void sendRequestFromDetails(
+      AnalysisResult result, Consumer<AnalysisResult> onCompleteCallback) {
+    int rowIndex = tableModel.indexOf(result);
+    if (rowIndex < 0) {
+      api.logging().logToError("Analysis result not found in table when sending from details view.");
+      if (onCompleteCallback != null) {
+        SwingUtilities.invokeLater(() -> onCompleteCallback.accept(result));
+      }
+      return;
+    }
+    sendRequestForRow(rowIndex, onCompleteCallback, false);
+  }
+
+  private void sendRequestForRow(
+      int rowIndex, Consumer<AnalysisResult> onCompleteCallback, boolean showPromptWarning) {
+    AnalysisResult result = tableModel.getResultAt(rowIndex);
     if (result == null) {
       return;
     }
 
-    // Check if prompt is empty
     if (result.getPrompt() == null || result.getPrompt().trim().isEmpty()) {
-      JOptionPane.showMessageDialog(
-          this,
-          "Please set a prompt before sending request.",
-          "Empty Prompt",
-          JOptionPane.WARNING_MESSAGE);
+      if (showPromptWarning) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Please set a prompt before sending request.",
+            "Empty Prompt",
+            JOptionPane.WARNING_MESSAGE);
+      } else if (onCompleteCallback != null) {
+        onCompleteCallback.accept(result);
+      }
       return;
     }
 
-    // Update status to running
     result.setStatus(AnalysisResult.STATUS_RUNNING);
-    tableModel.updateResult(selectedRow);
+    tableModel.updateResult(rowIndex);
 
-    // Execute analysis asynchronously
     executorService.submit(
         () -> {
           try {
@@ -302,24 +325,28 @@ public class AnalysisResultsTab extends JPanel {
             String response = result.getHttpHistoryItem().getResponse();
             String customPrompt = result.getPrompt();
 
-            // Log the custom prompt for debugging
             api.logging().logToOutput("Using custom prompt: " + customPrompt);
 
-            // Perform analysis with the custom prompt
             String analysisResult = analysisEngine.analyze(request, response, customPrompt);
 
             SwingUtilities.invokeLater(
                 () -> {
                   result.setResult(analysisResult);
                   result.setStatus(AnalysisResult.STATUS_COMPLETE);
-                  tableModel.updateResult(selectedRow);
+                  tableModel.updateResult(rowIndex);
+                  if (onCompleteCallback != null) {
+                    onCompleteCallback.accept(result);
+                  }
                 });
           } catch (Exception e) {
             SwingUtilities.invokeLater(
                 () -> {
                   result.setResult("Error: " + e.getMessage());
                   result.setStatus(AnalysisResult.STATUS_ERROR);
-                  tableModel.updateResult(selectedRow);
+                  tableModel.updateResult(rowIndex);
+                  if (onCompleteCallback != null) {
+                    onCompleteCallback.accept(result);
+                  }
                 });
             api.logging().logToError("Analysis failed: " + e.getMessage());
           }

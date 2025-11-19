@@ -7,25 +7,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 /** OpenAI Client to send requests to the OpenAI API */
 public class OpenAIClient extends AbstractLLMClient {
   private static final String DEFAULT_MODEL = "gpt-4o-mini";
   private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
-  private static final OkHttpClient HTTP_CLIENT =
-      new OkHttpClient.Builder()
-          .connectTimeout(20, TimeUnit.SECONDS)
-          .writeTimeout(20, TimeUnit.SECONDS)
-          .readTimeout(20, TimeUnit.SECONDS)
-          .build();
-  private static final MediaType JSON_MEDIA_TYPE = MediaType.get("application/json; charset=utf-8");
 
   /**
    * Constructor
@@ -60,35 +46,6 @@ public class OpenAIClient extends AbstractLLMClient {
     requestPayload.addProperty("temperature", 0.3);
 
     return GSON.toJson(requestPayload);
-  }
-
-  @Override
-  public String sendHttpRequest(ConfigModel config, String jsonRequest) {
-    RequestBody requestBody = RequestBody.create(jsonRequest, JSON_MEDIA_TYPE);
-
-    Request request =
-        new Request.Builder()
-            .url(config.getEndpoint())
-            .post(requestBody)
-            .addHeader("Authorization", getAuthorizationHeader(config.getApiKey()))
-            .addHeader("Content-Type", "application/json; charset=utf-8")
-            .build();
-
-    try (Response response = HTTP_CLIENT.newCall(request).execute()) {
-      if (response.body() == null) {
-        throw new RuntimeException("No response received from API");
-      }
-
-      String responseBody = response.body().string();
-
-      if (!response.isSuccessful()) {
-        throw new RuntimeException("HTTP " + response.code() + " Error: " + responseBody);
-      }
-
-      return responseBody;
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to make HTTP request: " + e.getMessage(), e);
-    }
   }
 
   @Override

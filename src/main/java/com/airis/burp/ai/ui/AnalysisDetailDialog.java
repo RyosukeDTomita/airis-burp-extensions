@@ -4,6 +4,8 @@ import com.airis.burp.ai.core.AnalysisResult;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import javax.swing.*;
 
 /**
@@ -12,16 +14,25 @@ import javax.swing.*;
  */
 public class AnalysisDetailDialog extends JDialog {
   private final AnalysisResult analysisResult;
+  private final BiConsumer<AnalysisResult, Consumer<AnalysisResult>> sendRequestHandler;
+  private JTextArea resultArea;
+  private JButton sendRequestButton;
 
   /**
    * Creates a new detail dialog
    *
    * @param parent Parent frame
    * @param analysisResult The result to display
+   * @param api Montoya API instance
+   * @param analysisEngine Analysis engine for re-running analysis
    */
-  public AnalysisDetailDialog(Frame parent, AnalysisResult analysisResult) {
+  public AnalysisDetailDialog(
+      Frame parent,
+      AnalysisResult analysisResult,
+      BiConsumer<AnalysisResult, Consumer<AnalysisResult>> sendRequestHandler) {
     super(parent, "Analysis Details", true);
     this.analysisResult = analysisResult;
+    this.sendRequestHandler = sendRequestHandler;
     initializeUI();
   }
 
@@ -108,12 +119,12 @@ public class AnalysisDetailDialog extends JDialog {
     // Result section
     JPanel resultPanel = new JPanel(new BorderLayout());
     resultPanel.setBorder(BorderFactory.createTitledBorder("Analysis Result"));
-    JTextArea resultArea = new JTextArea(analysisResult.getResult());
-    resultArea.setEditable(false);
-    resultArea.setLineWrap(true);
-    resultArea.setWrapStyleWord(true);
-    resultArea.setCaretPosition(0);
-    JScrollPane resultScrollPane = new JScrollPane(resultArea);
+  resultArea = new JTextArea(analysisResult.getResult());
+  resultArea.setEditable(false);
+  resultArea.setLineWrap(true);
+  resultArea.setWrapStyleWord(true);
+  resultArea.setCaretPosition(0);
+  JScrollPane resultScrollPane = new JScrollPane(resultArea);
     resultPanel.add(resultScrollPane, BorderLayout.CENTER);
 
     panel.add(requestPanel);
@@ -174,6 +185,11 @@ public class AnalysisDetailDialog extends JDialog {
           copyToClipboard(all, "All information");
         });
 
+    // Send Request button - sends the request that was used for this analysis to LLM
+  sendRequestButton = new JButton("Send Request");
+  sendRequestButton.setToolTipText("Send the HTTP request to LLM API");
+  sendRequestButton.addActionListener(e -> sendRequest());
+
     // Close button
     JButton closeButton = new JButton("Close");
     closeButton.addActionListener(e -> dispose());
@@ -183,9 +199,26 @@ public class AnalysisDetailDialog extends JDialog {
     panel.add(copyPromptButton);
     panel.add(copyResultButton);
     panel.add(copyAllButton);
+  panel.add(sendRequestButton);
     panel.add(closeButton);
 
     return panel;
+  }
+
+  private void sendRequest() {
+    if (sendRequestHandler == null) {
+      return;
+    }
+
+    sendRequestButton.setEnabled(false);
+    resultArea.setText("Sending request to LLM API...");
+
+    sendRequestHandler.accept(
+        analysisResult,
+        updatedResult -> {
+          resultArea.setText(updatedResult.getResult());
+          sendRequestButton.setEnabled(true);
+        });
   }
 
   private void copyToClipboard(String text, String contentName) {
