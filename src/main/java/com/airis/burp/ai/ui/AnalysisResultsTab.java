@@ -286,7 +286,8 @@ public class AnalysisResultsTab extends JPanel {
       AnalysisResult result, Consumer<AnalysisResult> onCompleteCallback) {
     int rowIndex = tableModel.indexOf(result);
     if (rowIndex < 0) {
-      api.logging().logToError("Analysis result not found in table when sending from details view.");
+      api.logging()
+          .logToError("Analysis result not found in table when sending from details view.");
       if (onCompleteCallback != null) {
         SwingUtilities.invokeLater(() -> onCompleteCallback.accept(result));
       }

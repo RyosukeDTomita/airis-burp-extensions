@@ -22,9 +22,6 @@ dependencies {
     // Montoya API for Burp Suite extensions
     compileOnly("net.portswigger.burp.extensions:montoya-api:2025.7")
     
-    // HTTP Client
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    
     // JSON Processing
     implementation("com.google.code.gson:gson:2.10.1")
     

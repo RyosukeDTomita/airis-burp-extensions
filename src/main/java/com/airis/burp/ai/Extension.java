@@ -29,6 +29,7 @@ public class Extension implements BurpExtension {
   private AnalysisEngine analysisEngine;
   private SecureConfigStorage secureConfigStorage;
   private ExecutorService executorService;
+  private ConfigurationTab configurationTab;
 
   @Override
   public void initialize(MontoyaApi api) {
@@ -65,6 +66,10 @@ public class Extension implements BurpExtension {
 
               // Shutdown executor service
               executorService.shutdownNow();
+
+              if (configurationTab != null) {
+                configurationTab.dispose();
+              }
 
               // Clear the configuration reference
               configModelRef.set(null);
@@ -104,7 +109,7 @@ public class Extension implements BurpExtension {
       api.userInterface().registerContextMenuItemsProvider(menuProvider);
 
       // Register configuration tab
-      ConfigurationTab configTab =
+      configurationTab =
           new ConfigurationTab(
               logging,
               newConfig -> {
@@ -114,10 +119,10 @@ public class Extension implements BurpExtension {
               },
               secureConfigStorage,
               api);
-      api.userInterface().registerSuiteTab(CONFIG_TAB_NAME, configTab.getMainPanel());
+      api.userInterface().registerSuiteTab(CONFIG_TAB_NAME, configurationTab.getMainPanel());
 
       if (existingConfig.isPresent()) {
-        configTab.loadConfiguration(existingConfig.get());
+        configurationTab.loadConfiguration(existingConfig.get());
       }
 
       logging.logToOutput("UI components registered successfully");

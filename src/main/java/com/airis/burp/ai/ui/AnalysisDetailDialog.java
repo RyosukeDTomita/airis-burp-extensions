@@ -82,8 +82,7 @@ public class AnalysisDetailDialog extends JDialog {
     // Request section
     JPanel requestPanel = new JPanel(new BorderLayout());
     requestPanel.setBorder(BorderFactory.createTitledBorder("HTTP Request"));
-    JTextArea requestArea =
-        new JTextArea(analysisResult.getHttpHistoryItem().getRequest());
+    JTextArea requestArea = new JTextArea(analysisResult.getHttpHistoryItem().getRequest());
     requestArea.setEditable(false);
     requestArea.setLineWrap(true);
     requestArea.setWrapStyleWord(true);
@@ -95,8 +94,7 @@ public class AnalysisDetailDialog extends JDialog {
     // Response section
     JPanel responsePanel = new JPanel(new BorderLayout());
     responsePanel.setBorder(BorderFactory.createTitledBorder("HTTP Response"));
-    JTextArea responseArea =
-        new JTextArea(analysisResult.getHttpHistoryItem().getResponse());
+    JTextArea responseArea = new JTextArea(analysisResult.getHttpHistoryItem().getResponse());
     responseArea.setEditable(false);
     responseArea.setLineWrap(true);
     responseArea.setWrapStyleWord(true);
@@ -117,14 +115,14 @@ public class AnalysisDetailDialog extends JDialog {
     promptPanel.add(promptScrollPane, BorderLayout.CENTER);
 
     // Result section
-  JPanel resultPanel = new JPanel(new BorderLayout());
-  resultPanel.setBorder(BorderFactory.createTitledBorder("Analysis Result"));
-  resultArea = new JTextArea();
-  resultArea.setEditable(false);
-  resultArea.setLineWrap(true);
-  resultArea.setWrapStyleWord(true);
-  updateResultArea(analysisResult.getResult());
-  JScrollPane resultScrollPane = new JScrollPane(resultArea);
+    JPanel resultPanel = new JPanel(new BorderLayout());
+    resultPanel.setBorder(BorderFactory.createTitledBorder("Analysis Result"));
+    resultArea = new JTextArea();
+    resultArea.setEditable(false);
+    resultArea.setLineWrap(true);
+    resultArea.setWrapStyleWord(true);
+    updateResultArea(analysisResult.getResult());
+    JScrollPane resultScrollPane = new JScrollPane(resultArea);
     resultPanel.add(resultScrollPane, BorderLayout.CENTER);
 
     panel.add(requestPanel);
@@ -136,7 +134,7 @@ public class AnalysisDetailDialog extends JDialog {
   }
 
   private JPanel createButtonPanel() {
-  JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 
     // Copy Request button
@@ -186,28 +184,29 @@ public class AnalysisDetailDialog extends JDialog {
         });
 
     // Send Request button - sends the request that was used for this analysis to LLM
-  sendRequestButton = new JButton("Send Request");
-  sendRequestButton.setToolTipText("Send the HTTP request to LLM API");
-  sendRequestButton.setBackground(new Color(255, 153, 0));
-  sendRequestButton.setForeground(Color.WHITE);
-  sendRequestButton.setFocusPainted(false);
-  sendRequestButton.setOpaque(true);
-  sendRequestButton.setBorder(BorderFactory.createCompoundBorder(
-    BorderFactory.createLineBorder(new Color(230, 126, 34)),
-    BorderFactory.createEmptyBorder(5, 15, 5, 15)));
-  sendRequestButton.addActionListener(e -> sendRequest());
+    sendRequestButton = new JButton("Send Request");
+    sendRequestButton.setToolTipText("Send the HTTP request to LLM API");
+    sendRequestButton.setBackground(new Color(255, 153, 0));
+    sendRequestButton.setForeground(Color.WHITE);
+    sendRequestButton.setFocusPainted(false);
+    sendRequestButton.setOpaque(true);
+    sendRequestButton.setBorder(
+        BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(230, 126, 34)),
+            BorderFactory.createEmptyBorder(5, 15, 5, 15)));
+    sendRequestButton.addActionListener(e -> sendRequest());
 
     // Close button
     JButton closeButton = new JButton("Close");
     closeButton.addActionListener(e -> dispose());
 
-  panel.add(sendRequestButton);
-  panel.add(copyRequestButton);
-  panel.add(copyResponseButton);
-  panel.add(copyPromptButton);
-  panel.add(copyResultButton);
-  panel.add(copyAllButton);
-  panel.add(closeButton);
+    panel.add(sendRequestButton);
+    panel.add(copyRequestButton);
+    panel.add(copyResponseButton);
+    panel.add(copyPromptButton);
+    panel.add(copyResultButton);
+    panel.add(copyAllButton);
+    panel.add(closeButton);
 
     return panel;
   }

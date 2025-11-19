@@ -114,20 +114,19 @@ public abstract class AbstractLLMClient implements LLMClient {
         path += "?" + query;
       }
 
-    HttpService service = HttpService.httpService(host, port, secure);
+      HttpService service = HttpService.httpService(host, port, secure);
 
-    return HttpRequest.httpRequest()
-      .withService(service)
-      .withMethod("POST")
+      return HttpRequest.httpRequest()
+          .withService(service)
+          .withMethod("POST")
           .withPath(path)
           .withBody(ByteArray.byteArray(jsonRequest.getBytes(StandardCharsets.UTF_8)))
-      .withHeader("Host", host)
-      .withHeader("Content-Type", "application/json; charset=UTF-8")
-      .withHeader("Accept", "application/json")
-      .withHeader("Authorization", getAuthorizationHeader(config.getApiKey()));
+          .withHeader("Host", host)
+          .withHeader("Content-Type", "application/json; charset=UTF-8")
+          .withHeader("Accept", "application/json")
+          .withHeader("Authorization", getAuthorizationHeader(config.getApiKey()));
     } catch (URISyntaxException e) {
-      throw new IllegalArgumentException(
-          "Invalid LLM endpoint URL: " + config.getEndpoint(), e);
+      throw new IllegalArgumentException("Invalid LLM endpoint URL: " + config.getEndpoint(), e);
     }
   }
 
@@ -152,7 +151,7 @@ public abstract class AbstractLLMClient implements LLMClient {
         throw new RuntimeException("No response received from API");
       }
 
-  int statusCode = httpResponse.statusCode();
+      int statusCode = httpResponse.statusCode();
       ByteArray bodyBytes = httpResponse.body();
       if (bodyBytes == null) {
         throw new RuntimeException("API response did not include a body");

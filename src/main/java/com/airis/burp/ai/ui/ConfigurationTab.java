@@ -296,4 +296,10 @@ public class ConfigurationTab {
   public JPanel getMainPanel() {
     return mainPanel;
   }
+
+  /** Releases resources associated with this tab. */
+  public void dispose() {
+    executorService.shutdownNow();
+    logging.logToOutput("Configuration tab executor shut down");
+  }
 }

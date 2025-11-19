@@ -33,11 +33,11 @@ public class AnthropicClient extends AbstractLLMClient {
 
   @Override
   protected HttpRequest buildHttpRequest(ConfigModel config, String jsonRequest) {
-  HttpRequest baseRequest = super.buildHttpRequest(config, jsonRequest);
-  return baseRequest
-    .withRemovedHeader("Authorization")
-    .withHeader("x-api-key", config.getApiKey())
-    .withHeader("anthropic-version", API_VERSION);
+    HttpRequest baseRequest = super.buildHttpRequest(config, jsonRequest);
+    return baseRequest
+        .withRemovedHeader("Authorization")
+        .withHeader("x-api-key", config.getApiKey())
+        .withHeader("anthropic-version", API_VERSION);
   }
 
   @Override
