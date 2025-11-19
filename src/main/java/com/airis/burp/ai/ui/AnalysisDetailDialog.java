@@ -15,7 +15,7 @@ import javax.swing.*;
 public class AnalysisDetailDialog extends JDialog {
   private final AnalysisResult analysisResult;
   private final BiConsumer<AnalysisResult, Consumer<AnalysisResult>> sendRequestHandler;
-  private JTextArea resultArea;
+  private JEditorPane resultPane;
   private JButton sendRequestButton;
 
   /**
@@ -119,12 +119,12 @@ public class AnalysisDetailDialog extends JDialog {
     // Result section
     JPanel resultPanel = new JPanel(new BorderLayout());
     resultPanel.setBorder(BorderFactory.createTitledBorder("Analysis Result"));
-  resultArea = new JTextArea(analysisResult.getResult());
-  resultArea.setEditable(false);
-  resultArea.setLineWrap(true);
-  resultArea.setWrapStyleWord(true);
-  resultArea.setCaretPosition(0);
-  JScrollPane resultScrollPane = new JScrollPane(resultArea);
+    resultPane = new JEditorPane();
+    resultPane.setContentType("text/html");
+    resultPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+    resultPane.setEditable(false);
+    updateResultPane(analysisResult.getResult());
+    JScrollPane resultScrollPane = new JScrollPane(resultPane);
     resultPanel.add(resultScrollPane, BorderLayout.CENTER);
 
     panel.add(requestPanel);
@@ -186,9 +186,9 @@ public class AnalysisDetailDialog extends JDialog {
         });
 
     // Send Request button - sends the request that was used for this analysis to LLM
-  sendRequestButton = new JButton("Send Request");
-  sendRequestButton.setToolTipText("Send the HTTP request to LLM API");
-  sendRequestButton.addActionListener(e -> sendRequest());
+    sendRequestButton = new JButton("Send Request");
+    sendRequestButton.setToolTipText("Send the HTTP request to LLM API");
+    sendRequestButton.addActionListener(e -> sendRequest());
 
     // Close button
     JButton closeButton = new JButton("Close");
@@ -199,7 +199,7 @@ public class AnalysisDetailDialog extends JDialog {
     panel.add(copyPromptButton);
     panel.add(copyResultButton);
     panel.add(copyAllButton);
-  panel.add(sendRequestButton);
+    panel.add(sendRequestButton);
     panel.add(closeButton);
 
     return panel;
@@ -211,14 +211,21 @@ public class AnalysisDetailDialog extends JDialog {
     }
 
     sendRequestButton.setEnabled(false);
-    resultArea.setText("Sending request to LLM API...");
+    updateResultPane("_Sending request to LLM API..._");
 
     sendRequestHandler.accept(
         analysisResult,
-        updatedResult -> {
-          resultArea.setText(updatedResult.getResult());
-          sendRequestButton.setEnabled(true);
-        });
+        updatedResult ->
+            SwingUtilities.invokeLater(
+                () -> {
+                  updateResultPane(updatedResult.getResult());
+                  sendRequestButton.setEnabled(true);
+                }));
+  }
+
+  private void updateResultPane(String markdownText) {
+    resultPane.setText(MarkdownRenderer.toHtml(markdownText));
+    resultPane.setCaretPosition(0);
   }
 
   private void copyToClipboard(String text, String contentName) {

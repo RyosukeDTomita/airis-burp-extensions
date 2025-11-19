@@ -153,7 +153,12 @@ public abstract class AbstractLLMClient implements LLMClient {
       }
 
   int statusCode = httpResponse.statusCode();
-  String responseBody = httpResponse.bodyToString();
+      ByteArray bodyBytes = httpResponse.body();
+      if (bodyBytes == null) {
+        throw new RuntimeException("API response did not include a body");
+      }
+
+      String responseBody = new String(bodyBytes.getBytes(), StandardCharsets.UTF_8);
 
       if (statusCode >= 400) {
         montoyaApi.logging().logToError("[ERROR] HTTP " + statusCode + " Error: " + responseBody);
