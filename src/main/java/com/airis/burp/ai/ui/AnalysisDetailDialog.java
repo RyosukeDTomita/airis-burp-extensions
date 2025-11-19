@@ -4,6 +4,8 @@ import com.airis.burp.ai.core.AnalysisResult;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import javax.swing.*;
 
 /**
@@ -12,16 +14,25 @@ import javax.swing.*;
  */
 public class AnalysisDetailDialog extends JDialog {
   private final AnalysisResult analysisResult;
+  private final BiConsumer<AnalysisResult, Consumer<AnalysisResult>> sendRequestHandler;
+  private JTextArea resultArea;
+  private JButton sendRequestButton;
 
   /**
    * Creates a new detail dialog
    *
    * @param parent Parent frame
    * @param analysisResult The result to display
+   * @param api Montoya API instance
+   * @param analysisEngine Analysis engine for re-running analysis
    */
-  public AnalysisDetailDialog(Frame parent, AnalysisResult analysisResult) {
+  public AnalysisDetailDialog(
+      Frame parent,
+      AnalysisResult analysisResult,
+      BiConsumer<AnalysisResult, Consumer<AnalysisResult>> sendRequestHandler) {
     super(parent, "Analysis Details", true);
     this.analysisResult = analysisResult;
+    this.sendRequestHandler = sendRequestHandler;
     initializeUI();
   }
 
@@ -65,8 +76,32 @@ public class AnalysisDetailDialog extends JDialog {
   }
 
   private JPanel createContentPanel() {
-    JPanel panel = new JPanel(new GridLayout(2, 1, 10, 10));
+    JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
     panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+
+    // Request section
+    JPanel requestPanel = new JPanel(new BorderLayout());
+    requestPanel.setBorder(BorderFactory.createTitledBorder("HTTP Request"));
+    JTextArea requestArea = new JTextArea(analysisResult.getHttpHistoryItem().getRequest());
+    requestArea.setEditable(false);
+    requestArea.setLineWrap(true);
+    requestArea.setWrapStyleWord(true);
+    requestArea.setCaretPosition(0);
+    requestArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+    JScrollPane requestScrollPane = new JScrollPane(requestArea);
+    requestPanel.add(requestScrollPane, BorderLayout.CENTER);
+
+    // Response section
+    JPanel responsePanel = new JPanel(new BorderLayout());
+    responsePanel.setBorder(BorderFactory.createTitledBorder("HTTP Response"));
+    JTextArea responseArea = new JTextArea(analysisResult.getHttpHistoryItem().getResponse());
+    responseArea.setEditable(false);
+    responseArea.setLineWrap(true);
+    responseArea.setWrapStyleWord(true);
+    responseArea.setCaretPosition(0);
+    responseArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+    JScrollPane responseScrollPane = new JScrollPane(responseArea);
+    responsePanel.add(responseScrollPane, BorderLayout.CENTER);
 
     // Prompt section
     JPanel promptPanel = new JPanel(new BorderLayout());
@@ -81,15 +116,17 @@ public class AnalysisDetailDialog extends JDialog {
 
     // Result section
     JPanel resultPanel = new JPanel(new BorderLayout());
-    resultPanel.setBorder(BorderFactory.createTitledBorder("Result"));
-    JTextArea resultArea = new JTextArea(analysisResult.getResult());
+    resultPanel.setBorder(BorderFactory.createTitledBorder("Analysis Result"));
+    resultArea = new JTextArea();
     resultArea.setEditable(false);
     resultArea.setLineWrap(true);
     resultArea.setWrapStyleWord(true);
-    resultArea.setCaretPosition(0);
+    updateResultArea(analysisResult.getResult());
     JScrollPane resultScrollPane = new JScrollPane(resultArea);
     resultPanel.add(resultScrollPane, BorderLayout.CENTER);
 
+    panel.add(requestPanel);
+    panel.add(responsePanel);
     panel.add(promptPanel);
     panel.add(resultPanel);
 
@@ -99,6 +136,16 @@ public class AnalysisDetailDialog extends JDialog {
   private JPanel createButtonPanel() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+
+    // Copy Request button
+    JButton copyRequestButton = new JButton("Copy Request");
+    copyRequestButton.addActionListener(
+        e -> copyToClipboard(analysisResult.getHttpHistoryItem().getRequest(), "Request"));
+
+    // Copy Response button
+    JButton copyResponseButton = new JButton("Copy Response");
+    copyResponseButton.addActionListener(
+        e -> copyToClipboard(analysisResult.getHttpHistoryItem().getResponse(), "Response"));
 
     // Copy Prompt button
     JButton copyPromptButton = new JButton("Copy Prompt");
@@ -122,24 +169,69 @@ public class AnalysisDetailDialog extends JDialog {
                   + "Status: "
                   + analysisResult.getStatus()
                   + "\n\n"
-                  + "Prompt:\n"
+                  + "=== HTTP Request ===\n"
+                  + analysisResult.getHttpHistoryItem().getRequest()
+                  + "\n\n"
+                  + "=== HTTP Response ===\n"
+                  + analysisResult.getHttpHistoryItem().getResponse()
+                  + "\n\n"
+                  + "=== Prompt ===\n"
                   + analysisResult.getPrompt()
                   + "\n\n"
-                  + "Result:\n"
+                  + "=== Analysis Result ===\n"
                   + analysisResult.getResult();
           copyToClipboard(all, "All information");
         });
+
+    // Send Request button - sends the request that was used for this analysis to LLM
+    sendRequestButton = new JButton("Send Request");
+    sendRequestButton.setToolTipText("Send the HTTP request to LLM API");
+    sendRequestButton.setBackground(new Color(255, 153, 0));
+    sendRequestButton.setForeground(Color.WHITE);
+    sendRequestButton.setFocusPainted(false);
+    sendRequestButton.setOpaque(true);
+    sendRequestButton.setBorder(
+        BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(230, 126, 34)),
+            BorderFactory.createEmptyBorder(5, 15, 5, 15)));
+    sendRequestButton.addActionListener(e -> sendRequest());
 
     // Close button
     JButton closeButton = new JButton("Close");
     closeButton.addActionListener(e -> dispose());
 
+    panel.add(sendRequestButton);
+    panel.add(copyRequestButton);
+    panel.add(copyResponseButton);
     panel.add(copyPromptButton);
     panel.add(copyResultButton);
     panel.add(copyAllButton);
     panel.add(closeButton);
 
     return panel;
+  }
+
+  private void sendRequest() {
+    if (sendRequestHandler == null) {
+      return;
+    }
+
+    sendRequestButton.setEnabled(false);
+    updateResultArea("Sending request to LLM API...");
+
+    sendRequestHandler.accept(
+        analysisResult,
+        updatedResult ->
+            SwingUtilities.invokeLater(
+                () -> {
+                  updateResultArea(updatedResult.getResult());
+                  sendRequestButton.setEnabled(true);
+                }));
+  }
+
+  private void updateResultArea(String text) {
+    resultArea.setText(text);
+    resultArea.setCaretPosition(0);
   }
 
   private void copyToClipboard(String text, String contentName) {

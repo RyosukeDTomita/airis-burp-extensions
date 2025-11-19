@@ -30,6 +30,7 @@ public class ConfigurationTab {
   private JPanel mainPanel;
   private JComboBox<String> providerCombo;
   private JTextField endpointField;
+  private JTextField modelField;
   private JPasswordField apiKeyField;
   private JButton saveButton;
   private JButton testButton;
@@ -84,9 +85,20 @@ public class ConfigurationTab {
     endpointField = new JTextField();
     formPanel.add(endpointField, gbc);
 
-    // API Key
+    // Model
     gbc.gridx = 0;
     gbc.gridy = 2;
+    gbc.weightx = 0;
+    formPanel.add(new JLabel("Model:"), gbc);
+
+    gbc.gridx = 1;
+    gbc.weightx = 1.0;
+    modelField = new JTextField();
+    formPanel.add(modelField, gbc);
+
+    // API Key
+    gbc.gridx = 0;
+    gbc.gridy = 3;
     gbc.weightx = 0;
     formPanel.add(new JLabel("API Key:"), gbc);
 
@@ -98,7 +110,7 @@ public class ConfigurationTab {
 
     // Add a filler component to push everything to the top
     gbc.gridx = 0;
-    gbc.gridy = 3;
+    gbc.gridy = 4;
     gbc.gridwidth = 2;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
@@ -150,8 +162,8 @@ public class ConfigurationTab {
 
   /** Load default values into UI components */
   private void loadDefaultValues() {
-    providerCombo.setSelectedItem("openai");
-    endpointField.setText("https://api.openai.com/v1/chat/completions");
+    providerCombo.setSelectedItem(LLMProviderRegistry.PROVIDER_OPENAI);
+    updateEndpointForProvider();
     apiKeyField.setText("");
   }
 
@@ -166,6 +178,7 @@ public class ConfigurationTab {
     }
     this.providerCombo.setSelectedItem(configModel.getProvider());
     this.endpointField.setText(configModel.getEndpoint());
+    this.modelField.setText(configModel.getModel());
     this.apiKeyField.setText(configModel.getApiKey());
   }
 
@@ -173,6 +186,7 @@ public class ConfigurationTab {
   private void updateEndpointForProvider() {
     String provider = (String) providerCombo.getSelectedItem();
     endpointField.setText(LLMProviderRegistry.getDefaultEndpoint(provider));
+    modelField.setText(LLMProviderRegistry.getDefaultModel(provider));
   }
 
   /** Action handler for save button. */
@@ -190,7 +204,10 @@ public class ConfigurationTab {
 
         ConfigModel newConfig =
             new ConfigModel(
-                (String) providerCombo.getSelectedItem(), endpointField.getText(), enteredApiKey);
+                (String) providerCombo.getSelectedItem(),
+                endpointField.getText(),
+                modelField.getText(),
+                enteredApiKey);
         // Consumer callback to save the configuration
         onSave.accept(newConfig);
 
@@ -216,6 +233,7 @@ public class ConfigurationTab {
       // Get current configuration from UI
       String provider = (String) providerCombo.getSelectedItem();
       String endpoint = endpointField.getText();
+      String model = modelField.getText();
       char[] apiKeyChars = apiKeyField.getPassword();
       String apiKey = new String(apiKeyChars);
 
@@ -231,7 +249,7 @@ public class ConfigurationTab {
       executorService.submit(
           () -> {
             try {
-              ConfigModel testConfig = new ConfigModel(provider, endpoint, apiKey);
+              ConfigModel testConfig = new ConfigModel(provider, endpoint, model, apiKey);
 
               // Create LLM client based on provider
               LLMClient llmClient;
@@ -295,5 +313,11 @@ public class ConfigurationTab {
    */
   public JPanel getMainPanel() {
     return mainPanel;
+  }
+
+  /** Releases resources associated with this tab. */
+  public void dispose() {
+    executorService.shutdownNow();
+    logging.logToOutput("Configuration tab executor shut down");
   }
 }

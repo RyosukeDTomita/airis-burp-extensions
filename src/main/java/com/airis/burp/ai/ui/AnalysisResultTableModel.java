@@ -113,4 +113,23 @@ public class AnalysisResultTableModel extends AbstractTableModel {
   public List<AnalysisResult> getAllResults() {
     return new ArrayList<>(results);
   }
+
+  /**
+   * Finds the row index for the specified result instance.
+   *
+   * @param target The analysis result to locate
+   * @return Row index or -1 if not found
+   */
+  public int indexOf(AnalysisResult target) {
+    if (target == null) {
+      return -1;
+    }
+
+    for (int i = 0; i < results.size(); i++) {
+      if (results.get(i) == target) {
+        return i;
+      }
+    }
+    return -1;
+  }
 }

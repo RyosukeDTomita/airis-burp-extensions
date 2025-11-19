@@ -41,7 +41,7 @@ This is an [Burp Suite](https://portswigger.net/burp) extension that allows you 
 
 1. Open Burp Suite and add .jar file. You can download from [latet releases](https://github.com/RyosukeDTomita/airis-burp-extensions/releases) or build for yourself.
     ![extensions](./assets/add_extensions.png)
-2. Move to `AIris Config` tab and put your API key and endpoint. Don't forget to push Save button.
+2. Move to `AIris Config` tab and put your API key, endpoint, and preferred model. Don't forget to push Save button.
     ![api-key](./assets/settings.png)
 3. Select Burp Suite's HTTP history tab, right-click on a request or response, and send to `AIris Analysis` tab then you can write your prompt.
     ![right_click_menu](./assets/right_click_menu.png)
@@ -49,6 +49,11 @@ This is an [Burp Suite](https://portswigger.net/burp) extension that allows you 
 4. Move to `AIris Analysis` tab right click on the request and push `Send Request` button. Then you can see the analysis result from LLM.
     ![response](./assets/send_request.png)
     ![result](./assets/result.png)
+
+> [!NOTE]
+> If you are unable to get satisfactory results, please check `Airis Analysis` tab result area or Logger tab(Built-in Burp Suite) for error messages.
+> ![AIris Analysis tab](./assets/api_key_error.png)
+> ![Logger tab](./assets/logger_tab.png)
 
 ### Using Azure Open AI
 
@@ -105,3 +110,66 @@ cd airis
 # all test
 ./gradlew test
 ```
+
+---
+
+## BApp Store acceptance criteria
+
+This extension is designed to meet the security- and quality-related [acceptance criteria](https://portswigger.net/burp/documentation/desktop/extend-burp/extensions/creating/bapp-store-acceptance-criteria) required for the **BApp Store**:
+
+### 1. It performs a unique function
+
+Yes.
+I could not find any other extension in BApp Store with a similar name.
+
+### 2. It has a clear, descriptive name
+
+Yes (I think so).
+
+### 3. It operates securely
+
+TODO
+
+### 4. It includes all dependencies
+
+Yes.
+All dependencies are managed via **Gradle** and shaded into a single `airis-burp.jar` during `./gradlew jar`, so BApp users need no additional installations. In detail: see [build.gradle.kts](./build.gradle.kts).
+
+### 5. It uses threads to maintain responsiveness
+
+Yes.
+
+### 6. It unloads cleanly
+
+Yes.
+`Extension.registerUnloadingHandler()` is used to register an unload handler.
+
+### 7. It uses Burp networking
+
+Yes.
+All the HTTP requests to external LLM services are made via Montoya API.
+
+### 8. It supports offline working
+
+No.
+This Extension use network communication with online llm services via Burp's integrated AI platform.
+
+### 9. It can cope with large projects
+
+Yes.
+
+### 10. It provides a parent for GUI elements
+
+TODO
+
+### 11. Montoya API Artifact Usage
+
+Yes.
+This extension uses the official `montoya-api` artifact via Gradle.
+
+### 12. Montoya API for AI Functionality
+
+Out of scope.
+Because this extension does not use Burp AI(Montoya API for AI Functionality).
+
+---

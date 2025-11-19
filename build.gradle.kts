@@ -22,16 +22,13 @@ dependencies {
     // Montoya API for Burp Suite extensions
     compileOnly("net.portswigger.burp.extensions:montoya-api:2025.7")
     
-    // HTTP Client
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    
     // JSON Processing
     implementation("com.google.code.gson:gson:2.10.1")
     
     // Logging
     implementation("org.slf4j:slf4j-api:2.0.9")
     implementation("ch.qos.logback:logback-classic:1.4.11")
-    
+
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

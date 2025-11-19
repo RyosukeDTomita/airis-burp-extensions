@@ -1,11 +1,16 @@
 package com.airis.burp.ai.llm;
 
 import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.core.ByteArray;
+import burp.api.montoya.http.HttpService;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.http.message.responses.HttpResponse;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.core.HttpHistoryItem;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /** Abstract base class for LLM client implementations. */
@@ -78,6 +83,54 @@ public abstract class AbstractLLMClient implements LLMClient {
   }
 
   /**
+   * Build HTTP request with custom headers. Override this method to customize the request.
+   *
+   * @param config Configuration containing API settings
+   * @param jsonRequest JSON request body
+   * @return HttpRequest with all headers configured
+   */
+  protected HttpRequest buildHttpRequest(ConfigModel config, String jsonRequest) {
+    try {
+      URI endpointUri = new URI(config.getEndpoint());
+      String scheme = endpointUri.getScheme() != null ? endpointUri.getScheme() : "https";
+      boolean secure = scheme.equalsIgnoreCase("https");
+      String host = endpointUri.getHost();
+      if (host == null || host.isEmpty()) {
+        throw new IllegalArgumentException(
+            "Endpoint must include a valid host: " + config.getEndpoint());
+      }
+
+      int port = endpointUri.getPort();
+      if (port == -1) {
+        port = secure ? 443 : 80;
+      }
+
+      String path = endpointUri.getRawPath();
+      if (path == null || path.isEmpty()) {
+        path = "/";
+      }
+      String query = endpointUri.getRawQuery();
+      if (query != null && !query.isEmpty()) {
+        path += "?" + query;
+      }
+
+      HttpService service = HttpService.httpService(host, port, secure);
+
+      return HttpRequest.httpRequest()
+          .withService(service)
+          .withMethod("POST")
+          .withPath(path)
+          .withBody(ByteArray.byteArray(jsonRequest.getBytes(StandardCharsets.UTF_8)))
+          .withHeader("Host", host)
+          .withHeader("Content-Type", "application/json; charset=UTF-8")
+          .withHeader("Accept", "application/json")
+          .withHeader("Authorization", getAuthorizationHeader(config.getApiKey()));
+    } catch (URISyntaxException e) {
+      throw new IllegalArgumentException("Invalid LLM endpoint URL: " + config.getEndpoint(), e);
+    }
+  }
+
+  /**
    * Send HTTP request to LLM API using Montoya API
    *
    * <p>This method is public to mock in unit tests
@@ -88,12 +141,7 @@ public abstract class AbstractLLMClient implements LLMClient {
    */
   public String sendHttpRequest(ConfigModel config, String jsonRequest) {
     try {
-      HttpRequest httpRequest =
-          HttpRequest.httpRequestFromUrl(config.getEndpoint())
-              .withMethod("POST")
-              .withHeader("Content-Type", "application/json; charset=UTF-8")
-              .withHeader("Authorization", getAuthorizationHeader(config.getApiKey()))
-              .withBody(jsonRequest);
+      HttpRequest httpRequest = buildHttpRequest(config, jsonRequest);
 
       HttpRequestResponse requestResponse = montoyaApi.http().sendRequest(httpRequest);
 
@@ -104,7 +152,12 @@ public abstract class AbstractLLMClient implements LLMClient {
       }
 
       int statusCode = httpResponse.statusCode();
-      String responseBody = httpResponse.bodyToString();
+      ByteArray bodyBytes = httpResponse.body();
+      if (bodyBytes == null) {
+        throw new RuntimeException("API response did not include a body");
+      }
+
+      String responseBody = new String(bodyBytes.getBytes(), StandardCharsets.UTF_8);
 
       if (statusCode >= 400) {
         montoyaApi.logging().logToError("[ERROR] HTTP " + statusCode + " Error: " + responseBody);
