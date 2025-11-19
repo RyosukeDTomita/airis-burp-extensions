@@ -8,6 +8,7 @@ public final class ConfigModel {
 
   private final String provider;
   private final String endpoint;
+  private final String model;
   private final String apiKey;
 
   // Lazy initialized hash code for performance optimization.
@@ -26,12 +27,16 @@ public final class ConfigModel {
    * @param endpoint The API endpoint URL.
    * @param apiKey The API key
    */
-  public ConfigModel(final String provider, final String endpoint, final String apiKey) {
+  public ConfigModel(
+      final String provider, final String endpoint, final String model, final String apiKey) {
     if (!isValidProvider(provider)) {
       throw new IllegalArgumentException("Invalid provider specified.");
     }
     if (!isValidEndpoint(endpoint)) {
       throw new IllegalArgumentException("Endpoint must be a valid HTTPS URL.");
+    }
+    if (model == null || model.trim().isEmpty()) {
+      throw new IllegalArgumentException("Model cannot be null or empty.");
     }
     if (apiKey == null || apiKey.trim().isEmpty()) {
       throw new IllegalArgumentException("API key cannot be null or empty.");
@@ -39,6 +44,7 @@ public final class ConfigModel {
 
     this.provider = provider;
     this.endpoint = endpoint;
+    this.model = model;
     this.apiKey = apiKey;
   }
 
@@ -48,6 +54,10 @@ public final class ConfigModel {
 
   public String getEndpoint() {
     return endpoint;
+  }
+
+  public String getModel() {
+    return model;
   }
 
   public String getApiKey() {
@@ -120,8 +130,8 @@ public final class ConfigModel {
    */
   @Override
   public String toString() {
-    String FORMAT = "ConfigModel(provider=%s, endpoint=%s, apiKey=%s)";
-    return String.format(FORMAT, provider, endpoint, maskApiKey());
+    String FORMAT = "ConfigModel(provider=%s, endpoint=%s, model=%s, apiKey=%s)";
+    return String.format(FORMAT, provider, endpoint, model, maskApiKey());
   }
 
   /**
@@ -171,6 +181,10 @@ public final class ConfigModel {
       return false;
     }
 
+    if (!Objects.equals(model, other.model)) {
+      return false;
+    }
+
     if (!Objects.equals(apiKey, other.apiKey)) {
       return false;
     }
@@ -194,6 +208,7 @@ public final class ConfigModel {
     }
     result = prime * result + ((provider == null) ? 0 : provider.hashCode());
     result = prime * result + ((endpoint == null) ? 0 : endpoint.hashCode());
+    result = prime * result + ((model == null) ? 0 : model.hashCode());
     result = prime * result + ((apiKey == null) ? 0 : apiKey.hashCode());
     hashCode = result;
     return result;

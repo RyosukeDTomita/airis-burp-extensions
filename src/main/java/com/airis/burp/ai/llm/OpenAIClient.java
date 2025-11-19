@@ -26,7 +26,11 @@ public class OpenAIClient extends AbstractLLMClient {
   protected String formatRequestBody(
       ConfigModel configModel, HttpHistoryItem requestAndResponse, String userPrompt) {
     JsonObject requestPayload = new JsonObject();
-    requestPayload.addProperty("model", DEFAULT_MODEL);
+    String model = configModel.getModel();
+    if (model == null || model.trim().isEmpty()) {
+      model = DEFAULT_MODEL;
+    }
+    requestPayload.addProperty("model", model);
 
     JsonArray messages = new JsonArray();
 

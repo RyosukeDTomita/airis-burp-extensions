@@ -41,7 +41,7 @@ This is an [Burp Suite](https://portswigger.net/burp) extension that allows you 
 
 1. Open Burp Suite and add .jar file. You can download from [latet releases](https://github.com/RyosukeDTomita/airis-burp-extensions/releases) or build for yourself.
     ![extensions](./assets/add_extensions.png)
-2. Move to `AIris Config` tab and put your API key and endpoint. Don't forget to push Save button.
+2. Move to `AIris Config` tab and put your API key, endpoint, and preferred model. Don't forget to push Save button.
     ![api-key](./assets/settings.png)
 3. Select Burp Suite's HTTP history tab, right-click on a request or response, and send to `AIris Analysis` tab then you can write your prompt.
     ![right_click_menu](./assets/right_click_menu.png)

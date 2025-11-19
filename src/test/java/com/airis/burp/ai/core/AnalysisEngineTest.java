@@ -8,6 +8,7 @@ import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
 import com.airis.burp.ai.config.ConfigModel;
 import com.airis.burp.ai.llm.AnthropicClient;
+import com.airis.burp.ai.llm.LLMProviderRegistry;
 import com.airis.burp.ai.llm.OpenAIClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -105,8 +106,12 @@ public class AnalysisEngineTest {
     // Setup montoyaApi mock
     when(montoyaApi.logging()).thenReturn(logging);
 
-    ConfigModel openaiConfig =
-        new ConfigModel("openai", "https://api.openai.com/v1/chat/completions", "test-api-key");
+  ConfigModel openaiConfig =
+    new ConfigModel(
+      "openai",
+      "https://api.openai.com/v1/chat/completions",
+      LLMProviderRegistry.DEFAULT_OPENAI_MODEL,
+      "test-api-key");
     AnalysisEngine sut = new AnalysisEngine(() -> openaiConfig, logging, montoyaApi);
 
     // Expected JSON response from OpenAI API
@@ -197,8 +202,12 @@ public class AnalysisEngineTest {
     // Setup montoyaApi mock
     when(montoyaApi.logging()).thenReturn(logging);
 
-    ConfigModel anthropicConfig =
-        new ConfigModel("anthropic", "https://api.anthropic.com/v1/messages", "test-api-key");
+  ConfigModel anthropicConfig =
+    new ConfigModel(
+      "anthropic",
+      "https://api.anthropic.com/v1/messages",
+      LLMProviderRegistry.DEFAULT_ANTHROPIC_MODEL,
+      "test-api-key");
     AnalysisEngine sut = new AnalysisEngine(() -> anthropicConfig, logging, montoyaApi);
 
     // Expected JSON response from Anthropic API

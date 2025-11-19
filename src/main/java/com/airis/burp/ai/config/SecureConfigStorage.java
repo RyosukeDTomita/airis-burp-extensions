@@ -3,6 +3,7 @@ package com.airis.burp.ai.config;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
 import burp.api.montoya.persistence.PersistedObject;
+import com.airis.burp.ai.llm.LLMProviderRegistry;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
@@ -29,6 +30,7 @@ public final class SecureConfigStorage {
   private static final String MASTER_KEY_SETTING = "airis.master.key";
   private static final String PROVIDER_SETTING = "airis.config.provider";
   private static final String ENDPOINT_SETTING = "airis.config.endpoint";
+  private static final String MODEL_SETTING = "airis.config.model";
   private static final String API_KEY_SETTING = "airis.config.apiKey";
 
   private final Logging logger;
@@ -85,6 +87,7 @@ public final class SecureConfigStorage {
   public Optional<ConfigModel> load() {
     final String provider = this.storage.getString(PROVIDER_SETTING);
     final String endpoint = this.storage.getString(ENDPOINT_SETTING);
+    final String model = this.storage.getString(MODEL_SETTING);
     final String encryptedApiKey = this.storage.getString(API_KEY_SETTING);
 
     if (provider == null || endpoint == null || encryptedApiKey == null) {
@@ -93,7 +96,11 @@ public final class SecureConfigStorage {
 
     try {
       String apiKey = this.decryptToString(encryptedApiKey);
-      return Optional.of(new ConfigModel(provider, endpoint, apiKey));
+      String resolvedModel =
+          (model == null || model.trim().isEmpty())
+              ? LLMProviderRegistry.getDefaultModel(provider)
+              : model;
+      return Optional.of(new ConfigModel(provider, endpoint, resolvedModel, apiKey));
     } catch (GeneralSecurityException e) {
       this.logger.logToError("Failed to decrypt stored configuration: " + e.getMessage());
       return Optional.empty();
@@ -111,8 +118,9 @@ public final class SecureConfigStorage {
     try {
       String encryptedKey = this.encryptString(apiKey);
 
-      this.storage.setString(PROVIDER_SETTING, config.getProvider());
-      this.storage.setString(ENDPOINT_SETTING, config.getEndpoint());
+  this.storage.setString(PROVIDER_SETTING, config.getProvider());
+  this.storage.setString(ENDPOINT_SETTING, config.getEndpoint());
+  this.storage.setString(MODEL_SETTING, config.getModel());
       this.storage.setString(API_KEY_SETTING, encryptedKey);
 
       this.logger.logToOutput("Configuration stored securely.");
@@ -136,8 +144,9 @@ public final class SecureConfigStorage {
   /** Deletes the master key and configuration data, reinitializing a fresh key. */
   public void reset() {
     this.storage.deleteString(MASTER_KEY_SETTING);
-    this.storage.deleteString(PROVIDER_SETTING);
-    this.storage.deleteString(ENDPOINT_SETTING);
+  this.storage.deleteString(PROVIDER_SETTING);
+  this.storage.deleteString(ENDPOINT_SETTING);
+  this.storage.deleteString(MODEL_SETTING);
     this.storage.deleteString(API_KEY_SETTING);
     this.initializeMasterKey();
     this.logger.logToOutput("Configuration cleared from storage.");

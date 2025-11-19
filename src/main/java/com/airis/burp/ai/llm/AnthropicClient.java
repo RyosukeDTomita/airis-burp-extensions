@@ -45,7 +45,11 @@ public class AnthropicClient extends AbstractLLMClient {
       ConfigModel configModel, HttpHistoryItem requestAndResponse, String userPrompt) {
 
     JsonObject payload = new JsonObject();
-    payload.addProperty("model", DEFAULT_MODEL);
+    String model = configModel.getModel();
+    if (model == null || model.trim().isEmpty()) {
+      model = DEFAULT_MODEL;
+    }
+    payload.addProperty("model", model);
     payload.addProperty("system", DEFAULT_SYSTEM_PROMPT);
     payload.addProperty("max_tokens", 1024);
     payload.addProperty("temperature", 0.3);

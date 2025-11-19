@@ -6,6 +6,7 @@ import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 import com.airis.burp.ai.core.AnalysisResult;
 import com.airis.burp.ai.core.HttpHistoryItem;
+import burp.api.montoya.ui.swing.SwingUtils;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +17,12 @@ import javax.swing.JOptionPane;
 /** Context menu provider for Burp Suite that allows adding HTTP requests to the analysis tab. */
 public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
   private final MontoyaApi montoyaApi;
+  private final SwingUtils swingUtils;
   private AnalysisResultsTab analysisResultsTab;
 
   public AIAnalysisMenuProvider(MontoyaApi montoyaApi) {
     this.montoyaApi = montoyaApi;
+    this.swingUtils = montoyaApi.userInterface().swingUtils();
   }
 
   /**
@@ -70,7 +73,10 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
   private void addToAnalysisTab(HttpRequestResponse requestResponse) {
     if (analysisResultsTab == null) {
       JOptionPane.showMessageDialog(
-          null, "Analysis Results tab is not available.", "Error", JOptionPane.ERROR_MESSAGE);
+          parentFrame(),
+          "Analysis Results tab is not available.",
+          "Error",
+          JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -93,7 +99,7 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
       // Prompt user for custom prompt
       String prompt =
           JOptionPane.showInputDialog(
-              null,
+        parentFrame(),
               "Enter analysis prompt (optional):",
               "Add to Analysis Tab",
               JOptionPane.QUESTION_MESSAGE);
@@ -117,10 +123,14 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
     } catch (Exception e) {
       montoyaApi.logging().logToError("Failed to add to analysis tab: " + e.getMessage());
       JOptionPane.showMessageDialog(
-          null,
+          parentFrame(),
           "Failed to add to analysis tab: " + e.getMessage(),
           "Error",
           JOptionPane.ERROR_MESSAGE);
     }
+  }
+
+  private Component parentFrame() {
+    return swingUtils != null ? swingUtils.suiteFrame() : null;
   }
 }
