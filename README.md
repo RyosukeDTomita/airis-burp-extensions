@@ -50,6 +50,11 @@ This is an [Burp Suite](https://portswigger.net/burp) extension that allows you 
     ![response](./assets/send_request.png)
     ![result](./assets/result.png)
 
+> [!NOTE]
+> If you are unable to get satisfactory results, please check `Airis Analysis` tab result area or Logger tab(Built-in Burp Suite) for error messages.
+> ![AIris Analysis tab](./assets/api_key_error.png)
+> ![Logger tab](./assets/logger_tab.png)
+
 ### Using Azure Open AI
 
 Replacing the endpoint will make it work.

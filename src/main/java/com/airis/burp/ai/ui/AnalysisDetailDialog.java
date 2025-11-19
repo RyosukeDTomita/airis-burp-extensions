@@ -65,8 +65,34 @@ public class AnalysisDetailDialog extends JDialog {
   }
 
   private JPanel createContentPanel() {
-    JPanel panel = new JPanel(new GridLayout(2, 1, 10, 10));
+    JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
     panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+
+    // Request section
+    JPanel requestPanel = new JPanel(new BorderLayout());
+    requestPanel.setBorder(BorderFactory.createTitledBorder("HTTP Request"));
+    JTextArea requestArea =
+        new JTextArea(analysisResult.getHttpHistoryItem().getRequest());
+    requestArea.setEditable(false);
+    requestArea.setLineWrap(true);
+    requestArea.setWrapStyleWord(true);
+    requestArea.setCaretPosition(0);
+    requestArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+    JScrollPane requestScrollPane = new JScrollPane(requestArea);
+    requestPanel.add(requestScrollPane, BorderLayout.CENTER);
+
+    // Response section
+    JPanel responsePanel = new JPanel(new BorderLayout());
+    responsePanel.setBorder(BorderFactory.createTitledBorder("HTTP Response"));
+    JTextArea responseArea =
+        new JTextArea(analysisResult.getHttpHistoryItem().getResponse());
+    responseArea.setEditable(false);
+    responseArea.setLineWrap(true);
+    responseArea.setWrapStyleWord(true);
+    responseArea.setCaretPosition(0);
+    responseArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+    JScrollPane responseScrollPane = new JScrollPane(responseArea);
+    responsePanel.add(responseScrollPane, BorderLayout.CENTER);
 
     // Prompt section
     JPanel promptPanel = new JPanel(new BorderLayout());
@@ -81,7 +107,7 @@ public class AnalysisDetailDialog extends JDialog {
 
     // Result section
     JPanel resultPanel = new JPanel(new BorderLayout());
-    resultPanel.setBorder(BorderFactory.createTitledBorder("Result"));
+    resultPanel.setBorder(BorderFactory.createTitledBorder("Analysis Result"));
     JTextArea resultArea = new JTextArea(analysisResult.getResult());
     resultArea.setEditable(false);
     resultArea.setLineWrap(true);
@@ -90,6 +116,8 @@ public class AnalysisDetailDialog extends JDialog {
     JScrollPane resultScrollPane = new JScrollPane(resultArea);
     resultPanel.add(resultScrollPane, BorderLayout.CENTER);
 
+    panel.add(requestPanel);
+    panel.add(responsePanel);
     panel.add(promptPanel);
     panel.add(resultPanel);
 
@@ -99,6 +127,16 @@ public class AnalysisDetailDialog extends JDialog {
   private JPanel createButtonPanel() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+
+    // Copy Request button
+    JButton copyRequestButton = new JButton("Copy Request");
+    copyRequestButton.addActionListener(
+        e -> copyToClipboard(analysisResult.getHttpHistoryItem().getRequest(), "Request"));
+
+    // Copy Response button
+    JButton copyResponseButton = new JButton("Copy Response");
+    copyResponseButton.addActionListener(
+        e -> copyToClipboard(analysisResult.getHttpHistoryItem().getResponse(), "Response"));
 
     // Copy Prompt button
     JButton copyPromptButton = new JButton("Copy Prompt");
@@ -122,10 +160,16 @@ public class AnalysisDetailDialog extends JDialog {
                   + "Status: "
                   + analysisResult.getStatus()
                   + "\n\n"
-                  + "Prompt:\n"
+                  + "=== HTTP Request ===\n"
+                  + analysisResult.getHttpHistoryItem().getRequest()
+                  + "\n\n"
+                  + "=== HTTP Response ===\n"
+                  + analysisResult.getHttpHistoryItem().getResponse()
+                  + "\n\n"
+                  + "=== Prompt ===\n"
                   + analysisResult.getPrompt()
                   + "\n\n"
-                  + "Result:\n"
+                  + "=== Analysis Result ===\n"
                   + analysisResult.getResult();
           copyToClipboard(all, "All information");
         });
@@ -134,6 +178,8 @@ public class AnalysisDetailDialog extends JDialog {
     JButton closeButton = new JButton("Close");
     closeButton.addActionListener(e -> dispose());
 
+    panel.add(copyRequestButton);
+    panel.add(copyResponseButton);
     panel.add(copyPromptButton);
     panel.add(copyResultButton);
     panel.add(copyAllButton);
