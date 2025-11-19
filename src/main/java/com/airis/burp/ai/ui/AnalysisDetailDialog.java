@@ -15,7 +15,7 @@ import javax.swing.*;
 public class AnalysisDetailDialog extends JDialog {
   private final AnalysisResult analysisResult;
   private final BiConsumer<AnalysisResult, Consumer<AnalysisResult>> sendRequestHandler;
-  private JEditorPane resultPane;
+  private JTextArea resultArea;
   private JButton sendRequestButton;
 
   /**
@@ -117,14 +117,14 @@ public class AnalysisDetailDialog extends JDialog {
     promptPanel.add(promptScrollPane, BorderLayout.CENTER);
 
     // Result section
-    JPanel resultPanel = new JPanel(new BorderLayout());
-    resultPanel.setBorder(BorderFactory.createTitledBorder("Analysis Result"));
-    resultPane = new JEditorPane();
-    resultPane.setContentType("text/html");
-    resultPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
-    resultPane.setEditable(false);
-    updateResultPane(analysisResult.getResult());
-    JScrollPane resultScrollPane = new JScrollPane(resultPane);
+  JPanel resultPanel = new JPanel(new BorderLayout());
+  resultPanel.setBorder(BorderFactory.createTitledBorder("Analysis Result"));
+  resultArea = new JTextArea();
+  resultArea.setEditable(false);
+  resultArea.setLineWrap(true);
+  resultArea.setWrapStyleWord(true);
+  updateResultArea(analysisResult.getResult());
+  JScrollPane resultScrollPane = new JScrollPane(resultArea);
     resultPanel.add(resultScrollPane, BorderLayout.CENTER);
 
     panel.add(requestPanel);
@@ -136,7 +136,7 @@ public class AnalysisDetailDialog extends JDialog {
   }
 
   private JPanel createButtonPanel() {
-    JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+  JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 
     // Copy Request button
@@ -186,21 +186,28 @@ public class AnalysisDetailDialog extends JDialog {
         });
 
     // Send Request button - sends the request that was used for this analysis to LLM
-    sendRequestButton = new JButton("Send Request");
-    sendRequestButton.setToolTipText("Send the HTTP request to LLM API");
-    sendRequestButton.addActionListener(e -> sendRequest());
+  sendRequestButton = new JButton("Send Request");
+  sendRequestButton.setToolTipText("Send the HTTP request to LLM API");
+  sendRequestButton.setBackground(new Color(255, 153, 0));
+  sendRequestButton.setForeground(Color.WHITE);
+  sendRequestButton.setFocusPainted(false);
+  sendRequestButton.setOpaque(true);
+  sendRequestButton.setBorder(BorderFactory.createCompoundBorder(
+    BorderFactory.createLineBorder(new Color(230, 126, 34)),
+    BorderFactory.createEmptyBorder(5, 15, 5, 15)));
+  sendRequestButton.addActionListener(e -> sendRequest());
 
     // Close button
     JButton closeButton = new JButton("Close");
     closeButton.addActionListener(e -> dispose());
 
-    panel.add(copyRequestButton);
-    panel.add(copyResponseButton);
-    panel.add(copyPromptButton);
-    panel.add(copyResultButton);
-    panel.add(copyAllButton);
-    panel.add(sendRequestButton);
-    panel.add(closeButton);
+  panel.add(sendRequestButton);
+  panel.add(copyRequestButton);
+  panel.add(copyResponseButton);
+  panel.add(copyPromptButton);
+  panel.add(copyResultButton);
+  panel.add(copyAllButton);
+  panel.add(closeButton);
 
     return panel;
   }
@@ -211,21 +218,21 @@ public class AnalysisDetailDialog extends JDialog {
     }
 
     sendRequestButton.setEnabled(false);
-    updateResultPane("_Sending request to LLM API..._");
+    updateResultArea("Sending request to LLM API...");
 
     sendRequestHandler.accept(
         analysisResult,
         updatedResult ->
             SwingUtilities.invokeLater(
                 () -> {
-                  updateResultPane(updatedResult.getResult());
+                  updateResultArea(updatedResult.getResult());
                   sendRequestButton.setEnabled(true);
                 }));
   }
 
-  private void updateResultPane(String markdownText) {
-    resultPane.setText(MarkdownRenderer.toHtml(markdownText));
-    resultPane.setCaretPosition(0);
+  private void updateResultArea(String text) {
+    resultArea.setText(text);
+    resultArea.setCaretPosition(0);
   }
 
   private void copyToClipboard(String text, String contentName) {
