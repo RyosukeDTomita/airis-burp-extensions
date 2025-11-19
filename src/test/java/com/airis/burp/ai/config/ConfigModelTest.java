@@ -53,7 +53,8 @@ public class ConfigModelTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {LLMProviderRegistry.PROVIDER_OPENAI, LLMProviderRegistry.PROVIDER_ANTHROPIC})
+  @ValueSource(
+      strings = {LLMProviderRegistry.PROVIDER_OPENAI, LLMProviderRegistry.PROVIDER_ANTHROPIC})
   public void shouldConstructSuccessfullyForValidProviders(String provider) {
     assertDoesNotThrow(
         () ->
@@ -98,7 +99,7 @@ public class ConfigModelTest {
                 LLMProviderRegistry.PROVIDER_OPENAI,
                 "https://api.example.com/v1/chat",
                 LLMProviderRegistry.DEFAULT_OPENAI_MODEL,
-        ""));
+                ""));
   }
 
   @Test
@@ -109,7 +110,7 @@ public class ConfigModelTest {
                 LLMProviderRegistry.PROVIDER_OPENAI,
                 "https://api.example.com/v1/chat",
                 LLMProviderRegistry.DEFAULT_OPENAI_MODEL,
-        "sk-xxxxxxxxxxxxxxxxxtest"));
+                "sk-xxxxxxxxxxxxxxxxxtest"));
   }
 
   @Test

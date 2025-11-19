@@ -118,9 +118,9 @@ public final class SecureConfigStorage {
     try {
       String encryptedKey = this.encryptString(apiKey);
 
-  this.storage.setString(PROVIDER_SETTING, config.getProvider());
-  this.storage.setString(ENDPOINT_SETTING, config.getEndpoint());
-  this.storage.setString(MODEL_SETTING, config.getModel());
+      this.storage.setString(PROVIDER_SETTING, config.getProvider());
+      this.storage.setString(ENDPOINT_SETTING, config.getEndpoint());
+      this.storage.setString(MODEL_SETTING, config.getModel());
       this.storage.setString(API_KEY_SETTING, encryptedKey);
 
       this.logger.logToOutput("Configuration stored securely.");
@@ -144,9 +144,9 @@ public final class SecureConfigStorage {
   /** Deletes the master key and configuration data, reinitializing a fresh key. */
   public void reset() {
     this.storage.deleteString(MASTER_KEY_SETTING);
-  this.storage.deleteString(PROVIDER_SETTING);
-  this.storage.deleteString(ENDPOINT_SETTING);
-  this.storage.deleteString(MODEL_SETTING);
+    this.storage.deleteString(PROVIDER_SETTING);
+    this.storage.deleteString(ENDPOINT_SETTING);
+    this.storage.deleteString(MODEL_SETTING);
     this.storage.deleteString(API_KEY_SETTING);
     this.initializeMasterKey();
     this.logger.logToOutput("Configuration cleared from storage.");

@@ -69,8 +69,8 @@ public class ConfigurationTab {
     // Provider select combo box
     gbc.gridx = 1;
     gbc.weightx = 1.0;
-  providerCombo = new JComboBox<>(new String[] {"openai", "anthropic"});
-  providerCombo.addActionListener(e -> updateEndpointForProvider());
+    providerCombo = new JComboBox<>(new String[] {"openai", "anthropic"});
+    providerCombo.addActionListener(e -> updateEndpointForProvider());
     formPanel.add(providerCombo, gbc);
 
     // Endpoint
@@ -85,20 +85,20 @@ public class ConfigurationTab {
     endpointField = new JTextField();
     formPanel.add(endpointField, gbc);
 
-  // Model
-  gbc.gridx = 0;
-  gbc.gridy = 2;
-  gbc.weightx = 0;
-  formPanel.add(new JLabel("Model:"), gbc);
+    // Model
+    gbc.gridx = 0;
+    gbc.gridy = 2;
+    gbc.weightx = 0;
+    formPanel.add(new JLabel("Model:"), gbc);
 
-  gbc.gridx = 1;
-  gbc.weightx = 1.0;
-  modelField = new JTextField();
-  formPanel.add(modelField, gbc);
+    gbc.gridx = 1;
+    gbc.weightx = 1.0;
+    modelField = new JTextField();
+    formPanel.add(modelField, gbc);
 
     // API Key
     gbc.gridx = 0;
-  gbc.gridy = 3;
+    gbc.gridy = 3;
     gbc.weightx = 0;
     formPanel.add(new JLabel("API Key:"), gbc);
 
@@ -109,8 +109,8 @@ public class ConfigurationTab {
     formPanel.add(apiKeyField, gbc);
 
     // Add a filler component to push everything to the top
-  gbc.gridx = 0;
-  gbc.gridy = 4;
+    gbc.gridx = 0;
+    gbc.gridy = 4;
     gbc.gridwidth = 2;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
@@ -204,10 +204,10 @@ public class ConfigurationTab {
 
         ConfigModel newConfig =
             new ConfigModel(
-        (String) providerCombo.getSelectedItem(),
-        endpointField.getText(),
-        modelField.getText(),
-        enteredApiKey);
+                (String) providerCombo.getSelectedItem(),
+                endpointField.getText(),
+                modelField.getText(),
+                enteredApiKey);
         // Consumer callback to save the configuration
         onSave.accept(newConfig);
 
@@ -232,8 +232,8 @@ public class ConfigurationTab {
 
       // Get current configuration from UI
       String provider = (String) providerCombo.getSelectedItem();
-  String endpoint = endpointField.getText();
-  String model = modelField.getText();
+      String endpoint = endpointField.getText();
+      String model = modelField.getText();
       char[] apiKeyChars = apiKeyField.getPassword();
       String apiKey = new String(apiKeyChars);
 

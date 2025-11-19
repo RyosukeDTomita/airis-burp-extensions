@@ -4,9 +4,9 @@ import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
+import burp.api.montoya.ui.swing.SwingUtils;
 import com.airis.burp.ai.core.AnalysisResult;
 import com.airis.burp.ai.core.HttpHistoryItem;
-import burp.api.montoya.ui.swing.SwingUtils;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
@@ -99,7 +99,7 @@ public class AIAnalysisMenuProvider implements ContextMenuItemsProvider {
       // Prompt user for custom prompt
       String prompt =
           JOptionPane.showInputDialog(
-        parentFrame(),
+              parentFrame(),
               "Enter analysis prompt (optional):",
               "Add to Analysis Tab",
               JOptionPane.QUESTION_MESSAGE);

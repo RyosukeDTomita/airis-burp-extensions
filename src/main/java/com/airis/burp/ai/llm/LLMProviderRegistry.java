@@ -14,8 +14,7 @@ public class LLMProviderRegistry {
   public static final String PROVIDER_ANTHROPIC = "anthropic";
 
   // Default endpoints for different providers
-  public static final String DEFAULT_OPENAI_ENDPOINT =
-      "https://api.openai.com/v1/chat/completions";
+  public static final String DEFAULT_OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions";
   public static final String DEFAULT_ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages";
 
   // Default models for different providers
