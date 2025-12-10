@@ -14,7 +14,6 @@
 - [ABOUT](#about)
 - [HOW TO USE](#how-to-use)
 - [ENVIRONMENT](#environment)
-- [PREPARING](#preparing)
 - [For Developers](#for-developers)
 
 ---
@@ -27,6 +26,12 @@ This is an [Burp Suite](https://portswigger.net/burp) extension that allows you 
 
 - [Burp AI](https://portswigger.net/burp/ai) is not supported in the free version of Burp Suite.
 - Some companies only allow the use of organization-managed AI services, such as [Azure OpenAI](https://learn.microsoft.com/ja-jp/azure/ai-foundry/openai/overview), [Amazon Bedrock](https://aws.amazon.com/jp/bedrock/).
+
+### Not BApp Store Extension
+
+> [!NOTE]
+> This extension was not accepted into the BApp Store because it uses custom LLM not [Burp AI](https://portswigger.net/burp/ai). In detail,
+[See this discussion](https://github.com/PortSwigger/extension-portal/issues/154#issuecomment-3633287871).
 
 ### Supported LLMs
 
@@ -113,7 +118,7 @@ cd airis
 
 ---
 
-## BApp Store acceptance criteria
+## BApp Store acceptance criteria(self check)
 
 This extension is designed to meet the security- and quality-related [acceptance criteria](https://portswigger.net/burp/documentation/desktop/extend-burp/extensions/creating/bapp-store-acceptance-criteria) required for the **BApp Store**:
 
@@ -121,6 +126,7 @@ This extension is designed to meet the security- and quality-related [acceptance
 
 Yes.
 I could not find any other extension in BApp Store with a similar name.
+Reference: [#Not BApp Store Extension](#not-bapp-store-extension)
 
 ### 2. It has a clear, descriptive name
 
@@ -128,7 +134,10 @@ Yes (I think so).
 
 ### 3. It operates securely
 
-TODO
+Yes
+
+- API keys are masked when writing logs.
+- API keys are stored in encrypted form.
 
 ### 4. It includes all dependencies
 
@@ -138,6 +147,7 @@ All dependencies are managed via **Gradle** and shaded into a single `airis-burp
 ### 5. It uses threads to maintain responsiveness
 
 Yes.
+All the HTTP requests to external LLM services use threads and work in the background.
 
 ### 6. It unloads cleanly
 
@@ -151,7 +161,7 @@ All the HTTP requests to external LLM services are made via Montoya API.
 
 ### 8. It supports offline working
 
-No.
+Out of scope.
 This Extension use network communication with online llm services via Burp's integrated AI platform.
 
 ### 9. It can cope with large projects
@@ -160,7 +170,8 @@ Yes.
 
 ### 10. It provides a parent for GUI elements
 
-TODO
+Yes.
+All GUI elements are parented to `SwingUtils.suiteFrame()`.
 
 ### 11. Montoya API Artifact Usage
 
