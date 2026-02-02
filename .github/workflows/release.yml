@@ -1,9 +1,9 @@
 name: Release
 
 on:
-  release:
-    types: [created]
-
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build-and-release:
@@ -25,7 +25,6 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v0.1.15
         with:
+          tag_name: ${{ github.ref_name }}
           files: ./build/airis-burp.jar
           generate_release_notes: true
-          draft: false
-          prerelease: false
