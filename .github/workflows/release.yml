@@ -31,3 +31,5 @@ jobs:
           path: build
 
       - run: gh release create "$GITHUB_REF_NAME" build/airis-burp.jar
+        env:
+          GH_TOKEN: ${{ github.token }}
