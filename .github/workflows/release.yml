@@ -8,19 +8,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      - name: Make build script executable
-        run: chmod +x ./build.sh
+      - run: chmod +x ./build.sh
+      - run: ./build.sh
 
-      - name: Build JAR file
-        run: ./build.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: jar
+          path: build/airis-burp.jar
 
   release:
     needs: build
@@ -32,4 +29,5 @@ jobs:
         with:
           name: jar
           path: build
-      - run: gh release create "$GITHUB_REF_NAME" ./build/airis-burp.jar
+
+      - run: gh release create "$GITHUB_REF_NAME" build/airis-burp.jar
