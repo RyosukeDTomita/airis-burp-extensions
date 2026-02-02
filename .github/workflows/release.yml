@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 jobs:
-  build-and-release:
+  build:
     runs-on: ubuntu-latest
 
     permissions:
@@ -22,8 +22,14 @@ jobs:
       - name: Build JAR file
         run: ./build.sh
 
-      - name: Create Release
-        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v0.1.15
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+     - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          files: ./build/airis-burp.jar
-          generate_release_notes: true
+          name: jar
+          path: build
+      - run: gh release create "$GITHUB_REF_NAME" ./build/airis-burp.jar
